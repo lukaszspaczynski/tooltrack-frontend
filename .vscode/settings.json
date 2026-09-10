@@ -1,0 +1,29 @@
+{
+  // The same editor behaviour as Backend/ and the RN-App repo, so a save does
+  // the same thing wherever you are. oxlint has no editor integration wired up
+  // here — it runs as the `lint` task and in CI.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  // Imports are extensionless and resolved by Vite.
+  "typescript.preferences.importModuleSpecifierEnding": "minimal",
+
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/package-lock.json": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true
+  }
+}

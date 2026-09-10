@@ -1,0 +1,235 @@
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Center,
+  Group,
+  Loader,
+  Modal,
+  Paper,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { notifications } from '@mantine/notifications'
+import { IconChevronLeft, IconPencil, IconTrash } from '@tabler/icons-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+
+import { ApiError } from '../../../api/client'
+import { deleteTool, fetchTool, updateTool } from '../../../api/tools'
+import type { Tool, ToolFields } from '../../../api/types'
+import { useSession } from '../../../session/SessionContext'
+import { ToolForm } from '../components/ToolForm'
+import { ToolPhotos } from '../components/ToolPhotos'
+import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime } from '../presentation'
+
+export function ToolDetailPage() {
+  const { id } = useParams()
+  const toolId = Number(id)
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { can } = useSession()
+
+  const [editing, setEditing] = useState(false)
+  const [confirmOpen, confirm] = useDisclosure(false)
+
+  const query = useQuery({
+    queryKey: ['tool', toolId],
+    queryFn: () => fetchTool(toolId),
+    enabled: Number.isInteger(toolId),
+  })
+
+  const save = useMutation({
+    mutationFn: (fields: ToolFields) => updateTool(toolId, fields),
+    onSuccess: async ({ tool }) => {
+      queryClient.setQueryData(['tool', toolId], { tool })
+      await queryClient.invalidateQueries({ queryKey: ['tools'] })
+      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
+      notifications.show({ color: 'teal', message: 'Zapisano zmiany' })
+      setEditing(false)
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) return
+      notifications.show({ color: 'red', message: (error as Error).message })
+    },
+  })
+
+  const remove = useMutation({
+    mutationFn: () => deleteTool(toolId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['tools'] })
+      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
+      notifications.show({ color: 'teal', message: 'Karta usunięta' })
+      navigate('/', { replace: true })
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  if (query.isPending) {
+    return (
+      <Center py="xl">
+        <Loader />
+      </Center>
+    )
+  }
+
+  if (query.isError) {
+    const notFound = query.error instanceof ApiError && query.error.status === 404
+
+    return (
+      <Stack align="flex-start">
+        <Alert
+          color={notFound ? 'gray' : 'red'}
+          variant="light"
+          title={notFound ? 'Nie ma takiej karty' : 'Błąd'}
+        >
+          {(query.error as Error).message}
+        </Alert>
+        <Button component={Link} to="/" variant="light">
+          Wróć do katalogu
+        </Button>
+      </Stack>
+    )
+  }
+
+  const tool = query.data.tool
+  const serialConflict =
+    save.error instanceof ApiError && save.error.status === 409 ? save.error.message : null
+
+  return (
+    <Stack gap="md" maw={720}>
+      <Anchor component={Link} to="/" size="sm" c="dimmed">
+        <Group gap={2} wrap="nowrap">
+          <IconChevronLeft size={14} />
+          Katalog
+        </Group>
+      </Anchor>
+
+      <Group justify="space-between" align="flex-start" gap="sm">
+        <Stack gap={4}>
+          <Title order={2}>{tool.name}</Title>
+          <Group gap="xs">
+            <Badge color={CONDITION_COLORS[tool.condition]} variant="light">
+              {CONDITION_LABELS[tool.condition]}
+            </Badge>
+            {tool.category ? <Badge variant="default">{tool.category}</Badge> : null}
+          </Group>
+        </Stack>
+
+        {can('tools.write') && !editing ? (
+          <Group gap="xs">
+            <Button
+              variant="light"
+              leftSection={<IconPencil size={18} />}
+              onClick={() => setEditing(true)}
+            >
+              Edytuj
+            </Button>
+            <Button
+              color="red"
+              variant="subtle"
+              leftSection={<IconTrash size={18} />}
+              onClick={confirm.open}
+            >
+              Usuń
+            </Button>
+          </Group>
+        ) : null}
+      </Group>
+
+      <Paper withBorder p="lg" radius="md">
+        {editing ? (
+          <ToolForm
+            initialValues={toFields(tool)}
+            onCancel={() => {
+              save.reset()
+              setEditing(false)
+            }}
+            onSubmit={(fields) => save.mutate(fields)}
+            pending={save.isPending}
+            serialNumberError={serialConflict}
+            submitLabel="Zapisz zmiany"
+          />
+        ) : (
+          <ToolDetails tool={tool} />
+        )}
+      </Paper>
+
+      {/* Outside the editing form on purpose: photos are added and removed one
+          at a time, immediately, while the fields are edited and then saved. */}
+      <Paper withBorder p="lg" radius="md">
+        <ToolPhotos canEdit={can('tools.write')} tool={tool} />
+      </Paper>
+
+      <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć kartę?" centered>
+        <Stack gap="md">
+          <Text size="sm">
+            Karta „{tool.name}" zniknie z katalogu. Tej operacji nie da się cofnąć.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={confirm.close}>
+              Anuluj
+            </Button>
+            <Button color="red" loading={remove.isPending} onClick={() => remove.mutate()}>
+              Usuń
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </Stack>
+  )
+}
+
+function ToolDetails({ tool }: { tool: Tool }) {
+  return (
+    <Stack gap="lg">
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+        <Field label="Marka" value={tool.brand} />
+        <Field label="Model" value={tool.model} />
+        <Field label="Numer seryjny" value={tool.serialNumber} />
+        <Field label="Kategoria" value={tool.category} />
+      </SimpleGrid>
+
+      <Field label="Notatki" value={tool.notes} multiline />
+
+      <Text size="xs" c="dimmed">
+        Dodano {formatDateTime(tool.createdAt)} · ostatnia zmiana {formatDateTime(tool.updatedAt)}
+      </Text>
+    </Stack>
+  )
+}
+
+function Field({ label, multiline, value }: { label: string; multiline?: boolean; value: string }) {
+  return (
+    <Stack gap={2}>
+      <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+        {label}
+      </Text>
+      {/* An empty field says so, rather than leaving a gap that reads as a
+          rendering bug. */}
+      <Text
+        style={multiline ? { whiteSpace: 'pre-wrap' } : undefined}
+        c={value ? undefined : 'dimmed'}
+      >
+        {value || '—'}
+      </Text>
+    </Stack>
+  )
+}
+
+function toFields(tool: Tool): ToolFields {
+  return {
+    brand: tool.brand,
+    category: tool.category,
+    condition: tool.condition,
+    model: tool.model,
+    name: tool.name,
+    notes: tool.notes,
+    serialNumber: tool.serialNumber,
+  }
+}

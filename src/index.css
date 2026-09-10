@@ -1,0 +1,14 @@
+/* Mantine ships the reset and the tokens; this file only holds what is true
+   for the app as a whole. */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  /* The catalog is read outdoors on a phone, often one-handed. Nothing here
+     should be small enough to need a zoom. */
+  font-size: 16px;
+}

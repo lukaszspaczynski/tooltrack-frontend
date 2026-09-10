@@ -1,0 +1,39 @@
+{
+  // Debugging a browser app means debugging it in the browser. These attach
+  // Chrome to the running dev server, so breakpoints sit in the .tsx files and
+  // React state is inspectable from the editor.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Start `dev` (the task) first, then F5. It opens a Chrome window bound
+      // to this workspace's sources.
+      "name": "Web: debug in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMapPathOverrides": {
+        "/src/*": "${workspaceFolder}/src/*"
+      }
+    },
+    {
+      // Debugs the test file in the active editor. Only pure .ts modules are
+      // tested here — see CLAUDE.md.
+      "name": "Tests: debug current file",
+      "type": "node",
+      "request": "launch",
+      "program": "${file}",
+      "runtimeArgs": ["--import", "tsx", "--test"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+    }
+  ],
+  "compounds": [
+    {
+      // One click: starts Vite and attaches Chrome to it.
+      "name": "Web: dev server + Chrome",
+      "configurations": ["Web: debug in Chrome"],
+      "preLaunchTask": "dev"
+    }
+  ]
+}

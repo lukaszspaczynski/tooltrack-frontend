@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    // Formatting on save, as configured in settings.json.
+    "esbenp.prettier-vscode",
+    // The linter this project actually runs (`npm run lint`).
+    "oxc.oxc-vscode"
+  ],
+  "unwantedRecommendations": [
+    // ESLint is not configured here — oxlint is. An installed ESLint with no
+    // config only produces noise.
+    "dbaeumer.vscode-eslint"
+  ]
+}
