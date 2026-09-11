@@ -6,6 +6,7 @@ import {
   Center,
   Group,
   Loader,
+  List,
   Modal,
   Paper,
   SimpleGrid,
@@ -15,12 +16,13 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconChevronLeft, IconPencil, IconTrash } from '@tabler/icons-react'
+import { IconAlertTriangle, IconChevronLeft, IconPencil, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { deleteCase, fetchCase, updateCase } from '../../../api/cases'
+import { fetchOrganizersOfCase } from '../../../api/organizers'
 import type { CaseFields, ToolCase } from '../../../api/types'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { useSession } from '../../../session/SessionContext'
@@ -56,13 +58,24 @@ export function CaseDetailPage() {
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
+  // What else the delete would take. Asked for only while the confirmation is
+  // open: an arrangement is not obviously part of the box, so the person has
+  // to be told before they agree, not after.
+  const organizers = useQuery({
+    queryKey: ['organizers', 'of-case', caseId],
+    queryFn: () => fetchOrganizersOfCase(caseId),
+    enabled: confirmOpen && Number.isInteger(caseId),
+  })
+
   const remove = useMutation({
     mutationFn: () => deleteCase(caseId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
       await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
-      // The photos went with it, so the library is stale too.
+      // The photos went with it, so the library is stale too — and so did the
+      // organizers that arranged this case.
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
+      await queryClient.invalidateQueries({ queryKey: ['organizers'] })
       notifications.show({ color: 'teal', message: 'Skrzynka usunięta' })
       navigate('/cases', { replace: true })
     },
@@ -174,6 +187,36 @@ export function CaseDetailPage() {
             Skrzynka „{item.name}" zniknie z listy razem ze swoimi zdjęciami. Tej operacji nie da
             się cofnąć.
           </Text>
+
+          {organizers.data && organizers.data.total > 0 ? (
+            <Alert
+              color="orange"
+              variant="light"
+              icon={<IconAlertTriangle size={18} />}
+              title={
+                organizers.data.total === 1
+                  ? 'Zniknie też organizer tej skrzynki'
+                  : `Zniknie też ${organizers.data.total} organizerów tej skrzynki`
+              }
+            >
+              <List size="sm" spacing={2}>
+                {organizers.data.items.map((organizer) => (
+                  <List.Item key={organizer.id}>
+                    {organizer.number}. {organizer.name}
+                    {organizer.tools.length > 0 ? (
+                      <Text span size="xs" c="dimmed">
+                        {' '}
+                        ({organizer.tools.length} narzędzi)
+                      </Text>
+                    ) : null}
+                  </List.Item>
+                ))}
+              </List>
+              <Text size="sm" mt="xs">
+                Same narzędzia zostają w katalogu — znika tylko informacja, co w czym leżało.
+              </Text>
+            </Alert>
+          ) : null}
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
               Anuluj
