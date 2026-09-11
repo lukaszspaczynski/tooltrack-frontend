@@ -14,7 +14,7 @@ src/
 ├── api/                 The whole HTTP surface. Nothing else calls fetch.
 │   ├── client.ts            request(), ApiError, the base URL
 │   ├── types.ts             The contract, mirroring Backend/docs/api.md
-│   └── auth.ts tools.ts users.ts
+│   └── auth.ts cases.ts photos.ts settings.ts tools.ts users.ts
 ├── session/             Who is signed in and what they may do
 │   ├── SessionContext.ts    The context, the hook, the query key
 │   ├── SessionProvider.tsx  Resolves /auth/me once for the whole app
@@ -51,6 +51,20 @@ query]`, `['tool', id]`, `['tool-categories']`, `['users']`, `['session']`.
   the category list. Photo keys carry the owner's kind as well as its id
   (`['card-photos', 'case', 4]`): tool 4 and case 4 are different cards that
   happen to share a number.
+
+## Cases
+
+`features/cases/` is the second half of the catalog: the boxes the tools live
+in. Same shapes as `features/tools/` — URL-driven list, card grid, detail page
+with an inline form — because it is read in the same place under the same
+conditions.
+
+What differs is the fields. Name and maker are required, everything else comes
+off a spec sheet, and a measurement nobody has taken stays `null`. The form
+sends `null` rather than omitting an emptied input, because that is what clears
+a number the API already has. Millimetres are whole numbers and the input says
+so; litres and kilograms accept a Polish comma, since that is what the spec
+sheets these get copied from are written with.
 
 ## Photos
 

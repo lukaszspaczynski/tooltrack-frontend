@@ -16,6 +16,7 @@ import { useDisclosure } from '@mantine/hooks'
 import {
   IconLogout,
   IconMoon,
+  IconBox,
   IconPhoto,
   IconSettings,
   IconSun,
@@ -72,6 +73,14 @@ export function AppLayout() {
           label="Narzędzia"
           leftSection={<IconTool size={18} />}
           active={location.pathname === '/' || location.pathname.startsWith('/tools')}
+          onClick={close}
+        />
+        <NavLink
+          component={Link}
+          to="/cases"
+          label="Skrzynki"
+          leftSection={<IconBox size={18} />}
+          active={location.pathname.startsWith('/cases')}
           onClick={close}
         />
         <NavLink

@@ -204,6 +204,68 @@ export type ToolFields = {
   serialNumber: string
 }
 
+// A case: the box the tools live in. Name and maker are required; everything
+// else comes off a spec sheet and is null when nobody has filled it in. Zero
+// is never "unknown" — a box with no height does not exist.
+export type ToolCase = {
+  capacityL: null | number
+  createdAt: string
+  createdBy: null | number
+  diagonalMm: null | number
+  ean: string
+  id: number
+  innerHeightMm: null | number
+  innerLengthMm: null | number
+  innerWidthMm: null | number
+  loadKg: null | number
+  manufacturer: string
+  name: string
+  notes: string
+  outerHeightMm: null | number
+  outerLengthMm: null | number
+  outerWidthMm: null | number
+  sku: string
+  system: string
+  updatedAt: string
+  updatedBy: null | number
+}
+
+export type CaseListItem = ToolCase & {
+  primaryPhotoUrl: null | string
+}
+
+export type CasePage = {
+  items: CaseListItem[]
+  limit: number
+  offset: number
+  total: number
+}
+
+// What POST /api/cases accepts. A PATCH sends any subset of it, and an
+// explicit null clears a measurement.
+export type CaseFields = {
+  capacityL: null | number
+  diagonalMm: null | number
+  ean: string
+  innerHeightMm: null | number
+  innerLengthMm: null | number
+  innerWidthMm: null | number
+  loadKg: null | number
+  manufacturer: string
+  name: string
+  notes: string
+  outerHeightMm: null | number
+  outerLengthMm: null | number
+  outerWidthMm: null | number
+  sku: string
+  system: string
+}
+
+export type SystemCount = {
+  count: number
+  system: string
+}
+
 export const ROLES = ['viewer', 'editor', 'admin'] as const
 
 export type Role = (typeof ROLES)[number]
