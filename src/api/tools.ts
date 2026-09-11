@@ -48,6 +48,13 @@ export function updateTool(id: number, patch: Partial<ToolFields>): Promise<{ to
   return request(`/tools/${id}`, { body: patch, method: 'PATCH' })
 }
 
+// Another card just like this one. The server copies the fields and the
+// photo links; the serial number starts blank, because it identifies one
+// physical machine.
+export function duplicateTool(id: number): Promise<{ tool: Tool }> {
+  return request(`/tools/${id}/duplicate`, { method: 'POST' })
+}
+
 export function deleteTool(id: number): Promise<{ ok: true }> {
   return request(`/tools/${id}`, { method: 'DELETE' })
 }

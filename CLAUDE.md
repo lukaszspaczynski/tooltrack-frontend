@@ -124,6 +124,13 @@ ten when several are on — and each tile is tagged with the engine that found
 it, because a manufacturer's product shot and a stranger's photo deserve
 different trust.
 
+## Duplicating
+
+The **Duplikuj** button on a tool card calls one endpoint and navigates to the
+copy, because the reason to duplicate is to change something — usually the
+serial number, which the server leaves blank on purpose. The copy shows the
+same photos, which costs no upload.
+
 ## Settings
 
 `features/settings/` is one page with two owners: everybody sees their own

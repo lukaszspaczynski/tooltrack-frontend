@@ -15,13 +15,13 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconChevronLeft, IconPencil, IconTrash } from '@tabler/icons-react'
+import { IconChevronLeft, IconCopy, IconPencil, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ApiError } from '../../../api/client'
-import { deleteTool, fetchTool, updateTool } from '../../../api/tools'
+import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
 import { ToolForm } from '../components/ToolForm'
@@ -57,6 +57,19 @@ export function ToolDetailPage() {
       if (error instanceof ApiError && error.status === 409) return
       notifications.show({ color: 'red', message: (error as Error).message })
     },
+  })
+
+  // Another one of these. The copy opens straight away, because the reason to
+  // duplicate is to change something — usually the serial number, which the
+  // server deliberately leaves blank.
+  const duplicate = useMutation({
+    mutationFn: () => duplicateTool(toolId),
+    onSuccess: async ({ tool: copy }) => {
+      await queryClient.invalidateQueries({ queryKey: ['tools'] })
+      notifications.show({ color: 'teal', message: `Utworzono kopię „${copy.name}"` })
+      navigate(`/tools/${copy.id}`)
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   const remove = useMutation({
@@ -129,6 +142,15 @@ export function ToolDetailPage() {
               onClick={() => setEditing(true)}
             >
               Edytuj
+            </Button>
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<IconCopy size={18} />}
+              loading={duplicate.isPending}
+              onClick={() => duplicate.mutate()}
+            >
+              Duplikuj
             </Button>
             <Button
               color="red"
