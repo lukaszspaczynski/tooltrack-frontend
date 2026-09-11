@@ -320,9 +320,11 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
         />
       ) : null}
 
-      {canEdit ? (
+      {/* Mounted per opening, like the cutout screen: a picker that keeps its
+          selection between visits offers to attach photos nobody can see. */}
+      {canEdit && pickerOpen ? (
         <ExistingPhotoPicker
-          opened={pickerOpen}
+          opened
           onClose={picker.close}
           onPick={(photoIds) => attach.mutate(photoIds)}
           saving={attach.isPending}

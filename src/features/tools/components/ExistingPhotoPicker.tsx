@@ -8,6 +8,7 @@ import {
   Image,
   Loader,
   Modal,
+  Pagination,
   SegmentedControl,
   SimpleGrid,
   Stack,
@@ -48,17 +49,29 @@ export function ExistingPhotoPicker({
   const [searchText, setSearchText] = useState('')
   const [search, setSearch] = useState<null | string>(null)
   const [selected, setSelected] = useState<number[]>([])
+  const [page, setPage] = useState(1)
 
-  const applySearch = useDebouncedCallback((value: string) => setSearch(value.trim() || null), 300)
+  const applySearch = useDebouncedCallback((value: string) => {
+    setSearch(value.trim() || null)
+    setPage(1)
+    // The selection was made in a different set of results. Carrying it
+    // invisibly into a save is how somebody attaches a photo they never saw.
+    setSelected([])
+  }, 300)
+
+  // The search matches the tool a photo belongs to, so it means nothing on the
+  // unassigned shelf — and sending it there would return an empty screen with
+  // a disabled input and no way to clear it.
+  const effectiveSearch = assigned === 'all' ? search : null
 
   const library = useQuery({
-    queryKey: ['photo-library', { assigned, limit: PAGE_SIZE, search }],
+    queryKey: ['photo-library', { assigned, limit: PAGE_SIZE, page, search: effectiveSearch }],
     queryFn: () =>
       fetchPhotoLibrary({
         assigned: assigned === 'unassigned' ? false : null,
         limit: PAGE_SIZE,
-        offset: 0,
-        search,
+        offset: (page - 1) * PAGE_SIZE,
+        search: effectiveSearch,
         source: null,
       }),
     enabled: opened,
@@ -67,6 +80,7 @@ export function ExistingPhotoPicker({
 
   // A photo already on this tool cannot be added again, so it is not offered.
   const items = (library.data?.items ?? []).filter((photo) => photo.toolId !== toolId)
+  const pages = Math.max(Math.ceil((library.data?.total ?? 0) / PAGE_SIZE), 1)
 
   return (
     <Modal opened={opened} onClose={onClose} title="Wybierz istniejące zdjęcie" size="xl" centered>
@@ -77,6 +91,7 @@ export function ExistingPhotoPicker({
             onChange={(value) => {
               setAssigned(value as 'all' | 'unassigned')
               setSelected([])
+              setPage(1)
             }}
             data={[
               { label: 'Nieprzypisane', value: 'unassigned' },
@@ -95,7 +110,9 @@ export function ExistingPhotoPicker({
             }}
             disabled={assigned === 'unassigned'}
             description={
-              assigned === 'unassigned' ? 'Nieprzypisane zdjęcia nie mają czego szukać' : undefined
+              assigned === 'unassigned'
+                ? 'Nieprzypisane zdjęcia nie należą do narzędzia, więc nie ma czego szukać'
+                : undefined
             }
             style={{ flexGrow: 1 }}
             size="sm"
@@ -138,6 +155,15 @@ export function ExistingPhotoPicker({
             />
           ))}
         </SimpleGrid>
+
+        {/* Without this, only the newest two dozen photos could ever be
+            assigned — and on the unassigned shelf, where the search does not
+            apply, nothing else could be reached at all. */}
+        {pages > 1 ? (
+          <Group justify="center">
+            <Pagination total={pages} value={page} onChange={setPage} size="sm" />
+          </Group>
+        ) : null}
 
         <Group justify="space-between">
           <Text c="dimmed" size="xs">

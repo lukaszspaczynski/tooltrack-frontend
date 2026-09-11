@@ -79,7 +79,11 @@ it any more.
 upload, URL and search: picking one that already exists. It opens on the
 unassigned shelf, because that is what the shelf is for, and offers everything
 else behind a toggle — the same picture on two tools is allowed and costs a row
-rather than a file.
+rather than a file. The search box applies to the whole library only: an
+unattached photo has no tool, brand or model to match, so searching the shelf
+could only ever empty it. Selection is cleared whenever the list underneath it
+changes, and the grid is paginated, because the newest two dozen photos are not
+the only ones worth attaching.
 
 The suggestions modal searches only when its button is pressed. It costs the
 server a call to every enabled search provider, so it must never fire on page
