@@ -23,9 +23,21 @@ export type Tool = {
   updatedBy: null | number
 }
 
+// Where a tool lies, as the catalog grid receives it: the organizer's number
+// and the case it is in, with that case's main photo. Null for a tool nobody
+// has put anywhere.
+export type ToolPlacement = {
+  caseId: number
+  caseName: string
+  casePhotoUrl: null | string
+  number: number
+  organizerId: number
+}
+
 // The main photo of a tool, as the catalog grid receives it: a URL and
 // nothing else, because a card needs a thumbnail and not a photo record.
 export type ToolListItem = Tool & {
+  organizer: null | ToolPlacement
   primaryPhotoUrl: null | string
 }
 

@@ -12,3 +12,18 @@ body {
      should be small enough to need a zoom. */
   font-size: 16px;
 }
+
+/* A card that is one click target, without wrapping its other links in an
+   anchor — which is invalid HTML and behaves differently in every browser.
+   One link inside the card stretches over the whole of it; anything that has
+   to be clickable on its own sits above with its own stacking context. */
+.stretched-link::after {
+  content: '';
+  inset: 0;
+  position: absolute;
+}
+
+.above-stretched-link {
+  position: relative;
+  z-index: 1;
+}
