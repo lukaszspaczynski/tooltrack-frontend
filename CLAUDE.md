@@ -74,6 +74,12 @@ takes a `PhotoOwner` — `{ kind: 'tool' | 'case', id }` — which `api/photos.t
 turns into `/api/tools/7/…` or `/api/cases/7/…`. `PhotoPanel` is the gallery,
 and it is the same component on both detail pages.
 
+A `Photo` is a picture and has no owner; a `CardPhoto` is a picture as one card
+shows it and adds `isPrimary`. The same photograph can head one card and sit
+fourth on another, so a component that renders a star needs the second type.
+In the library a picture carries `owners` — every card showing it — and appears
+once however many that is.
+
 `api/photos.ts` is the whole surface: list, upload, import links, promote,
 delete, suggestions. The upload is the one call that does not go through
 `request()` — it sends a `File` as the body rather than JSON, so it builds its

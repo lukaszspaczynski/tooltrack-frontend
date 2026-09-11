@@ -1,5 +1,6 @@
 import { request } from './client'
 import type {
+  CardPhoto,
   CutoutParams,
   CutoutPreviewResponse,
   Photo,
@@ -21,17 +22,17 @@ export type PhotoImportItem = {
 
 export type PhotoImportResult = {
   failed: { error: string; url: string }[]
-  photos: Photo[]
+  photos: CardPhoto[]
 }
 
-export function fetchPhotos(owner: PhotoOwner): Promise<{ photos: Photo[] }> {
+export function fetchPhotos(owner: PhotoOwner): Promise<{ photos: CardPhoto[] }> {
   return request(`${ownerPath(owner)}/photos`)
 }
 
 // The file goes up as the body of the request with its own content type — no
 // FormData, no multipart. The API takes the bytes and decides for itself what
 // they are; the browser's idea of the type is only a hint.
-export async function uploadPhoto(owner: PhotoOwner, file: File): Promise<{ photo: Photo }> {
+export async function uploadPhoto(owner: PhotoOwner, file: File): Promise<{ photo: CardPhoto }> {
   const response = await fetch(`/api${ownerPath(owner)}/photos`, {
     body: file,
     credentials: 'include',
@@ -46,7 +47,7 @@ export async function uploadPhoto(owner: PhotoOwner, file: File): Promise<{ phot
     )
   }
 
-  return payload as { photo: Photo }
+  return payload as { photo: CardPhoto }
 }
 
 // One pasted address or a batch ticked in the suggestions — the same endpoint,
@@ -77,14 +78,14 @@ export function commitCutout(
   owner: PhotoOwner,
   photoId: number,
   checksum: string,
-): Promise<{ photo: Photo }> {
+): Promise<{ photo: CardPhoto }> {
   return request(`${ownerPath(owner)}/photos/${photoId}/cutout/commit`, {
     body: { checksum },
     method: 'POST',
   })
 }
 
-export function setPrimaryPhoto(owner: PhotoOwner, photoId: number): Promise<{ photo: Photo }> {
+export function setPrimaryPhoto(owner: PhotoOwner, photoId: number): Promise<{ photo: CardPhoto }> {
   return request(`${ownerPath(owner)}/photos/${photoId}`, {
     body: { isPrimary: true },
     method: 'PATCH',
@@ -131,7 +132,8 @@ export function fetchPhotoLibrary(query: LibraryQuery): Promise<PhotoLibraryPage
 }
 
 // An upload that belongs to no card. Pictures arrive before anyone decides
-// what they are; the library is where they wait.
+// what they are; the library is where they wait. Bytes already on the server
+// answer with the picture that is there.
 export async function uploadLibraryPhoto(file: File): Promise<{ photo: Photo }> {
   const response = await fetch('/api/photos', {
     body: file,
@@ -152,12 +154,11 @@ export async function uploadLibraryPhoto(file: File): Promise<{ photo: Photo }> 
 
 export type AttachResult = {
   failed: { id: number; reason: string }[]
-  photos: Photo[]
+  photos: CardPhoto[]
 }
 
-// Puts photos that already exist on a card. An unowned one moves; one that
-// belongs to another card is copied, because the same picture can legitimately
-// illustrate a tool and the case it lives in.
+// Puts pictures that already exist on a card. One insert each: nothing moves
+// and nothing is copied, because a picture can be on several cards at once.
 export function attachPhotos(owner: PhotoOwner, photoIds: number[]): Promise<AttachResult> {
   return request(`${ownerPath(owner)}/photos/attach`, { body: { photoIds }, method: 'POST' })
 }

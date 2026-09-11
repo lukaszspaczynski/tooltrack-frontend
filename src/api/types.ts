@@ -42,35 +42,50 @@ export type PhotoOwner = {
   kind: PhotoOwnerKind
 }
 
+// One picture, once. Which cards show it is a separate question — see
+// CardPhoto and LibraryPhoto below — because the same photograph can
+// illustrate several tools, several cases, and a tool together with the case
+// it lives in.
 export type Photo = {
   attribution: string
   byteSize: number
   contentType: string
   createdAt: string
   createdBy: null | number
-  // Set when this photo is an AI cutout: the id of the photo it was made from.
+  // Set when this photo is a cutout: the id of the picture it was made from.
   derivedFrom: null | number
   height: null | number
   id: number
-  isPrimary: boolean
   source: PhotoSource
   sourceUrl: string
-  // At most one of the two is set. Both null means the photo is waiting in the
-  // library for somebody to decide what it is.
-  caseId: null | number
-  toolId: null | number
   url: string
   width: null | number
 }
 
-// A photo as the library screen sees it: the same record plus what it belongs
-// to, because a photo has no name of its own and "what is this a picture of"
-// is the question being asked there.
+// A picture as one card shows it. Being the main photo belongs to the pairing,
+// not to the picture: the same photograph can head one card and sit fourth on
+// another.
+export type CardPhoto = Photo & {
+  isPrimary: boolean
+}
+
+// A card showing a picture, as the library names it.
+export type PhotoOwnerRef = {
+  id: number
+  // Whether this picture heads that card. A property of the pairing, so the
+  // same photograph can be the main one here and the fourth one there.
+  isPrimary: boolean
+  kind: PhotoOwnerKind
+  name: string
+}
+
+// A picture as the library screen sees it: the record plus every card showing
+// it, because a picture has no name of its own and "what is this a picture of"
+// is the question being asked there. One picture appears once, however many
+// cards use it.
 export type LibraryPhoto = Photo & {
-  // Null for a photo nobody has placed yet.
-  ownerKind: null | PhotoOwnerKind
-  // Empty for that same photo, so the screen has one thing to render.
-  ownerName: string
+  // Empty while nobody has placed it.
+  owners: PhotoOwnerRef[]
 }
 
 export type PhotoLibraryPage = {

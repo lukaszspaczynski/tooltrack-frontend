@@ -125,15 +125,13 @@ export function PhotoLibraryPage() {
   // is decided while looking at the batch.
   const [cutoutTarget, setCutoutTarget] = useState<null | LibraryPhoto>(null)
 
-  // The wand works through whichever card the photo belongs to, because that
-  // is the only route the cutout has. A photo waiting in the library has no
-  // card, so it cannot be cut out from here — assign it first.
-  const cutoutOwner: null | PhotoOwner =
-    cutoutTarget?.ownerKind === 'case' && cutoutTarget.caseId !== null
-      ? { id: cutoutTarget.caseId, kind: 'case' }
-      : cutoutTarget?.ownerKind === 'tool' && cutoutTarget.toolId !== null
-        ? { id: cutoutTarget.toolId, kind: 'tool' }
-        : null
+  // The wand works through a card, because that is the only route the cutout
+  // has. A picture on several cards is cut out through the first of them — the
+  // result is a new picture either way — and one nobody has placed cannot be
+  // cut out from here at all.
+  const cutoutOwner: null | PhotoOwner = cutoutTarget?.owners[0]
+    ? { id: cutoutTarget.owners[0].id, kind: cutoutTarget.owners[0].kind }
+    : null
 
   const items = library.data?.items ?? []
   const total = library.data?.total ?? 0
@@ -333,7 +331,7 @@ function PhotoTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          <Image src={apiFileUrl(photo.url)} alt={photo.ownerName} h={110} fit="contain" />
+          <Image src={apiFileUrl(photo.url)} alt={ownerLabel(photo)} h={110} fit="contain" />
           {canEdit ? (
             <Checkbox
               checked={checked}
@@ -342,8 +340,8 @@ function PhotoTile({
               style={{ left: 4, position: 'absolute', top: 4 }}
             />
           ) : null}
-          {photo.isPrimary ? (
-            <Tooltip label="Zdjęcie główne narzędzia">
+          {isPrimarySomewhere(photo) ? (
+            <Tooltip label={primaryLabel(photo)}>
               <IconStarFilled
                 size={16}
                 style={{
@@ -357,21 +355,29 @@ function PhotoTile({
           ) : null}
         </div>
 
-        {photo.ownerKind === null ? (
+        {photo.owners.length === 0 ? (
           <Text size="xs" fw={600} c="dimmed" lineClamp={1}>
             bez przypisania
           </Text>
         ) : (
-          <Text
-            component={Link}
-            to={photo.ownerKind === 'case' ? `/cases/${photo.caseId}` : `/tools/${photo.toolId}`}
-            size="xs"
-            fw={600}
-            lineClamp={1}
-            title={photo.ownerName}
-          >
-            {photo.ownerName}
-          </Text>
+          // Every card showing this picture, each a link. One photograph on a
+          // tool and on the case it lives in is one row here, not two.
+          <Group gap={4} wrap="nowrap" style={{ overflow: 'hidden' }}>
+            {photo.owners.map((owner, index) => (
+              <Text
+                key={`${owner.kind}-${owner.id}`}
+                component={Link}
+                to={owner.kind === 'case' ? `/cases/${owner.id}` : `/tools/${owner.id}`}
+                size="xs"
+                fw={600}
+                lineClamp={1}
+                title={`${owner.name} (${owner.kind === 'case' ? 'skrzynka' : 'narzędzie'})`}
+              >
+                {owner.name}
+                {index < photo.owners.length - 1 ? ',' : ''}
+              </Text>
+            ))}
+          </Group>
         )}
 
         <Group justify="space-between" gap={4} wrap="nowrap">
@@ -434,16 +440,22 @@ function DeleteConfirmation({
   pending: LibraryPhoto[]
   working: boolean
 }) {
-  const attached = pending.filter((photo) => photo.ownerKind !== null)
+  const attached = pending.filter((photo) => photo.owners.length > 0)
   // Keyed by kind and id: tool 4 and case 4 are different cards that happen to
-  // share a number, and listing them as one would hide a deletion.
+  // share a number, and listing them as one would hide a deletion. A picture on
+  // several cards contributes each of them, because deleting it takes it off
+  // all of them at once.
   const cards = [
     ...new Map(
-      attached.map((photo) => [`${photo.ownerKind}-${photo.caseId ?? photo.toolId}`, photo]),
+      attached.flatMap((photo) =>
+        photo.owners.map((owner) => [`${owner.kind}-${owner.id}`, owner] as const),
+      ),
     ).values(),
   ]
   const loose = pending.length - attached.length
-  const primaries = pending.filter((photo) => photo.isPrimary)
+  // Cards that will lose their main photo. A picture heading two cards costs
+  // both of them, which is exactly what the warning is for.
+  const primaries = pending.flatMap((photo) => photo.owners.filter((owner) => owner.isPrimary))
 
   return (
     <Modal opened={opened} onClose={onCancel} title="Usunąć zdjęcia?" centered>
@@ -472,11 +484,11 @@ function DeleteConfirmation({
             }
           >
             <List size="sm" spacing={2}>
-              {cards.map((photo) => (
-                <List.Item key={`${photo.ownerKind}-${photo.id}`}>
-                  {photo.ownerName}{' '}
+              {cards.map((owner) => (
+                <List.Item key={`${owner.kind}-${owner.id}`}>
+                  {owner.name}{' '}
                   <Text span size="xs" c="dimmed">
-                    ({photo.ownerKind === 'case' ? 'skrzynka' : 'narzędzie'})
+                    ({owner.kind === 'case' ? 'skrzynka' : 'narzędzie'})
                   </Text>
                 </List.Item>
               ))}
@@ -513,4 +525,23 @@ function DeleteConfirmation({
       </Stack>
     </Modal>
   )
+}
+
+// What to put in the alt text: the cards this picture is on, or nothing worth
+// saying.
+function ownerLabel(photo: LibraryPhoto): string {
+  return photo.owners.map((owner) => owner.name).join(', ')
+}
+
+// The star marks a picture that heads at least one card, and the tooltip says
+// which — being the main photo is a fact about the pairing now, and a picture
+// can head one card while sitting fourth on another.
+function isPrimarySomewhere(photo: LibraryPhoto): boolean {
+  return photo.owners.some((owner) => owner.isPrimary)
+}
+
+function primaryLabel(photo: LibraryPhoto): string {
+  const cards = photo.owners.filter((owner) => owner.isPrimary).map((owner) => owner.name)
+
+  return cards.length === 1 ? `Zdjęcie główne: ${cards[0]}` : `Zdjęcie główne: ${cards.join(', ')}`
 }

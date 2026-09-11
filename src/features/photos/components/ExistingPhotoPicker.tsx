@@ -78,10 +78,12 @@ export function ExistingPhotoPicker({
     placeholderData: keepPreviousData,
   })
 
-  // A photo already on this card cannot be added again, so it is not offered.
-  // Tool 4 and case 4 are different cards, hence both halves of the check.
+  // A picture already on this card cannot be added again, so it is not
+  // offered. Tool 4 and case 4 are different cards, hence both halves of the
+  // check — and a picture on three other cards is still offered, because that
+  // is now allowed.
   const items = (library.data?.items ?? []).filter(
-    (photo) => !(photo.ownerKind === owner.kind && ownerIdOf(photo) === owner.id),
+    (photo) => !photo.owners.some((entry) => entry.kind === owner.kind && entry.id === owner.id),
   )
   const pages = Math.max(Math.ceil((library.data?.total ?? 0) / PAGE_SIZE), 1)
 
@@ -213,7 +215,7 @@ function PickerTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          <Image src={apiFileUrl(photo.url)} alt={photo.ownerName} h={110} fit="contain" />
+          <Image src={apiFileUrl(photo.url)} alt={cardNames(photo)} h={110} fit="contain" />
           <Checkbox
             checked={checked}
             onChange={onToggle}
@@ -222,16 +224,16 @@ function PickerTile({
             style={{ left: 4, position: 'absolute', top: 4 }}
           />
         </div>
-        <Text size="xs" c={photo.ownerName ? undefined : 'dimmed'} lineClamp={1}>
-          {photo.ownerName || 'bez przypisania'}
+        <Text size="xs" c={photo.owners.length > 0 ? undefined : 'dimmed'} lineClamp={1}>
+          {cardNames(photo) || 'bez przypisania'}
         </Text>
       </Stack>
     </Card>
   )
 }
 
-// Which id to compare against: a library photo carries both columns, and only
-// the one matching its ownerKind is set.
-function ownerIdOf(photo: LibraryPhoto): null | number {
-  return photo.ownerKind === 'case' ? photo.caseId : photo.toolId
+// Which cards already show this picture. Several is normal now, so they are
+// listed rather than reduced to one name.
+function cardNames(photo: LibraryPhoto): string {
+  return photo.owners.map((owner) => owner.name).join(', ')
 }
