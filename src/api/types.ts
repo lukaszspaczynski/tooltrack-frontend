@@ -338,6 +338,35 @@ export type OrganizerFields = {
   toolIds?: number[]
 }
 
+// A maker. One row, many tools; the logo is a picture from the library, linked
+// one to one in its own table rather than held as a column.
+export type Brand = {
+  createdAt: string
+  createdBy: null | number
+  id: number
+  logoPhotoId: null | number
+  logoUrl: null | string
+  name: string
+  notes: string
+  // How many tools name this maker. Read-only, and the reason the list is
+  // worth looking at.
+  toolCount: number
+  updatedAt: string
+  updatedBy: null | number
+}
+
+export type BrandPage = {
+  items: Brand[]
+  limit: number
+  offset: number
+  total: number
+}
+
+export type BrandFields = {
+  name: string
+  notes: string
+}
+
 export const ROLES = ['viewer', 'editor', 'admin'] as const
 
 export type Role = (typeof ROLES)[number]

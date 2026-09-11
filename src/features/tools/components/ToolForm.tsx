@@ -1,7 +1,18 @@
-import { Autocomplete, Button, Group, Select, Stack, Textarea, TextInput } from '@mantine/core'
+import {
+  Anchor,
+  Autocomplete,
+  Button,
+  Group,
+  Select,
+  Stack,
+  Textarea,
+  TextInput,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 
+import { fetchBrands } from '../../../api/brands'
 import { fetchCategories } from '../../../api/tools'
 import type { ToolFields } from '../../../api/types'
 import { conditionOptions } from '../presentation'
@@ -53,6 +64,22 @@ export function ToolForm({
     staleTime: 60_000,
   })
 
+  // Makers are a table of their own, so this one picks from it rather than
+  // being typed. A name that is only text points the card at no brand, which
+  // is how the two used to drift apart.
+  const brands = useQuery({
+    queryKey: ['brands', null],
+    queryFn: () => fetchBrands({ limit: 500, offset: 0, search: null, sort: 'name' }),
+    staleTime: 60_000,
+  })
+
+  // A card written before this table existed can name a maker that is not in
+  // it. Keeping that value as an option means editing the model number does
+  // not silently blank the maker.
+  const known = brands.data?.items.map((brand) => brand.name) ?? []
+  const current = initialValues?.brand.trim() ?? ''
+  const brandOptions = current && !known.includes(current) ? [...known, current] : known
+
   return (
     <form onSubmit={form.onSubmit((values) => onSubmit(trimAll(values)))}>
       <Stack gap="md">
@@ -74,9 +101,21 @@ export function ToolForm({
         />
 
         <Group grow align="flex-start">
-          <TextInput
+          <Select
             label="Marka"
-            placeholder="Makita"
+            placeholder="Wybierz producenta"
+            description={
+              <>
+                Nowego dodasz na ekranie{' '}
+                <Anchor component={Link} to="/brands" size="xs">
+                  Producenci
+                </Anchor>
+              </>
+            }
+            data={brandOptions}
+            searchable
+            clearable
+            nothingFoundMessage="Nie ma takiego producenta"
             key={form.key('brand')}
             {...form.getInputProps('brand')}
           />

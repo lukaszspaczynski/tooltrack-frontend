@@ -33,6 +33,10 @@ export function AppLayout() {
   const [opened, { close, toggle }] = useDisclosure()
   const { can, session, signOut } = useSession()
   const location = useLocation()
+  const toolsSection =
+    location.pathname === '/' ||
+    location.pathname.startsWith('/tools') ||
+    location.pathname.startsWith('/brands')
   const navigate = useNavigate()
 
   const handleSignOut = async () => {
@@ -68,14 +72,32 @@ export function AppLayout() {
       </AppShell.Header>
 
       <AppShell.Navbar p="sm">
+        {/* Producers hang under the tools rather than beside them: a maker is
+            something a tool has, and the submenu says so. Open whenever either
+            of the two is showing, so the current screen is never hidden behind
+            a collapsed parent. */}
         <NavLink
-          component={Link}
-          to="/"
           label="Narzędzia"
           leftSection={<IconTool size={18} />}
+          defaultOpened={toolsSection}
           active={location.pathname === '/' || location.pathname.startsWith('/tools')}
-          onClick={close}
-        />
+          childrenOffset={28}
+        >
+          <NavLink
+            component={Link}
+            to="/"
+            label="Katalog"
+            active={location.pathname === '/' || location.pathname.startsWith('/tools')}
+            onClick={close}
+          />
+          <NavLink
+            component={Link}
+            to="/brands"
+            label="Producenci"
+            active={location.pathname.startsWith('/brands')}
+            onClick={close}
+          />
+        </NavLink>
         <NavLink
           component={Link}
           to="/cases"

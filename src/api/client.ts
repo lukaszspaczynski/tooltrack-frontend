@@ -35,7 +35,7 @@ export function apiFileUrl(path: string): string {
 
 type RequestOptions = {
   body?: unknown
-  method?: 'DELETE' | 'GET' | 'PATCH' | 'POST'
+  method?: 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT'
   search?: URLSearchParams
 }
 

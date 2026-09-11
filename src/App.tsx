@@ -5,6 +5,7 @@ import { AppLayout } from './components/layout/AppLayout'
 import { LoginPage } from './features/auth/pages/LoginPage'
 import { CaseCreatePage } from './features/cases/pages/CaseCreatePage'
 import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
+import { BrandsPage } from './features/brands/pages/BrandsPage'
 import { CasesListPage } from './features/cases/pages/CasesListPage'
 import { OrganizerDetailPage } from './features/organizers/pages/OrganizerDetailPage'
 import { OrganizersPage } from './features/organizers/pages/OrganizersPage'
@@ -54,6 +55,14 @@ export function App() {
         />
         {/* Cases before the :id route, as on the server: "new" must not be
             read as the id of a case. */}
+        <Route
+          path="brands"
+          element={
+            <RequireCapability capability="catalog.read">
+              <BrandsPage />
+            </RequireCapability>
+          }
+        />
         <Route
           path="cases"
           element={
