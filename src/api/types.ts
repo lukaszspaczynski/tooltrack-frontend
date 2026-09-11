@@ -281,6 +281,51 @@ export type SystemCount = {
   system: string
 }
 
+// An organizer: which tools live in which case. The number is the one painted
+// on the box and said out loud — deliberately not the id.
+export type OrganizerTool = {
+  brand: string
+  id: number
+  model: string
+  name: string
+  primaryPhotoUrl: null | string
+}
+
+export type Organizer = {
+  case: {
+    id: number
+    manufacturer: string
+    name: string
+    primaryPhotoUrl: null | string
+  }
+  createdAt: string
+  createdBy: null | number
+  description: string
+  id: number
+  name: string
+  number: number
+  tools: OrganizerTool[]
+  updatedAt: string
+  updatedBy: null | number
+}
+
+export type OrganizerPage = {
+  items: Organizer[]
+  limit: number
+  offset: number
+  total: number
+}
+
+// What POST /api/organizers accepts. `number` absent means "the next free
+// one", which only the server can work out.
+export type OrganizerFields = {
+  caseId: number
+  description: string
+  name: string
+  number?: number
+  toolIds?: number[]
+}
+
 export const ROLES = ['viewer', 'editor', 'admin'] as const
 
 export type Role = (typeof ROLES)[number]

@@ -5,6 +5,9 @@ export type ToolQuery = {
   category: null | string
   condition: null | string
   direction: 'asc' | 'desc'
+  // false: only tools that are in no organizer, which is what the organizer
+  // wizard offers. Absent means "do not filter".
+  inOrganizer?: boolean
   limit: number
   offset: number
   search: null | string
@@ -20,6 +23,7 @@ export function toolSearchParams(query: ToolQuery): URLSearchParams {
   if (query.search) params.set('q', query.search)
   if (query.category) params.set('category', query.category)
   if (query.condition) params.set('condition', query.condition)
+  if (query.inOrganizer !== undefined) params.set('inOrganizer', String(query.inOrganizer))
   params.set('sort', query.sort)
   params.set('order', query.direction)
   params.set('limit', String(query.limit))

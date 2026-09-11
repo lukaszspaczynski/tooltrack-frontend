@@ -124,6 +124,34 @@ ten when several are on — and each tile is tagged with the engine that found
 it, because a manufacturer's product shot and a stranger's photo deserve
 different trust.
 
+## Organizer
+
+`features/organizers/` answers "what is in box 4". Three screens, the same
+division as tools and cases: a list of cards, a detail page behind each, and a
+wizard for making one.
+
+The card is a link and nothing else. Everything that changes an arrangement —
+the fields, adding a tool, taking one out, deleting it — lives on the detail
+page, so a gloved thumb scrolling the list cannot press any of it. Its picture
+area is four tiles across, wrapping downwards: the case first, outlined, then
+every tool. Not a scrolling strip, because a card that hides half its contents
+sideways hides them for good.
+
+`CasePicker` and `ToolPicker` are shared by the wizard and the detail page, so
+the two cannot drift apart about what a case or a tool looks like. The tool
+picker lists only `inOrganizer=false` — a tool lies in exactly one place, and
+the server refuses a second with a 409 rather than moving it, so offering one
+that is taken would be offering to fail.
+
+On the detail page the fields are a form with Save, while tools go in and out
+immediately — a link is its own fact and the server has no draft to hold it in.
+The number may be left empty when creating, and then the server takes the next
+free one.
+
+A case's delete confirmation asks `organizers?caseId=…` while it is open and
+names what would go with the box. An arrangement is not obviously part of a
+case, so it has to be said before the person agrees.
+
 ## Duplicating
 
 The **Duplikuj** button on a tool card calls one endpoint and navigates to the

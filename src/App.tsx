@@ -6,6 +6,8 @@ import { LoginPage } from './features/auth/pages/LoginPage'
 import { CaseCreatePage } from './features/cases/pages/CaseCreatePage'
 import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
 import { CasesListPage } from './features/cases/pages/CasesListPage'
+import { OrganizerDetailPage } from './features/organizers/pages/OrganizerDetailPage'
+import { OrganizersPage } from './features/organizers/pages/OrganizersPage'
 import { PhotoLibraryPage } from './features/media/pages/PhotoLibraryPage'
 import { SettingsPage } from './features/settings/pages/SettingsPage'
 import { ToolCreatePage } from './features/tools/pages/ToolCreatePage'
@@ -73,6 +75,22 @@ export function App() {
           element={
             <RequireCapability capability="catalog.read">
               <CaseDetailPage />
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="organizers"
+          element={
+            <RequireCapability capability="catalog.read">
+              <OrganizersPage />
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="organizers/:id"
+          element={
+            <RequireCapability capability="catalog.read">
+              <OrganizerDetailPage />
             </RequireCapability>
           }
         />

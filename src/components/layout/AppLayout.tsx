@@ -17,6 +17,7 @@ import {
   IconLogout,
   IconMoon,
   IconBox,
+  IconLayoutGrid,
   IconPhoto,
   IconSettings,
   IconSun,
@@ -81,6 +82,14 @@ export function AppLayout() {
           label="Skrzynki"
           leftSection={<IconBox size={18} />}
           active={location.pathname.startsWith('/cases')}
+          onClick={close}
+        />
+        <NavLink
+          component={Link}
+          to="/organizers"
+          label="Organizer"
+          leftSection={<IconLayoutGrid size={18} />}
+          active={location.pathname.startsWith('/organizers')}
           onClick={close}
         />
         <NavLink

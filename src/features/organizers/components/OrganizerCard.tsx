@@ -1,0 +1,110 @@
+import { Badge, Card, Group, Image, SimpleGrid, Stack, Text, Tooltip } from '@mantine/core'
+import { IconPhotoOff } from '@tabler/icons-react'
+import { Link } from 'react-router-dom'
+
+import { apiFileUrl } from '../../../api/client'
+import type { Organizer } from '../../../api/types'
+
+// One arrangement, as it appears in the list. The whole card opens it, the
+// same as a tool or a case card — everything that changes anything lives on
+// the page behind it, so nothing here can be pressed by accident while
+// scrolling with a gloved thumb.
+export function OrganizerCard({ item }: { item: Organizer }) {
+  return (
+    <Card
+      component={Link}
+      to={`/organizers/${item.id}`}
+      withBorder
+      padding="md"
+      radius="md"
+      style={{ textDecoration: 'none' }}
+    >
+      {/* Four across, wrapping downwards for as many rows as it takes. Not a
+          scrolling strip: this is read on a phone by somebody in gloves, and a
+          card that hides half its contents sideways hides them for good. */}
+      <Card.Section p="xs" bg="var(--mantine-color-default-hover)">
+        <SimpleGrid cols={4} spacing={6} verticalSpacing={6}>
+          <Thumbnail
+            alt={item.case.name}
+            isCase
+            label={`${item.case.name} (skrzynka)`}
+            url={item.case.primaryPhotoUrl}
+          />
+          {item.tools.map((tool) => (
+            <Thumbnail key={tool.id} alt={tool.name} label={tool.name} url={tool.primaryPhotoUrl} />
+          ))}
+        </SimpleGrid>
+      </Card.Section>
+
+      <Stack gap="xs" pt="sm">
+        <Group gap="xs" wrap="nowrap" align="flex-start">
+          <Badge variant="filled" color="amber" size="lg" style={{ flexShrink: 0 }}>
+            {item.number}
+          </Badge>
+          <Text fw={600} lineClamp={2} c="var(--mantine-color-text)">
+            {item.name}
+          </Text>
+        </Group>
+
+        <Text size="sm" c="dimmed" lineClamp={1} title={item.case.name}>
+          {item.case.name}
+        </Text>
+
+        {item.description ? (
+          <Text size="sm" c="dimmed" lineClamp={2}>
+            {item.description}
+          </Text>
+        ) : null}
+
+        <Text size="xs" c="dimmed">
+          {toolCountLabel(item.tools.length)}
+        </Text>
+      </Stack>
+    </Card>
+  )
+}
+
+// One cell of the grid. The height is fixed and the width fills its column, so
+// every row lines up whatever shape the pictures are.
+//
+// The case cell is outlined: in a grid that wraps, "the first one" stops being
+// obvious as soon as there is a second row.
+function Thumbnail({
+  alt,
+  isCase = false,
+  label,
+  url,
+}: {
+  alt: string
+  isCase?: boolean
+  label: string
+  url: null | string
+}) {
+  const border = isCase ? '2px solid var(--mantine-color-amber-6)' : '1px solid transparent'
+
+  const tile = url ? (
+    <Image src={apiFileUrl(url)} alt={alt} h={64} fit="contain" radius="sm" />
+  ) : (
+    <Group h={64} justify="center" bg="var(--mantine-color-default)" style={{ borderRadius: 4 }}>
+      <IconPhotoOff size={18} color="var(--mantine-color-dimmed)" />
+    </Group>
+  )
+
+  return (
+    <Tooltip label={label}>
+      <div style={{ border, borderRadius: 6, lineHeight: 0, padding: 1 }}>{tile}</div>
+    </Tooltip>
+  )
+}
+
+// "3 narzędzia" is not "3 narzędzi". Polish picks a form by the last digits.
+function toolCountLabel(count: number): string {
+  const lastTwo = count % 100
+  const last = count % 10
+
+  if (count === 0) return 'pusty'
+  if (count === 1) return '1 narzędzie'
+  if (lastTwo >= 12 && lastTwo <= 14) return `${count} narzędzi`
+  if (last >= 2 && last <= 4) return `${count} narzędzia`
+  return `${count} narzędzi`
+}
