@@ -400,13 +400,15 @@ function PhotoTile({
           ) : null}
         </div>
 
-        {photo.owners.length === 0 ? (
+        {photo.owners.length === 0 && photo.logoForBrand === null ? (
           <Text size="xs" fw={600} c="dimmed" lineClamp={1}>
             bez przypisania
           </Text>
         ) : (
-          // Every card showing this picture, each a link. One photograph on a
-          // tool and on the case it lives in is one row here, not two.
+          // Everything this picture is used for: every card showing it, and
+          // the maker it is the logo of. A logo is not a card, but saying
+          // "bez przypisania" about one is how a picture gets deleted by
+          // somebody who thought nothing used it.
           <Group gap={4} wrap="nowrap" style={{ overflow: 'hidden' }}>
             {photo.owners.map((owner, index) => (
               <Text
@@ -419,9 +421,26 @@ function PhotoTile({
                 title={`${owner.name} (${owner.kind === 'case' ? 'skrzynka' : 'narzędzie'})`}
               >
                 {owner.name}
-                {index < photo.owners.length - 1 ? ',' : ''}
+                {index < photo.owners.length - 1 || photo.logoForBrand !== null ? ',' : ''}
               </Text>
             ))}
+
+            {photo.logoForBrand ? (
+              <Text
+                component={Link}
+                to="/brands"
+                size="xs"
+                fw={600}
+                lineClamp={1}
+                title={`Logo producenta ${photo.logoForBrand.name}`}
+              >
+                {photo.logoForBrand.name}
+                <Text span size="xs" c="dimmed" fw={400}>
+                  {' '}
+                  (logo)
+                </Text>
+              </Text>
+            ) : null}
           </Group>
         )}
 
@@ -498,6 +517,9 @@ function DeleteConfirmation({
     ).values(),
   ]
   const loose = pending.length - attached.length
+  // Logos are not cards, so they are not in `cards` — and deleting one leaves
+  // a maker without its logo, which nothing else on this screen would say.
+  const logos = pending.filter((photo) => photo.logoForBrand !== null)
   // Cards that will lose their main photo. A picture heading two cards costs
   // both of them, which is exactly what the warning is for.
   const primaries = pending.flatMap((photo) => photo.owners.filter((owner) => owner.isPrimary))
@@ -511,7 +533,7 @@ function DeleteConfirmation({
             : `Zaznaczono ${pending.length} zdjęć. Zostaną trwale usunięte z dysku.`}
         </Text>
 
-        {cards.length === 0 ? (
+        {cards.length === 0 && logos.length === 0 ? (
           <Text c="dimmed" size="sm">
             {loose === 1
               ? 'To zdjęcie nie jest przypisane do niczego.'
@@ -559,6 +581,30 @@ function DeleteConfirmation({
           Same narzędzia zostają w katalogu — usuwasz wyłącznie zdjęcia.
         </Text>
 
+        {logos.length > 0 ? (
+          <Alert
+            color="orange"
+            variant="light"
+            icon={<IconAlertTriangle size={18} />}
+            title={
+              logos.length === 1
+                ? 'Zdjęcie jest logo producenta'
+                : `Zdjęcia są logo ${logos.length} producentów`
+            }
+          >
+            <List size="sm" spacing={2}>
+              {logos.map((photo) => (
+                <List.Item key={photo.id}>{photo.logoForBrand!.name}</List.Item>
+              ))}
+            </List>
+            <Text size="sm" mt="xs">
+              {logos.length === 1
+                ? 'Ten producent zostanie bez logo. Sama pozycja i jej narzędzia zostają.'
+                : 'Ci producenci zostaną bez logo. Same pozycje i ich narzędzia zostają.'}
+            </Text>
+          </Alert>
+        ) : null}
+
         <Group justify="flex-end">
           <Button variant="default" onClick={onCancel}>
             Anuluj
@@ -572,10 +618,13 @@ function DeleteConfirmation({
   )
 }
 
-// What to put in the alt text: the cards this picture is on, or nothing worth
-// saying.
+// What to put in the alt text: everything this picture is used for, or nothing
+// worth saying.
 function ownerLabel(photo: LibraryPhoto): string {
-  return photo.owners.map((owner) => owner.name).join(', ')
+  const names = photo.owners.map((owner) => owner.name)
+  if (photo.logoForBrand) names.push(`${photo.logoForBrand.name} (logo)`)
+
+  return names.join(', ')
 }
 
 // The star marks a picture that heads at least one card, and the tooltip says

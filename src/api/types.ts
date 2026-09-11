@@ -96,6 +96,10 @@ export type PhotoOwnerRef = {
 // is the question being asked there. One picture appears once, however many
 // cards use it.
 export type LibraryPhoto = Photo & {
+  // The brand this picture is the logo of, if any. Not an owner — a logo is
+  // not "on a card" and does not make the picture count as assigned — but it
+  // is what a delete would quietly take away.
+  logoForBrand: null | { id: number; name: string }
   // Empty while nobody has placed it.
   owners: PhotoOwnerRef[]
 }
