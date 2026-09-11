@@ -105,6 +105,58 @@ export type SearchEngineSettings = {
   usedByMe: boolean
 }
 
+export const CUTOUT_METHODS = ['local', 'removebg', 'gemini'] as const
+
+export type CutoutMethod = (typeof CUTOUT_METHODS)[number]
+
+// One cutout method as the settings screen sees it — the same shape as a
+// search engine, and for the same reason: the question is which methods may be
+// used here, not which one runs.
+export type CutoutMethodSettings = {
+  configured: boolean
+  enabled: boolean
+  keyHint: string
+  keyLabel: string
+  keySource: 'database' | 'environment' | 'none'
+  label: string
+  method: CutoutMethod
+  note: string
+  requiresKey: boolean
+}
+
+export type CutoutSettings = {
+  methods: CutoutMethodSettings[]
+  threshold: number
+  // How many methods the cutout screen can offer. Zero means the wand has
+  // nothing to run.
+  usable: number
+}
+
+// A cutout that has been produced but not kept. The bytes are on the server,
+// addressed by checksum; saving is a second call naming that checksum, so
+// nothing has to be produced twice — and a preview nobody accepts costs one
+// file and no row.
+export type CutoutPreview = {
+  byteSize: number
+  checksum: string
+  contentType: string
+  height: number
+  url: string
+  width: number
+}
+
+export type CutoutPreviewResponse = {
+  preview: CutoutPreview
+  provider: CutoutMethod
+}
+
+export type CutoutParams = {
+  method?: CutoutMethod
+  padding?: number
+  removeBgType?: 'auto' | 'product'
+  threshold?: number
+}
+
 export type SearchEnginesResponse = {
   engines: SearchEngineSettings[]
   // How many engines this account's search would actually run against. Zero

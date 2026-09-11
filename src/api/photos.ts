@@ -1,5 +1,11 @@
 import { request } from './client'
-import type { PhotoLibraryPage, PhotoSearchResult, ToolPhoto } from './types'
+import type {
+  CutoutParams,
+  CutoutPreviewResponse,
+  PhotoLibraryPage,
+  PhotoSearchResult,
+  ToolPhoto,
+} from './types'
 
 export type PhotoImportItem = {
   attribution?: string
@@ -49,6 +55,32 @@ export function cutoutPhoto(
   photoId: number,
 ): Promise<{ photo: ToolPhoto; provider: string }> {
   return request(`/tools/${toolId}/photos/${photoId}/cutout`, { method: 'POST' })
+}
+
+// Runs the cutout and shows it without keeping it. The result lives on the
+// server until it is committed or forgotten.
+export function previewCutout(
+  toolId: number,
+  photoId: number,
+  params: CutoutParams,
+): Promise<CutoutPreviewResponse> {
+  return request(`/tools/${toolId}/photos/${photoId}/cutout/preview`, {
+    body: params,
+    method: 'POST',
+  })
+}
+
+// Keeps a preview. The bytes are already on the server; this is what turns
+// them into a photo of the tool.
+export function commitCutout(
+  toolId: number,
+  photoId: number,
+  checksum: string,
+): Promise<{ photo: ToolPhoto }> {
+  return request(`/tools/${toolId}/photos/${photoId}/cutout/commit`, {
+    body: { checksum },
+    method: 'POST',
+  })
 }
 
 export function setPrimaryPhoto(toolId: number, photoId: number): Promise<{ photo: ToolPhoto }> {

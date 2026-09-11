@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { SearchEnginesResponse, SearchProvider } from './types'
+import type { CutoutMethod, CutoutSettings, SearchEnginesResponse, SearchProvider } from './types'
 
 export const SEARCH_ENGINES_KEY = ['search-engines'] as const
 
@@ -25,4 +25,25 @@ export function setMySearchEngine(
   enabled: boolean,
 ): Promise<SearchEnginesResponse> {
   return request(`/me/search-engines/${provider}`, { body: { enabled }, method: 'PATCH' })
+}
+
+export const CUTOUT_SETTINGS_KEY = ['cutout-settings'] as const
+
+export function fetchCutoutSettings(): Promise<CutoutSettings> {
+  return request('/settings/cutout')
+}
+
+// One method's switch and key — global, admin-only on the server, and shaped
+// exactly like the search engine call above.
+export function saveCutoutMethod(
+  method: CutoutMethod,
+  changes: { apiKey?: string; enabled?: boolean },
+): Promise<CutoutSettings> {
+  return request(`/settings/cutout/${method}`, { body: changes, method: 'PATCH' })
+}
+
+// The only setting that is not a method: the local method's starting
+// threshold.
+export function saveCutoutThreshold(threshold: number): Promise<CutoutSettings> {
+  return request('/settings/cutout', { body: { threshold }, method: 'PATCH' })
 }

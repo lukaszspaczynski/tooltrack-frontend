@@ -34,9 +34,10 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
-import { cutoutPhoto, deletePhotos, fetchPhotoLibrary } from '../../../api/photos'
+import { deletePhotos, fetchPhotoLibrary } from '../../../api/photos'
 import type { LibraryPhoto } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
+import { CutoutStudio } from '../../tools/components/CutoutStudio'
 import { formatDateTime } from '../../tools/presentation'
 import {
   LIBRARY_PAGE_SIZE,
@@ -104,22 +105,10 @@ export function PhotoLibraryPage() {
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
-  // The same AI edit as on the tool's own gallery. It belongs here too: this
-  // is the screen where someone reviews a whole import at once, and deciding
-  // "this one needs cutting out" happens while looking at the batch.
-  const cutout = useMutation({
-    mutationFn: (photo: LibraryPhoto) => cutoutPhoto(photo.toolId, photo.id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-photos'] })
-      notifications.show({
-        color: 'teal',
-        message: 'Wycięte narzędzie dodane jako nowe zdjęcie — oryginał zostaje',
-      })
-    },
-    onError: (error) =>
-      notifications.show({ autoClose: 8000, color: 'red', message: (error as Error).message }),
-  })
+  // The same cutout screen as on the tool's own gallery. It belongs here too:
+  // this is where a whole import is reviewed, and "this one needs cutting out"
+  // is decided while looking at the batch.
+  const [cutoutTarget, setCutoutTarget] = useState<null | LibraryPhoto>(null)
 
   const items = library.data?.items ?? []
   const total = library.data?.total ?? 0
@@ -214,10 +203,8 @@ export function PhotoLibraryPage() {
             key={photo.id}
             canEdit={can('tools.write')}
             checked={selected.includes(photo.id)}
-            cuttingOut={cutout.isPending && cutout.variables?.id === photo.id}
-            onCutout={() => cutout.mutate(photo)}
+            onCutout={() => setCutoutTarget(photo)}
             onDelete={() => askToDelete([photo])}
-            disabled={cutout.isPending}
             onToggle={() =>
               setSelected((current) =>
                 current.includes(photo.id)
@@ -246,6 +233,19 @@ export function PhotoLibraryPage() {
         </Group>
       ) : null}
 
+      {cutoutTarget ? (
+        <CutoutStudio
+          opened
+          onClose={() => setCutoutTarget(null)}
+          onSaved={async () => {
+            await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
+            await queryClient.invalidateQueries({ queryKey: ['tool-photos'] })
+          }}
+          photo={cutoutTarget}
+          toolId={cutoutTarget.toolId}
+        />
+      ) : null}
+
       <DeleteConfirmation
         onCancel={() => {
           setPending([])
@@ -263,8 +263,6 @@ export function PhotoLibraryPage() {
 function PhotoTile({
   canEdit,
   checked,
-  cuttingOut,
-  disabled,
   onCutout,
   onDelete,
   onToggle,
@@ -272,8 +270,6 @@ function PhotoTile({
 }: {
   canEdit: boolean
   checked: boolean
-  cuttingOut: boolean
-  disabled: boolean
   onCutout: () => void
   onDelete: () => void
   onToggle: () => void
@@ -338,8 +334,7 @@ function PhotoTile({
                   variant="subtle"
                   color="grape"
                   aria-label="Wytnij samo narzędzie"
-                  loading={cuttingOut}
-                  disabled={disabled || photo.source === 'edit'}
+                  disabled={photo.source === 'edit'}
                   onClick={onCutout}
                 >
                   <IconWand size={15} />

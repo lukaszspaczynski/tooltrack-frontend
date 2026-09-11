@@ -30,7 +30,6 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchSearchEngines, SEARCH_ENGINES_KEY } from '../../../api/settings'
 import {
-  cutoutPhoto,
   deletePhoto,
   fetchPhotos,
   importPhotos,
@@ -39,6 +38,7 @@ import {
   type PhotoImportItem,
 } from '../../../api/photos'
 import type { Tool, ToolPhoto } from '../../../api/types'
+import { CutoutStudio } from './CutoutStudio'
 import { PhotoSuggestionsModal } from './PhotoSuggestionsModal'
 
 const SOURCE_LABELS: Record<ToolPhoto['source'], string> = {
@@ -106,22 +106,9 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
-  // Cutting out takes seconds, not milliseconds, so the tile it was started
-  // from carries the spinner rather than the gallery going blank.
-  const cutout = useMutation({
-    mutationFn: (photoId: number) => cutoutPhoto(tool.id, photoId),
-    onSuccess: async () => {
-      await refresh()
-      notifications.show({
-        color: 'teal',
-        message: 'Wycięte narzędzie dodane jako nowe zdjęcie — oryginał zostaje',
-      })
-    },
-    // Longer than usual on screen: this failure usually says something the
-    // operator has to act on, like a missing key or an exhausted quota.
-    onError: (error) =>
-      notifications.show({ autoClose: 8000, color: 'red', message: (error as Error).message }),
-  })
+  // The cutout opens a screen of its own: method, parameters, original and
+  // result side by side, and nothing written until it is accepted.
+  const [cutoutPhoto, setCutoutPhoto] = useState<null | ToolPhoto>(null)
 
   const promote = useMutation({
     mutationFn: (photoId: number) => setPrimaryPhoto(tool.id, photoId),
@@ -247,9 +234,8 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
                         variant="subtle"
                         color="grape"
                         aria-label="Wytnij samo narzędzie"
-                        loading={cutout.isPending && cutout.variables === photo.id}
-                        disabled={cutout.isPending || photo.source === 'edit'}
-                        onClick={() => cutout.mutate(photo.id)}
+                        disabled={photo.source === 'edit'}
+                        onClick={() => setCutoutPhoto(photo)}
                       >
                         <IconWand size={16} />
                       </ActionIcon>
@@ -291,6 +277,16 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
           </Card>
         ))}
       </SimpleGrid>
+
+      {cutoutPhoto ? (
+        <CutoutStudio
+          opened
+          onClose={() => setCutoutPhoto(null)}
+          onSaved={refresh}
+          photo={cutoutPhoto}
+          toolId={tool.id}
+        />
+      ) : null}
 
       {canEdit ? (
         <PhotoSuggestionsModal
