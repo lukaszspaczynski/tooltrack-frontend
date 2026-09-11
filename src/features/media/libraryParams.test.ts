@@ -15,6 +15,8 @@ function read(search: string) {
 
 test('an empty address bar is the whole library, newest first', () => {
   assert.deepEqual(read(''), {
+    // Both kinds: the library is everything on disk.
+    assigned: null,
     limit: LIBRARY_PAGE_SIZE,
     offset: 0,
     search: null,
@@ -29,6 +31,16 @@ test('filters and page are read from the query string', () => {
   assert.equal(query.source, 'search')
   assert.equal(query.offset, 2 * LIBRARY_PAGE_SIZE)
   assert.equal(libraryPage(query), 3)
+})
+
+test('the assigned filter survives a round trip and ignores nonsense', () => {
+  assert.equal(read('assigned=false').assigned, false)
+  assert.equal(read('assigned=true').assigned, true)
+  // A pasted link with a broken value still shows the library.
+  assert.equal(read('assigned=moze').assigned, null)
+
+  const filtered = read('assigned=false&q=bosch')
+  assert.deepEqual(readLibraryParams(writeLibraryParams(filtered)), filtered)
 })
 
 test('a stale or invented source is dropped', () => {

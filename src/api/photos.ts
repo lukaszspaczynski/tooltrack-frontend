@@ -104,6 +104,8 @@ export function fetchPhotoSuggestions(toolId: number, query?: string): Promise<P
 }
 
 export type LibraryQuery = {
+  // Null means both: photos with a tool and photos still waiting for one.
+  assigned: boolean | null
   limit: number
   offset: number
   search: null | string
@@ -117,10 +119,43 @@ export function fetchPhotoLibrary(query: LibraryQuery): Promise<PhotoLibraryPage
   const search = new URLSearchParams()
   if (query.search) search.set('q', query.search)
   if (query.source) search.set('source', query.source)
+  if (query.assigned !== null) search.set('assigned', String(query.assigned))
   search.set('limit', String(query.limit))
   if (query.offset > 0) search.set('offset', String(query.offset))
 
   return request('/photos', { search })
+}
+
+// An upload that belongs to no tool. Pictures arrive before anyone decides
+// what they are; the library is where they wait.
+export async function uploadLibraryPhoto(file: File): Promise<{ photo: ToolPhoto }> {
+  const response = await fetch('/api/photos', {
+    body: file,
+    credentials: 'include',
+    headers: { 'content-type': file.type || 'application/octet-stream' },
+    method: 'POST',
+  })
+
+  const payload = (await response.json().catch(() => null)) as null | Record<string, unknown>
+  if (!response.ok) {
+    throw new Error(
+      typeof payload?.error === 'string' ? payload.error : 'Nie udało się wgrać zdjęcia',
+    )
+  }
+
+  return payload as { photo: ToolPhoto }
+}
+
+export type AttachResult = {
+  failed: { id: number; reason: string }[]
+  photos: ToolPhoto[]
+}
+
+// Puts photos that already exist on a tool. An unattached one moves; one that
+// belongs to another tool is copied, because the same picture can legitimately
+// illustrate two tools.
+export function attachPhotos(toolId: number, photoIds: number[]): Promise<AttachResult> {
+  return request(`/tools/${toolId}/photos/attach`, { body: { photoIds }, method: 'POST' })
 }
 
 export type BulkDeleteResult = {

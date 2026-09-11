@@ -44,7 +44,8 @@ export type ToolPhoto = {
   isPrimary: boolean
   source: PhotoSource
   sourceUrl: string
-  toolId: number
+  // Null while the photo belongs to no tool.
+  toolId: null | number
   url: string
   width: null | number
 }
@@ -53,6 +54,7 @@ export type ToolPhoto = {
 // tool it belongs to, because a photo has no name of its own and "which tool
 // was this" is the question being asked there.
 export type LibraryPhoto = ToolPhoto & {
+  // Empty for a photo that has no tool yet.
   toolName: string
 }
 

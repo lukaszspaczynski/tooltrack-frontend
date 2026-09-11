@@ -20,10 +20,12 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
+import { FileButton } from '@mantine/core'
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import {
   IconAlertTriangle,
+  IconPhotoPlus,
   IconSearch,
   IconStarFilled,
   IconTrash,
@@ -34,12 +36,13 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
-import { deletePhotos, fetchPhotoLibrary } from '../../../api/photos'
+import { deletePhotos, fetchPhotoLibrary, uploadLibraryPhoto } from '../../../api/photos'
 import type { LibraryPhoto } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutStudio } from '../../tools/components/CutoutStudio'
 import { formatDateTime } from '../../tools/presentation'
 import {
+  ASSIGNED_OPTIONS,
   LIBRARY_PAGE_SIZE,
   libraryPage,
   readLibraryParams,
@@ -81,6 +84,18 @@ export function PhotoLibraryPage() {
     queryKey: ['photo-library', query],
     queryFn: () => fetchPhotoLibrary(query),
     placeholderData: keepPreviousData,
+  })
+
+  // An upload here belongs to no tool. Pictures arrive before anyone decides
+  // what they are, and forcing a tool at that moment is how photos end up on
+  // the wrong card.
+  const upload = useMutation({
+    mutationFn: (file: File) => uploadLibraryPhoto(file),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
+      notifications.show({ color: 'teal', message: 'Zdjęcie dodane do biblioteki' })
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   const remove = useMutation({
@@ -131,14 +146,29 @@ export function PhotoLibraryPage() {
           </Text>
         </Stack>
 
-        {can('tools.write') && selected.length > 0 ? (
-          <Button
-            color="red"
-            leftSection={<IconTrash size={18} />}
-            onClick={() => askToDelete(items.filter((item) => selected.includes(item.id)))}
-          >
-            Usuń zaznaczone ({selected.length})
-          </Button>
+        {can('tools.write') ? (
+          <Group gap="sm">
+            {selected.length > 0 ? (
+              <Button
+                color="red"
+                leftSection={<IconTrash size={18} />}
+                onClick={() => askToDelete(items.filter((item) => selected.includes(item.id)))}
+              >
+                Usuń zaznaczone ({selected.length})
+              </Button>
+            ) : null}
+            <FileButton onChange={(file) => file && upload.mutate(file)} accept="image/*">
+              {(props) => (
+                <Button
+                  {...props}
+                  leftSection={<IconPhotoPlus size={18} />}
+                  loading={upload.isPending}
+                >
+                  Wgraj zdjęcie
+                </Button>
+              )}
+            </FileButton>
+          </Group>
         ) : null}
       </Group>
 
@@ -164,6 +194,15 @@ export function PhotoLibraryPage() {
           value={query.source}
           onChange={(value) => apply({ source: value })}
           miw={170}
+        />
+        <Select
+          label="Przypisanie"
+          placeholder="Wszystkie"
+          clearable
+          data={ASSIGNED_OPTIONS.map((option) => ({ ...option }))}
+          value={query.assigned === null ? null : String(query.assigned)}
+          onChange={(value) => apply({ assigned: value === null ? null : value === 'true' })}
+          miw={200}
         />
       </Group>
 
@@ -233,7 +272,7 @@ export function PhotoLibraryPage() {
         </Group>
       ) : null}
 
-      {cutoutTarget ? (
+      {cutoutTarget && cutoutTarget.toolId !== null ? (
         <CutoutStudio
           opened
           onClose={() => setCutoutTarget(null)}
@@ -308,16 +347,22 @@ function PhotoTile({
           ) : null}
         </div>
 
-        <Text
-          component={Link}
-          to={`/tools/${photo.toolId}`}
-          size="xs"
-          fw={600}
-          lineClamp={1}
-          title={photo.toolName}
-        >
-          {photo.toolName}
-        </Text>
+        {photo.toolId === null ? (
+          <Text size="xs" fw={600} c="dimmed" lineClamp={1}>
+            bez narzędzia
+          </Text>
+        ) : (
+          <Text
+            component={Link}
+            to={`/tools/${photo.toolId}`}
+            size="xs"
+            fw={600}
+            lineClamp={1}
+            title={photo.toolName}
+          >
+            {photo.toolName}
+          </Text>
+        )}
 
         <Group justify="space-between" gap={4} wrap="nowrap">
           <Badge size="xs" variant="default">
@@ -379,7 +424,9 @@ function DeleteConfirmation({
   pending: LibraryPhoto[]
   working: boolean
 }) {
-  const tools = [...new Map(pending.map((photo) => [photo.toolId, photo.toolName])).entries()]
+  const attached = pending.filter((photo) => photo.toolId !== null)
+  const tools = [...new Map(attached.map((photo) => [photo.toolId, photo.toolName])).entries()]
+  const loose = pending.length - attached.length
   const primaries = pending.filter((photo) => photo.isPrimary)
 
   return (
@@ -391,30 +438,44 @@ function DeleteConfirmation({
             : `Zaznaczono ${pending.length} zdjęć. Zostaną trwale usunięte z dysku.`}
         </Text>
 
-        <Alert
-          color={primaries.length > 0 ? 'orange' : 'gray'}
-          variant="light"
-          icon={<IconAlertTriangle size={18} />}
-          title={
-            tools.length === 1
-              ? 'Zdjęcie jest przypisane do narzędzia'
-              : `Zdjęcia są przypisane do ${tools.length} narzędzi`
-          }
-        >
-          <List size="sm" spacing={2}>
-            {tools.map(([id, name]) => (
-              <List.Item key={id}>{name}</List.Item>
-            ))}
-          </List>
+        {tools.length === 0 ? (
+          <Text c="dimmed" size="sm">
+            {loose === 1
+              ? 'To zdjęcie nie jest przypisane do żadnego narzędzia.'
+              : 'Żadne z tych zdjęć nie jest przypisane do narzędzia.'}
+          </Text>
+        ) : (
+          <Alert
+            color={primaries.length > 0 ? 'orange' : 'gray'}
+            variant="light"
+            icon={<IconAlertTriangle size={18} />}
+            title={
+              tools.length === 1
+                ? 'Zdjęcie jest przypisane do narzędzia'
+                : `Zdjęcia są przypisane do ${tools.length} narzędzi`
+            }
+          >
+            <List size="sm" spacing={2}>
+              {tools.map(([id, name]) => (
+                <List.Item key={id}>{name}</List.Item>
+              ))}
+            </List>
 
-          {primaries.length > 0 ? (
-            <Text size="sm" mt="xs">
-              {primaries.length === 1
-                ? 'Jedno z nich to zdjęcie główne — kartę zacznie ilustrować inne zdjęcie, a jeśli innych nie ma, karta zostanie bez zdjęcia.'
-                : `${primaries.length} z nich to zdjęcia główne — te karty zaczną pokazywać inne zdjęcia, a te bez zapasu zostaną bez zdjęcia.`}
-            </Text>
-          ) : null}
-        </Alert>
+            {primaries.length > 0 ? (
+              <Text size="sm" mt="xs">
+                {primaries.length === 1
+                  ? 'Jedno z nich to zdjęcie główne — kartę zacznie ilustrować inne zdjęcie, a jeśli innych nie ma, karta zostanie bez zdjęcia.'
+                  : `${primaries.length} z nich to zdjęcia główne — te karty zaczną pokazywać inne zdjęcia, a te bez zapasu zostaną bez zdjęcia.`}
+              </Text>
+            ) : null}
+
+            {loose > 0 ? (
+              <Text size="sm" mt="xs">
+                Do tego {loose === 1 ? 'jedno zdjęcie' : `${loose} zdjęć`} bez przypisania.
+              </Text>
+            ) : null}
+          </Alert>
+        )}
 
         <Text size="xs" c="dimmed">
           Same narzędzia zostają w katalogu — usuwasz wyłącznie zdjęcia.

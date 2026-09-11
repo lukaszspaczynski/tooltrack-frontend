@@ -11,10 +11,16 @@ export const SOURCE_OPTIONS = [
   { label: 'Z wyszukiwarki', value: 'search' },
 ] as const
 
+export const ASSIGNED_OPTIONS = [
+  { label: 'Przypisane do narzędzia', value: 'true' },
+  { label: 'Nieprzypisane', value: 'false' },
+] as const
+
 export function readLibraryParams(search: URLSearchParams): LibraryQuery {
   const page = Number(search.get('page'))
 
   return {
+    assigned: readAssigned(search.get('assigned')),
     limit: LIBRARY_PAGE_SIZE,
     offset: Number.isInteger(page) && page > 1 ? (page - 1) * LIBRARY_PAGE_SIZE : 0,
     search: search.get('q')?.trim() || null,
@@ -27,6 +33,7 @@ export function writeLibraryParams(query: LibraryQuery): URLSearchParams {
 
   if (query.search) params.set('q', query.search)
   if (query.source) params.set('source', query.source)
+  if (query.assigned !== null) params.set('assigned', String(query.assigned))
 
   const page = Math.floor(Math.max(query.offset, 0) / LIBRARY_PAGE_SIZE) + 1
   if (page > 1) params.set('page', String(page))
@@ -46,6 +53,15 @@ export function withLibraryFilter(
   // result set that now has one shows an empty screen that reads as "nothing
   // here" when the truth is "you are past the end".
   return { ...query, ...changes, offset: 0 }
+}
+
+// Anything other than the two words is "both", for the same reason a stale
+// source is dropped: a pasted link should still show the library.
+function readAssigned(value: null | string): boolean | null {
+  const trimmed = value?.trim()
+  if (trimmed === 'true') return true
+  if (trimmed === 'false') return false
+  return null
 }
 
 function readSource(value: null | string): null | string {
