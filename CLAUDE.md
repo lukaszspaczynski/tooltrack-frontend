@@ -62,10 +62,18 @@ a batch delete. Its confirmation modal is the point of the screen, not a
 formality — it names the tools the selection belongs to and calls out the main
 photos, because those change what the catalog grid shows.
 
-The wand on a photo tile is the AI cutout. It is a mutation like any other,
-except it takes seconds: the spinner belongs on the tile it was started from,
-and its error notification stays on screen longer, because that message
-usually names something an operator has to fix.
+`CutoutStudio.tsx` is the wand: method, its parameters, original and result
+side by side, and a save that only happens when the person says so. The method
+list is built from what the server can actually run: a service with no key is
+not offered, `auto` appears only when there is a service for it to fall back
+to, and nothing is offered at all when the feature is switched off. The
+settings screen sets the default and holds the keys; the choice for one photo
+is made here. Its state is derived during render from the settings query
+rather than copied into state by an effect, and the modal is mounted per photo,
+so there is nothing to reset.
+
+The old one-click cutout endpoint is still there, and nothing in the UI calls
+it any more.
 
 The suggestions modal searches only when its button is pressed. It costs the
 server a call to every enabled search provider, so it must never fire on page
@@ -81,6 +89,12 @@ engine switches, an admin additionally sees the key fields. The key inputs
 start empty and stay empty — the server never sends a credential back — so the
 form submits only what was typed. Sending an untouched field would wipe a
 stored key.
+
+`components/CutoutSection.tsx` is the second half, and it is deliberately the
+same screen as the engines: one card per cutout method, each with a switch and
+a key field. An admin decides which methods exist; the method for a given photo
+is chosen in `CutoutStudio`. Non-admins see the same list read-only, because
+whoever presses the wand should be able to see why a method is missing.
 
 The `['search-engines']` query is also what decides whether the _Znajdź w
 internecie_ button is enabled: `usable === 0` means no engine would answer, and

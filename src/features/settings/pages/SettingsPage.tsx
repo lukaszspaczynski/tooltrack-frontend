@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Center,
+  Divider,
   Group,
   Loader,
   PasswordInput,
@@ -30,6 +31,7 @@ import type {
   SearchProvider,
 } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
+import { CutoutSection } from '../components/CutoutSection'
 
 // Two things on one page, owned by two different people. The keys belong to
 // the installation and only an admin may change them; which of the configured
@@ -129,11 +131,15 @@ export function SettingsPage() {
         ))}
       </Stack>
 
+      <Divider />
+
+      <CutoutSection isAdmin={isAdmin} />
+
       {isAdmin ? (
         <Stack gap="xs">
           <Group gap="xs">
             <IconKey size={18} />
-            <Text fw={600}>Klucze API</Text>
+            <Text fw={600}>Klucze wyszukiwarek</Text>
             <Badge size="xs" variant="light">
               tylko administrator
             </Badge>
