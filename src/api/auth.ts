@@ -32,10 +32,3 @@ export function register(input: RegisterInput): Promise<{ user: User }> {
 export function logout(): Promise<{ ok: true }> {
   return request('/auth/logout', { method: 'POST' })
 }
-
-export function changePassword(input: {
-  currentPassword: string
-  newPassword: string
-}): Promise<{ ok: true }> {
-  return request('/auth/password', { body: input, method: 'PATCH' })
-}

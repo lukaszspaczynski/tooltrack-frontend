@@ -64,16 +64,17 @@ photos, because those change what the catalog grid shows.
 
 `CutoutStudio.tsx` is the wand: method, its parameters, original and result
 side by side, and a save that only happens when the person says so. The method
-list is built from what the server can actually run: a service with no key is
-not offered, `auto` appears only when there is a service for it to fall back
-to, and nothing is offered at all when the feature is switched off. The
-settings screen sets the default and holds the keys; the choice for one photo
-is made here. Its state is derived during render from the settings query
-rather than copied into state by an effect, and the modal is mounted per photo,
-so there is nothing to reset.
+list is built from what the server can actually run: a method switched off in
+settings is not offered, nor is a service whose key is missing, and when
+nothing is available the wand is not offered at all. There is no default
+method — settings decide which methods exist, the choice for one photo is made
+here. Its state is derived during render from the settings query rather than
+copied into state by an effect, and the modal is mounted per photo, so there is
+nothing to reset.
 
-The old one-click cutout endpoint is still there, and nothing in the UI calls
-it any more.
+The backend still has the old one-click cutout endpoint. `api/photos.ts` no
+longer mirrors it: the preview-then-commit pair replaced it, and an unused
+wrapper is one more thing to keep true.
 
 `ExistingPhotoPicker.tsx` is the fourth way a photo reaches a tool, after
 upload, URL and search: picking one that already exists. It opens on the

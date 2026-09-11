@@ -123,8 +123,10 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
       // The library changed too: an unattached photo just left the shelf.
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
       picker.close()
+      // Always teal: attaching nothing is a 409 from the API, so it arrives at
+      // onError below rather than here.
       notifications.show({
-        color: result.photos.length > 0 ? 'teal' : 'orange',
+        color: 'teal',
         message:
           result.failed.length === 0
             ? `Przypisano ${result.photos.length}`

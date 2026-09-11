@@ -48,15 +48,6 @@ export function importPhotos(toolId: number, items: PhotoImportItem[]): Promise<
   return request(`/tools/${toolId}/photos`, { body: { items }, method: 'POST' })
 }
 
-// The AI edit: cut the tool out of this photo. It adds a photo rather than
-// replacing one, so the original is always there to fall back on.
-export function cutoutPhoto(
-  toolId: number,
-  photoId: number,
-): Promise<{ photo: ToolPhoto; provider: string }> {
-  return request(`/tools/${toolId}/photos/${photoId}/cutout`, { method: 'POST' })
-}
-
 // Runs the cutout and shows it without keeping it. The result lives on the
 // server until it is committed or forgotten.
 export function previewCutout(

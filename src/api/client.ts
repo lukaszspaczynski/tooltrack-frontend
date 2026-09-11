@@ -6,8 +6,6 @@
 // message: 401 means log in again, 403 means ask an admin, 409 means the row
 // conflicts with one that already exists.
 
-import type { Capability } from './types'
-
 // Same-origin by default. In development Vite proxies /api to the Node server
 // (see vite.config.ts), so the cookie is first-party and no CORS is involved.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
@@ -69,12 +67,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   return payload as T
-}
-
-// Capability checks live next to the client because the same list arrives from
-// /api/auth/me and is the only thing the UI is allowed to gate on.
-export function hasCapability(capabilities: Capability[], capability: Capability): boolean {
-  return capabilities.includes(capability)
 }
 
 async function readJson(response: Response): Promise<null | Record<string, unknown>> {
