@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Alert,
+  ColorInput,
   Badge,
   Button,
   Card,
@@ -155,7 +156,20 @@ export function BrandsPage() {
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
         {items.map((brand) => (
-          <Card key={brand.id} withBorder padding="md" radius="md">
+          <Card
+            key={brand.id}
+            withBorder
+            padding="md"
+            radius="md"
+            style={
+              brand.color
+                ? {
+                    borderLeft: `4px solid ${brand.color}`,
+                    paddingLeft: 'calc(var(--mantine-spacing-md) - 3px)',
+                  }
+                : undefined
+            }
+          >
             <Group wrap="nowrap" align="flex-start" gap="md">
               {brand.logoUrl ? (
                 <Image
@@ -302,6 +316,7 @@ function BrandForm({
 }) {
   const [name, setName] = useState(brand?.name ?? '')
   const [notes, setNotes] = useState(brand?.notes ?? '')
+  const [color, setColor] = useState(brand?.color ?? '')
 
   return (
     <Modal opened onClose={onClose} title={brand ? 'Edytuj markę' : 'Nowa marka'} centered>
@@ -314,6 +329,18 @@ function BrandForm({
           value={name}
           onChange={(event) => setName(event.currentTarget.value)}
         />
+        {/* The brand book gives this as three numbers and CSS wants hex; the
+            server takes either, so the picker and a pasted "18 36 71" both
+            work. */}
+        <ColorInput
+          label="Wiodący kolor"
+          placeholder="#122447 albo 18 36 71"
+          format="hex"
+          value={color}
+          onChange={setColor}
+          swatches={['#122447', '#244930', '#f5d24a', '#3f6652', '#4b66a4', '#d0392a']}
+        />
+
         <Textarea
           label="Notatki"
           placeholder="Serwis, przedstawiciel, cokolwiek warto pamiętać"
@@ -336,7 +363,7 @@ function BrandForm({
           <Button
             loading={saving}
             disabled={!name.trim()}
-            onClick={() => onSave({ name: name.trim(), notes: notes.trim() })}
+            onClick={() => onSave({ color: color.trim(), name: name.trim(), notes: notes.trim() })}
           >
             Zapisz
           </Button>

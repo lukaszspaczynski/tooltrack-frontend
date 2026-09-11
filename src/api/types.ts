@@ -355,6 +355,9 @@ export type OrganizerFields = {
 // A maker. One row, many tools; the logo is a picture from the library, linked
 // one to one in its own table rather than held as a column.
 export type Brand = {
+  // '#rrggbb', or '' when nobody has said. Not black — a maker without a
+  // colour has to look different from one whose colour is black.
+  color: string
   createdAt: string
   createdBy: null | number
   id: number
@@ -377,6 +380,8 @@ export type BrandPage = {
 }
 
 export type BrandFields = {
+  // Sent as '#rrggbb' or as 'r g b'; the server normalises and stores one form.
+  color: string
   name: string
   notes: string
 }
