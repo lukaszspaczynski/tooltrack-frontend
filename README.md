@@ -51,6 +51,9 @@ npm run user:admin -- --email you@example.com
 | Karta narzędzia         | `tools.read`   | Everything on the card; edit and delete with `tools.write`                                       |
 | Nowe narzędzie          | `tools.write`  | Add a card; the category field suggests the ones already in use                                  |
 | Zdjęcia narzędzia       | `tools.write`  | Upload from a phone, paste a URL, or pick from the web search — multi-select, stored server-side |
+| Wycinanie AI            | `tools.write`  | Wand on a photo: the tool alone, added as a new photo, original kept                             |
+| Biblioteka zdjęć        | `tools.read`   | Every photo in the system; delete one or a batch, with the affected tools named first            |
+| Ustawienia              | `tools.read`   | Which search engines my account uses; API keys for the whole installation with `users.manage`    |
 | Użytkownicy             | `users.manage` | Change roles, disable and delete accounts                                                        |
 
 The menu and every button are rendered from the `capabilities` list the API

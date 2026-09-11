@@ -1,5 +1,6 @@
 import {
   Alert,
+  Badge,
   Button,
   Card,
   Center,
@@ -13,7 +14,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-import { IconSearch } from '@tabler/icons-react'
+import { IconPhotoOff, IconSearch } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 
@@ -84,6 +85,14 @@ export function PhotoSuggestionsModal({
           </Alert>
         ) : null}
 
+        {/* Several engines can be on at once, so a partial failure is normal:
+            the results are still usable and the screen says what is missing. */}
+        {search.data && search.data.failed.length > 0 ? (
+          <Alert color="yellow" variant="light" title="Część wyszukiwarek nie odpowiedziała">
+            {search.data.failed.map((entry) => entry.message).join(' · ')}
+          </Alert>
+        ) : null}
+
         {search.isPending ? (
           <Center py="xl">
             <Loader />
@@ -111,9 +120,7 @@ export function PhotoSuggestionsModal({
 
             <Group justify="space-between">
               <Text size="sm" c="dimmed">
-                {search.data?.provider === 'openverse'
-                  ? 'Wyniki z Openverse (zdjęcia na wolnych licencjach)'
-                  : 'Wyniki z wyszukiwarki Google'}
+                {`Wyniki z: ${(search.data?.providers ?? []).map(providerLabel).join(', ')}`}
                 {selected.length > 0 ? ` · zaznaczono ${selected.length}` : ''}
               </Text>
               <Group gap="sm">
@@ -141,6 +148,8 @@ function SuggestionTile({
   onToggle: () => void
   suggestion: PhotoSuggestion
 }) {
+  const [broken, setBroken] = useState(false)
+
   return (
     <Card
       withBorder
@@ -154,21 +163,49 @@ function SuggestionTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          <Image
-            src={suggestion.thumbnailUrl}
-            alt={suggestion.title}
-            h={120}
-            fit="contain"
-            // A dead link in a search result is ordinary; the tile says so
-            // instead of showing a broken image icon.
-            fallbackSrc="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3C/svg%3E"
-          />
+          {broken ? (
+            // A dead link in a search result is ordinary. Saying so is the
+            // point: an invisible placeholder makes a failed load look like an
+            // empty result set, which is what it did before.
+            <Stack align="center" justify="center" gap={4} h={120}>
+              <IconPhotoOff size={24} color="var(--mantine-color-dimmed)" />
+              <Text size="xs" c="dimmed">
+                brak podglądu
+              </Text>
+            </Stack>
+          ) : (
+            <Image
+              src={suggestion.thumbnailUrl}
+              alt={suggestion.title}
+              h={120}
+              fit="contain"
+              // Lazily, because a suggestion thumbnail is the full image on the
+              // source CDN and a grid of ten should not fetch what is scrolled
+              // out of sight.
+              loading="lazy"
+              onError={() => setBroken(true)}
+            />
+          )}
           <Checkbox
             checked={checked}
             onChange={onToggle}
             onClick={(event) => event.stopPropagation()}
+            disabled={broken}
             style={{ left: 6, position: 'absolute', top: 6 }}
           />
+
+          {/* Which engine found this. With several engines on, the same query
+              returns pictures of very different provenance — a manufacturer's
+              product shot and someone's photo on Flickr — and that is worth
+              knowing before ticking the box. */}
+          <Badge
+            size="xs"
+            variant="filled"
+            color={PROVIDER_COLORS[suggestion.provider] ?? 'gray'}
+            style={{ position: 'absolute', right: 6, top: 6 }}
+          >
+            {providerLabel(suggestion.provider)}
+          </Badge>
         </div>
         <Text size="xs" lineClamp={1} title={suggestion.title}>
           {suggestion.title || 'bez tytułu'}
@@ -181,6 +218,24 @@ function SuggestionTile({
       </Stack>
     </Card>
   )
+}
+
+const PROVIDER_LABELS: Record<string, string> = {
+  brave: 'Brave',
+  google: 'Google',
+  openverse: 'Openverse',
+}
+
+// One colour per engine, so a mixed result set reads at a glance: which of
+// these came from the paid index and which from the free one.
+const PROVIDER_COLORS: Record<string, string> = {
+  brave: 'orange',
+  google: 'blue',
+  openverse: 'teal',
+}
+
+function providerLabel(provider: string): string {
+  return PROVIDER_LABELS[provider] ?? provider
 }
 
 function defaultQuery(tool: Tool): string {

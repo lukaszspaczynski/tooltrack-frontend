@@ -13,7 +13,15 @@ import {
   useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { IconLogout, IconMoon, IconSun, IconTool, IconUsers } from '@tabler/icons-react'
+import {
+  IconLogout,
+  IconMoon,
+  IconPhoto,
+  IconSettings,
+  IconSun,
+  IconTool,
+  IconUsers,
+} from '@tabler/icons-react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { ROLE_LABELS } from '../../features/tools/presentation'
@@ -64,6 +72,22 @@ export function AppLayout() {
           label="Narzędzia"
           leftSection={<IconTool size={18} />}
           active={location.pathname === '/' || location.pathname.startsWith('/tools')}
+          onClick={close}
+        />
+        <NavLink
+          component={Link}
+          to="/photos"
+          label="Zdjęcia"
+          leftSection={<IconPhoto size={18} />}
+          active={location.pathname.startsWith('/photos')}
+          onClick={close}
+        />
+        <NavLink
+          component={Link}
+          to="/settings"
+          label="Ustawienia"
+          leftSection={<IconSettings size={18} />}
+          active={location.pathname.startsWith('/settings')}
           onClick={close}
         />
         {/* Rendered from the capability, so the menu can never offer a screen

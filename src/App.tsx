@@ -3,6 +3,8 @@ import { Link, Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from './components/layout/AppLayout'
 import { LoginPage } from './features/auth/pages/LoginPage'
+import { PhotoLibraryPage } from './features/media/pages/PhotoLibraryPage'
+import { SettingsPage } from './features/settings/pages/SettingsPage'
 import { ToolCreatePage } from './features/tools/pages/ToolCreatePage'
 import { ToolDetailPage } from './features/tools/pages/ToolDetailPage'
 import { ToolsListPage } from './features/tools/pages/ToolsListPage'
@@ -42,6 +44,22 @@ export function App() {
           element={
             <RequireCapability capability="tools.read">
               <ToolDetailPage />
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="photos"
+          element={
+            <RequireCapability capability="tools.read">
+              <PhotoLibraryPage />
+            </RequireCapability>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <RequireCapability capability="tools.read">
+              <SettingsPage />
             </RequireCapability>
           }
         />

@@ -57,8 +57,34 @@ own fetch. Photo URLs come back as API paths and go through `apiFileUrl()`
 before reaching an `<img>`, which is what keeps them working when the API is
 not same-origin.
 
+`features/media/` is the library: every photo in the system, with selection and
+a batch delete. Its confirmation modal is the point of the screen, not a
+formality — it names the tools the selection belongs to and calls out the main
+photos, because those change what the catalog grid shows.
+
+The wand on a photo tile is the AI cutout. It is a mutation like any other,
+except it takes seconds: the spinner belongs on the tile it was started from,
+and its error notification stays on screen longer, because that message
+usually names something an operator has to fix.
+
 The suggestions modal searches only when its button is pressed. It costs the
-server a call to a search provider, so it must never fire on page load.
+server a call to every enabled search provider, so it must never fire on page
+load. Each engine contributes up to ten results, so the grid holds more than
+ten when several are on — and each tile is tagged with the engine that found
+it, because a manufacturer's product shot and a stranger's photo deserve
+different trust.
+
+## Settings
+
+`features/settings/` is one page with two owners: everybody sees their own
+engine switches, an admin additionally sees the key fields. The key inputs
+start empty and stay empty — the server never sends a credential back — so the
+form submits only what was typed. Sending an untouched field would wipe a
+stored key.
+
+The `['search-engines']` query is also what decides whether the _Znajdź w
+internecie_ button is enabled: `usable === 0` means no engine would answer, and
+a button that only ever fails is worse than a disabled one.
 
 ## Conventions
 

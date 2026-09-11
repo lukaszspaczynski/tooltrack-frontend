@@ -21,13 +21,16 @@ import {
   IconStar,
   IconStarFilled,
   IconTrash,
+  IconWand,
   IconWorld,
 } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { apiFileUrl } from '../../../api/client'
+import { fetchSearchEngines, SEARCH_ENGINES_KEY } from '../../../api/settings'
 import {
+  cutoutPhoto,
   deletePhoto,
   fetchPhotos,
   importPhotos,
@@ -39,6 +42,7 @@ import type { Tool, ToolPhoto } from '../../../api/types'
 import { PhotoSuggestionsModal } from './PhotoSuggestionsModal'
 
 const SOURCE_LABELS: Record<ToolPhoto['source'], string> = {
+  edit: 'wycięte',
   search: 'z wyszukiwarki',
   upload: 'wgrane',
   url: 'z adresu',
@@ -58,6 +62,16 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
   const photos = useQuery({
     queryKey: ['tool-photos', tool.id],
     queryFn: () => fetchPhotos(tool.id),
+  })
+
+  // Whether any search engine is switched on for this account. The button is
+  // dead rather than hopeful when none is: the API would answer 503, and a
+  // button that only ever fails is worse than a disabled one.
+  const engines = useQuery({
+    queryKey: SEARCH_ENGINES_KEY,
+    queryFn: fetchSearchEngines,
+    enabled: canEdit,
+    staleTime: 60_000,
   })
 
   const refresh = async () => {
@@ -90,6 +104,23 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
       })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  // Cutting out takes seconds, not milliseconds, so the tile it was started
+  // from carries the spinner rather than the gallery going blank.
+  const cutout = useMutation({
+    mutationFn: (photoId: number) => cutoutPhoto(tool.id, photoId),
+    onSuccess: async () => {
+      await refresh()
+      notifications.show({
+        color: 'teal',
+        message: 'Wycięte narzędzie dodane jako nowe zdjęcie — oryginał zostaje',
+      })
+    },
+    // Longer than usual on screen: this failure usually says something the
+    // operator has to act on, like a missing key or an exhausted quota.
+    onError: (error) =>
+      notifications.show({ autoClose: 8000, color: 'red', message: (error as Error).message }),
   })
 
   const promote = useMutation({
@@ -126,14 +157,22 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
                 </Button>
               )}
             </FileButton>
-            <Button
-              size="sm"
-              variant="light"
-              leftSection={<IconSearch size={16} />}
-              onClick={suggestions.open}
+            <Tooltip
+              label="Żadna wyszukiwarka nie jest włączona — sprawdź Ustawienia"
+              disabled={(engines.data?.usable ?? 1) > 0}
             >
-              Znajdź w internecie
-            </Button>
+              <div>
+                <Button
+                  size="sm"
+                  variant="light"
+                  leftSection={<IconSearch size={16} />}
+                  disabled={engines.data?.usable === 0}
+                  onClick={suggestions.open}
+                >
+                  Znajdź w internecie
+                </Button>
+              </div>
+            </Tooltip>
           </Group>
         ) : null}
       </Group>
@@ -197,6 +236,24 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
 
                 {canEdit ? (
                   <Group gap={2} wrap="nowrap">
+                    <Tooltip
+                      label={
+                        photo.source === 'edit'
+                          ? 'To zdjęcie już jest wycięte'
+                          : 'Wytnij samo narzędzie'
+                      }
+                    >
+                      <ActionIcon
+                        variant="subtle"
+                        color="grape"
+                        aria-label="Wytnij samo narzędzie"
+                        loading={cutout.isPending && cutout.variables === photo.id}
+                        disabled={cutout.isPending || photo.source === 'edit'}
+                        onClick={() => cutout.mutate(photo.id)}
+                      >
+                        <IconWand size={16} />
+                      </ActionIcon>
+                    </Tooltip>
                     <Tooltip
                       label={photo.isPrimary ? 'To jest zdjęcie główne' : 'Ustaw jako główne'}
                     >
