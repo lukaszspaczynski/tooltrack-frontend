@@ -14,7 +14,7 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-import { IconPhotoOff, IconSearch } from '@tabler/icons-react'
+import { IconSearch } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 
@@ -42,13 +42,28 @@ export function PhotoSuggestionsModal({
 }) {
   const [query, setQuery] = useState(defaultQuery(tool))
   const [selected, setSelected] = useState<string[]>([])
+  // Results whose picture did not load. A search result is a link, and some of
+  // them are dead; a tile with nothing in it is not a choice, so it leaves the
+  // grid rather than sitting there as a placeholder.
+  const [broken, setBroken] = useState<string[]>([])
 
   const search = useMutation({
     mutationFn: (value: string) => fetchPhotoSuggestions(tool.id, value),
-    onSuccess: () => setSelected([]),
+    onSuccess: () => {
+      setSelected([])
+      setBroken([])
+    },
   })
 
-  const suggestions = search.data?.suggestions ?? []
+  const found = search.data?.suggestions ?? []
+  const suggestions = found.filter((suggestion) => !broken.includes(suggestion.url))
+
+  const markBroken = (url: string) => {
+    setBroken((current) => (current.includes(url) ? current : [...current, url]))
+    // A tile that is about to disappear must not stay ticked, or the save
+    // would send an address the browser has just proved it cannot fetch.
+    setSelected((current) => current.filter((entry) => entry !== url))
+  }
 
   const toggle = (url: string) => {
     setSelected((current) =>
@@ -101,7 +116,9 @@ export function PhotoSuggestionsModal({
 
         {search.isSuccess && suggestions.length === 0 ? (
           <Text c="dimmed" size="sm" ta="center" py="md">
-            Nic nie znaleziono. Spróbuj innego zapytania — na przykład samej marki.
+            {found.length === 0
+              ? 'Nic nie znaleziono. Spróbuj innego zapytania — na przykład samej marki.'
+              : `Znaleziono ${found.length}, ale żaden podgląd się nie wczytał. Spróbuj innego zapytania.`}
           </Text>
         ) : null}
 
@@ -112,6 +129,7 @@ export function PhotoSuggestionsModal({
                 <SuggestionTile
                   key={suggestion.url}
                   checked={selected.includes(suggestion.url)}
+                  onBroken={() => markBroken(suggestion.url)}
                   onToggle={() => toggle(suggestion.url)}
                   suggestion={suggestion}
                 />
@@ -141,15 +159,15 @@ export function PhotoSuggestionsModal({
 
 function SuggestionTile({
   checked,
+  onBroken,
   onToggle,
   suggestion,
 }: {
   checked: boolean
+  onBroken: () => void
   onToggle: () => void
   suggestion: PhotoSuggestion
 }) {
-  const [broken, setBroken] = useState(false)
-
   return (
     <Card
       withBorder
@@ -163,34 +181,21 @@ function SuggestionTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          {broken ? (
-            // A dead link in a search result is ordinary. Saying so is the
-            // point: an invisible placeholder makes a failed load look like an
-            // empty result set, which is what it did before.
-            <Stack align="center" justify="center" gap={4} h={120}>
-              <IconPhotoOff size={24} color="var(--mantine-color-dimmed)" />
-              <Text size="xs" c="dimmed">
-                brak podglądu
-              </Text>
-            </Stack>
-          ) : (
-            <Image
-              src={suggestion.thumbnailUrl}
-              alt={suggestion.title}
-              h={120}
-              fit="contain"
-              // Lazily, because a suggestion thumbnail is the full image on the
-              // source CDN and a grid of ten should not fetch what is scrolled
-              // out of sight.
-              loading="lazy"
-              onError={() => setBroken(true)}
-            />
-          )}
+          <Image
+            src={suggestion.thumbnailUrl}
+            alt={suggestion.title}
+            h={120}
+            fit="contain"
+            // Lazily, because a suggestion thumbnail is the full image on the
+            // source CDN and a grid of ten should not fetch what is scrolled
+            // out of sight.
+            loading="lazy"
+            onError={onBroken}
+          />
           <Checkbox
             checked={checked}
             onChange={onToggle}
             onClick={(event) => event.stopPropagation()}
-            disabled={broken}
             style={{ left: 6, position: 'absolute', top: 6 }}
           />
 
