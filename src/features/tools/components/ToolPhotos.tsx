@@ -16,6 +16,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import {
+  IconLibraryPhoto,
   IconPhotoPlus,
   IconSearch,
   IconStar,
@@ -30,6 +31,7 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchSearchEngines, SEARCH_ENGINES_KEY } from '../../../api/settings'
 import {
+  attachPhotos,
   deletePhoto,
   fetchPhotos,
   importPhotos,
@@ -39,6 +41,7 @@ import {
 } from '../../../api/photos'
 import type { Tool, ToolPhoto } from '../../../api/types'
 import { CutoutStudio } from './CutoutStudio'
+import { ExistingPhotoPicker } from './ExistingPhotoPicker'
 import { PhotoSuggestionsModal } from './PhotoSuggestionsModal'
 
 const SOURCE_LABELS: Record<ToolPhoto['source'], string> = {
@@ -58,6 +61,7 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
   const queryClient = useQueryClient()
   const [url, setUrl] = useState('')
   const [suggestionsOpen, suggestions] = useDisclosure(false)
+  const [pickerOpen, picker] = useDisclosure(false)
 
   const photos = useQuery({
     queryKey: ['tool-photos', tool.id],
@@ -110,6 +114,26 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
   // result side by side, and nothing written until it is accepted.
   const [cutoutPhoto, setCutoutPhoto] = useState<null | ToolPhoto>(null)
 
+  // Photos that already exist: the unassigned shelf in the library, or a
+  // picture another tool is using.
+  const attach = useMutation({
+    mutationFn: (photoIds: number[]) => attachPhotos(tool.id, photoIds),
+    onSuccess: async (result) => {
+      await refresh()
+      // The library changed too: an unattached photo just left the shelf.
+      await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
+      picker.close()
+      notifications.show({
+        color: result.photos.length > 0 ? 'teal' : 'orange',
+        message:
+          result.failed.length === 0
+            ? `Przypisano ${result.photos.length}`
+            : `Przypisano ${result.photos.length}, pominięto ${result.failed.length}`,
+      })
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
   const promote = useMutation({
     mutationFn: (photoId: number) => setPrimaryPhoto(tool.id, photoId),
     onSuccess: refresh,
@@ -144,6 +168,14 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
                 </Button>
               )}
             </FileButton>
+            <Button
+              size="sm"
+              variant="light"
+              leftSection={<IconLibraryPhoto size={16} />}
+              onClick={picker.open}
+            >
+              Wybierz istniejące
+            </Button>
             <Tooltip
               label="Żadna wyszukiwarka nie jest włączona — sprawdź Ustawienia"
               disabled={(engines.data?.usable ?? 1) > 0}
@@ -284,6 +316,16 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
           onClose={() => setCutoutPhoto(null)}
           onSaved={refresh}
           photo={cutoutPhoto}
+          toolId={tool.id}
+        />
+      ) : null}
+
+      {canEdit ? (
+        <ExistingPhotoPicker
+          opened={pickerOpen}
+          onClose={picker.close}
+          onPick={(photoIds) => attach.mutate(photoIds)}
+          saving={attach.isPending}
           toolId={tool.id}
         />
       ) : null}

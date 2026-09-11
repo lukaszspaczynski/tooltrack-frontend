@@ -75,6 +75,12 @@ so there is nothing to reset.
 The old one-click cutout endpoint is still there, and nothing in the UI calls
 it any more.
 
+`ExistingPhotoPicker.tsx` is the fourth way a photo reaches a tool, after
+upload, URL and search: picking one that already exists. It opens on the
+unassigned shelf, because that is what the shelf is for, and offers everything
+else behind a toggle — the same picture on two tools is allowed and costs a row
+rather than a file.
+
 The suggestions modal searches only when its button is pressed. It costs the
 server a call to every enabled search provider, so it must never fire on page
 load. Each engine contributes up to ten results, so the grid holds more than
