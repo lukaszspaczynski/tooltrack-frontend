@@ -26,7 +26,7 @@ export function App() {
         <Route
           index
           element={
-            <RequireCapability capability="tools.read">
+            <RequireCapability capability="catalog.read">
               <ToolsListPage />
             </RequireCapability>
           }
@@ -34,7 +34,7 @@ export function App() {
         <Route
           path="tools/new"
           element={
-            <RequireCapability capability="tools.write">
+            <RequireCapability capability="catalog.write">
               <ToolCreatePage />
             </RequireCapability>
           }
@@ -42,7 +42,7 @@ export function App() {
         <Route
           path="tools/:id"
           element={
-            <RequireCapability capability="tools.read">
+            <RequireCapability capability="catalog.read">
               <ToolDetailPage />
             </RequireCapability>
           }
@@ -50,7 +50,7 @@ export function App() {
         <Route
           path="photos"
           element={
-            <RequireCapability capability="tools.read">
+            <RequireCapability capability="catalog.read">
               <PhotoLibraryPage />
             </RequireCapability>
           }
@@ -58,7 +58,7 @@ export function App() {
         <Route
           path="settings"
           element={
-            <RequireCapability capability="tools.read">
+            <RequireCapability capability="catalog.read">
               <SettingsPage />
             </RequireCapability>
           }

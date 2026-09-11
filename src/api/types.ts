@@ -195,7 +195,9 @@ export type Role = (typeof ROLES)[number]
 
 export type AccountStatus = 'active' | 'disabled'
 
-export type Capability = 'tools.read' | 'tools.write' | 'users.manage'
+// One capability for the catalog — tools, the cases they live in, and the
+// photos of both. The server says the same thing in src/access/roles.ts.
+export type Capability = 'catalog.read' | 'catalog.write' | 'users.manage'
 
 export type User = {
   createdAt: string

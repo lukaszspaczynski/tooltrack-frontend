@@ -80,7 +80,7 @@ export function ToolsListPage() {
           ) : null}
         </Stack>
 
-        {can('tools.write') ? (
+        {can('catalog.write') ? (
           <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />}>
             Dodaj
           </Button>
@@ -182,11 +182,11 @@ function EmptyState({ filtered }: { filtered: boolean }) {
       <Text c="dimmed" size="sm" ta="center">
         {filtered
           ? 'Zmień wyszukiwanie albo wyczyść filtry.'
-          : can('tools.write')
+          : can('catalog.write')
             ? 'Dodaj pierwsze narzędzie, żeby zacząć ewidencję.'
             : 'Nikt jeszcze nie dodał żadnego narzędzia.'}
       </Text>
-      {!filtered && can('tools.write') ? (
+      {!filtered && can('catalog.write') ? (
         <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />} mt="sm">
           Dodaj narzędzie
         </Button>

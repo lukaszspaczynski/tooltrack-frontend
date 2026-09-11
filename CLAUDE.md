@@ -30,8 +30,10 @@ src/
 ## How it works
 
 - **Capabilities, never roles.** `GET /api/auth/me` returns
-  `capabilities: ['tools.read', ...]`, and every guard, menu item and button
-  asks `can('tools.write')`. Comparing `user.role === 'admin'` anywhere would
+  `capabilities: ['catalog.read', ...]`, and every guard, menu item and button
+  asks `can('catalog.write')`. One capability covers the whole catalog — tools,
+  cases and the photos of both — because a viewer who could read a tool but not
+  the case it lives in would be looking at half a shelf. Comparing `user.role === 'admin'` anywhere would
   be a second answer to a question the server's route policy already answers,
   and the two would drift.
 - **The UI only decides what is worth rendering.** The API refuses the same

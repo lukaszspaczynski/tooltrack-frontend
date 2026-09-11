@@ -121,7 +121,7 @@ export function ToolDetailPage() {
           </Group>
         </Stack>
 
-        {can('tools.write') && !editing ? (
+        {can('catalog.write') && !editing ? (
           <Group gap="xs">
             <Button
               variant="light"
@@ -163,7 +163,7 @@ export function ToolDetailPage() {
       {/* Outside the editing form on purpose: photos are added and removed one
           at a time, immediately, while the fields are edited and then saved. */}
       <Paper withBorder p="lg" radius="md">
-        <ToolPhotos canEdit={can('tools.write')} tool={tool} />
+        <ToolPhotos canEdit={can('catalog.write')} tool={tool} />
       </Paper>
 
       <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć kartę?" centered>

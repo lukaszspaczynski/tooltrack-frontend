@@ -146,7 +146,7 @@ export function PhotoLibraryPage() {
           </Text>
         </Stack>
 
-        {can('tools.write') ? (
+        {can('catalog.write') ? (
           <Group gap="sm">
             {selected.length > 0 ? (
               <Button
@@ -223,7 +223,7 @@ export function PhotoLibraryPage() {
           <Text size="sm" c="dimmed">
             {total === 0 ? 'Brak zdjęć' : `${total} zdjęć`}
           </Text>
-          {can('tools.write') && items.length > 0 ? (
+          {can('catalog.write') && items.length > 0 ? (
             <Checkbox
               label="Zaznacz wszystkie na tej stronie"
               checked={allOnPageSelected}
@@ -240,7 +240,7 @@ export function PhotoLibraryPage() {
         {items.map((photo) => (
           <PhotoTile
             key={photo.id}
-            canEdit={can('tools.write')}
+            canEdit={can('catalog.write')}
             checked={selected.includes(photo.id)}
             onCutout={() => setCutoutTarget(photo)}
             onDelete={() => askToDelete([photo])}
