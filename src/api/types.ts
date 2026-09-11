@@ -238,6 +238,14 @@ export type ToolFields = {
 // A case: the box the tools live in. Name and maker are required; everything
 // else comes off a spec sheet and is null when nobody has filled it in. Zero
 // is never "unknown" — a box with no height does not exist.
+// Where a label goes on a case: a size in millimetres and nothing else. What
+// gets printed on it is a different question.
+export type LabelSlot = {
+  heightMm: number
+  id: number
+  widthMm: number
+}
+
 export type ToolCase = {
   capacityL: null | number
   createdAt: string
@@ -248,6 +256,8 @@ export type ToolCase = {
   innerHeightMm: null | number
   innerLengthMm: null | number
   innerWidthMm: null | number
+  // Only the detail carries these: a grid of cases has no use for them.
+  labelSlots: LabelSlot[]
   loadKg: null | number
   manufacturer: string
   name: string

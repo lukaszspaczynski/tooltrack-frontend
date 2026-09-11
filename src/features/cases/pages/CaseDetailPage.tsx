@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Alert,
   Anchor,
   Badge,
@@ -8,6 +9,7 @@ import {
   Loader,
   List,
   Modal,
+  NumberInput,
   Paper,
   SimpleGrid,
   Stack,
@@ -16,12 +18,26 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconAlertTriangle, IconChevronLeft, IconPencil, IconTrash } from '@tabler/icons-react'
+import {
+  IconAlertTriangle,
+  IconChevronLeft,
+  IconPencil,
+  IconPlus,
+  IconTag,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { deleteCase, fetchCase, updateCase } from '../../../api/cases'
+import {
+  addLabelSlot,
+  deleteCase,
+  fetchCase,
+  removeLabelSlot,
+  updateCase,
+} from '../../../api/cases'
 import { fetchOrganizersOfCase } from '../../../api/organizers'
 import type { CaseFields, ToolCase } from '../../../api/types'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
@@ -65,6 +81,27 @@ export function CaseDetailPage() {
     queryKey: ['organizers', 'of-case', caseId],
     queryFn: () => fetchOrganizersOfCase(caseId),
     enabled: confirmOpen && Number.isInteger(caseId),
+  })
+
+  // Label slots go in and out one at a time, immediately, unlike the fields
+  // above: a slot is a row of its own and the server has no draft to hold it.
+  const [slotWidth, setSlotWidth] = useState<number | string>('')
+  const [slotHeight, setSlotHeight] = useState<number | string>('')
+
+  const addSlot = useMutation({
+    mutationFn: (slot: { heightMm: number; widthMm: number }) => addLabelSlot(caseId, slot),
+    onSuccess: async ({ case: saved }) => {
+      queryClient.setQueryData(['case', caseId], { case: saved })
+      setSlotWidth('')
+      setSlotHeight('')
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  const dropSlot = useMutation({
+    mutationFn: (slotId: number) => removeLabelSlot(caseId, slotId),
+    onSuccess: ({ case: saved }) => queryClient.setQueryData(['case', caseId], { case: saved }),
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   const remove = useMutation({
@@ -166,6 +203,86 @@ export function CaseDetailPage() {
         ) : (
           <CaseDetails item={item} />
         )}
+      </Paper>
+
+      {/* Where labels go on this box. A size and nothing else — what gets
+          printed on one is a different question, and not one this screen
+          answers. */}
+      <Paper withBorder p="lg" radius="md">
+        <Stack gap="md">
+          <Group gap="xs">
+            <IconTag size={18} />
+            <Text fw={600}>Miejsca na etykiety ({item.labelSlots.length})</Text>
+          </Group>
+
+          {item.labelSlots.length === 0 ? (
+            <Text c="dimmed" size="sm">
+              Nie ma jeszcze żadnego miejsca.
+            </Text>
+          ) : (
+            <Group gap="xs">
+              {item.labelSlots.map((slot) => (
+                <Badge
+                  key={slot.id}
+                  variant="default"
+                  size="lg"
+                  rightSection={
+                    can('catalog.write') ? (
+                      <ActionIcon
+                        size="xs"
+                        variant="transparent"
+                        color="gray"
+                        aria-label={`Usuń miejsce ${slot.widthMm} na ${slot.heightMm}`}
+                        loading={dropSlot.isPending && dropSlot.variables === slot.id}
+                        onClick={() => dropSlot.mutate(slot.id)}
+                      >
+                        <IconX size={12} />
+                      </ActionIcon>
+                    ) : null
+                  }
+                >
+                  {slot.widthMm} × {slot.heightMm} mm
+                </Badge>
+              ))}
+            </Group>
+          )}
+
+          {can('catalog.write') ? (
+            <Group align="flex-end" gap="sm">
+              <NumberInput
+                label="Szerokość"
+                suffix=" mm"
+                min={1}
+                allowDecimal={false}
+                value={slotWidth}
+                onChange={setSlotWidth}
+                w={130}
+              />
+              <NumberInput
+                label="Wysokość"
+                suffix=" mm"
+                min={1}
+                allowDecimal={false}
+                value={slotHeight}
+                onChange={setSlotHeight}
+                w={130}
+              />
+              <Button
+                variant="light"
+                leftSection={<IconPlus size={16} />}
+                loading={addSlot.isPending}
+                disabled={typeof slotWidth !== 'number' || typeof slotHeight !== 'number'}
+                onClick={() =>
+                  typeof slotWidth === 'number' &&
+                  typeof slotHeight === 'number' &&
+                  addSlot.mutate({ heightMm: slotHeight, widthMm: slotWidth })
+                }
+              >
+                Dodaj miejsce
+              </Button>
+            </Group>
+          ) : null}
+        </Stack>
       </Paper>
 
       {/* Outside the editing form on purpose: photos are added and removed one

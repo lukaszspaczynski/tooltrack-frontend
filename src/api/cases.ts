@@ -38,6 +38,19 @@ export function deleteCase(id: number): Promise<{ ok: true }> {
   return request(`/cases/${id}`, { method: 'DELETE' })
 }
 
+// One more place a label goes. The whole case comes back, so the screen does
+// not have to merge a slot into a list it already holds.
+export function addLabelSlot(
+  id: number,
+  slot: { heightMm: number; widthMm: number },
+): Promise<{ case: ToolCase }> {
+  return request(`/cases/${id}/label-slots`, { body: slot, method: 'POST' })
+}
+
+export function removeLabelSlot(id: number, slotId: number): Promise<{ case: ToolCase }> {
+  return request(`/cases/${id}/label-slots/${slotId}`, { method: 'DELETE' })
+}
+
 // What the system filter offers, counted from the cases themselves.
 export function fetchSystems(): Promise<{ systems: SystemCount[] }> {
   return request('/cases/systems')
