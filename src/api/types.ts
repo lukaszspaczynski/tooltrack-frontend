@@ -29,7 +29,7 @@ export type ToolListItem = Tool & {
   primaryPhotoUrl: null | string
 }
 
-export type PhotoSource = 'search' | 'upload' | 'url'
+export type PhotoSource = 'edit' | 'search' | 'upload' | 'url'
 
 export type ToolPhoto = {
   attribution: string
@@ -37,6 +37,8 @@ export type ToolPhoto = {
   contentType: string
   createdAt: string
   createdBy: null | number
+  // Set when this photo is an AI cutout: the id of the photo it was made from.
+  derivedFrom: null | number
   height: null | number
   id: number
   isPrimary: boolean
@@ -47,11 +49,26 @@ export type ToolPhoto = {
   width: null | number
 }
 
+// A photo as the library screen sees it: the same record plus the name of the
+// tool it belongs to, because a photo has no name of its own and "which tool
+// was this" is the question being asked there.
+export type LibraryPhoto = ToolPhoto & {
+  toolName: string
+}
+
+export type PhotoLibraryPage = {
+  items: LibraryPhoto[]
+  limit: number
+  offset: number
+  total: number
+}
+
 // What the on-demand web search offers. Nothing is stored yet — these are
 // links until someone ticks them and the server fetches the bytes.
 export type PhotoSuggestion = {
   attribution: string
   height: null | number
+  provider: 'brave' | 'google' | 'openverse'
   sourceUrl: string
   thumbnailUrl: string
   title: string
@@ -59,10 +76,40 @@ export type PhotoSuggestion = {
   width: null | number
 }
 
+export type SearchProvider = 'brave' | 'google' | 'openverse'
+
 export type PhotoSearchResult = {
-  provider: 'google' | 'none' | 'openverse'
+  // Which engines were asked, and which of them failed. Several can be on at
+  // once, so a result set is not all-or-nothing.
+  failed: { message: string; provider: SearchProvider }[]
+  providers: SearchProvider[]
   query: string
   suggestions: PhotoSuggestion[]
+}
+
+// One image search engine as the settings screen sees it. Never a credential:
+// only whether one is set, where it came from, and its last four characters.
+export type SearchEngineSettings = {
+  configured: boolean
+  globallyEnabled: boolean
+  keyHint: string
+  keyLabel: string
+  keySource: 'database' | 'environment' | 'none'
+  label: string
+  note: string
+  provider: SearchProvider
+  requiresKey: boolean
+  requiresSecret: boolean
+  secretHint: string
+  secretLabel: string
+  usedByMe: boolean
+}
+
+export type SearchEnginesResponse = {
+  engines: SearchEngineSettings[]
+  // How many engines this account's search would actually run against. Zero
+  // means the search button has nothing to call.
+  usable: number
 }
 
 export type ToolPage = {
