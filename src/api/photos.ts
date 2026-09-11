@@ -152,6 +152,16 @@ export async function uploadLibraryPhoto(file: File): Promise<{ photo: Photo }> 
   return payload as { photo: Photo }
 }
 
+// The same picture, fetched by the server rather than sent from a phone. A
+// logo or a manual is as likely to be a link somebody has as a file.
+//
+// `created` is false when those bytes were already here: the picture comes
+// back either way, because it is the same photograph, but the screen should
+// not claim to have added a row it did not add.
+export function importLibraryPhoto(url: string): Promise<{ created: boolean; photo: Photo }> {
+  return request('/photos', { body: { url }, method: 'POST' })
+}
+
 export type AttachResult = {
   failed: { id: number; reason: string }[]
   photos: CardPhoto[]

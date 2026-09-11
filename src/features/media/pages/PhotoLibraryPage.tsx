@@ -27,6 +27,7 @@ import {
   IconAlertTriangle,
   IconPhotoPlus,
   IconSearch,
+  IconWorld,
   IconStarFilled,
   IconTrash,
   IconWand,
@@ -36,7 +37,12 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
-import { deletePhotos, fetchPhotoLibrary, uploadLibraryPhoto } from '../../../api/photos'
+import {
+  deletePhotos,
+  fetchPhotoLibrary,
+  importLibraryPhoto,
+  uploadLibraryPhoto,
+} from '../../../api/photos'
 import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutStudio } from '../../photos/components/CutoutStudio'
@@ -94,6 +100,23 @@ export function PhotoLibraryPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
       notifications.show({ color: 'teal', message: 'Zdjęcie dodane do biblioteki' })
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  // The same picture from an address instead of a file. Bytes already on the
+  // server answer with the picture that is there, so pasting a link twice is
+  // not an error.
+  const [url, setUrl] = useState('')
+  const importFromUrl = useMutation({
+    mutationFn: (value: string) => importLibraryPhoto(value),
+    onSuccess: async ({ created }) => {
+      await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
+      setUrl('')
+      notifications.show({
+        color: created ? 'teal' : 'blue',
+        message: created ? 'Zdjęcie dodane do biblioteki' : 'To zdjęcie już tu było',
+      })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -176,6 +199,28 @@ export function PhotoLibraryPage() {
                 </Button>
               )}
             </FileButton>
+
+            {/* The other way in, next to the file: an address the server
+                fetches. The same guards apply — the URL is checked before
+                anything is opened, and the bytes decide what the file is. */}
+            <TextInput
+              placeholder="albo wklej adres https://…"
+              value={url}
+              onChange={(event) => setUrl(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && url.trim()) importFromUrl.mutate(url.trim())
+              }}
+              leftSection={<IconWorld size={16} />}
+              w={260}
+            />
+            <Button
+              variant="default"
+              disabled={!url.trim()}
+              loading={importFromUrl.isPending}
+              onClick={() => importFromUrl.mutate(url.trim())}
+            >
+              Pobierz
+            </Button>
           </Group>
         ) : null}
       </Group>
