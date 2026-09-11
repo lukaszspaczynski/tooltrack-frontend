@@ -22,7 +22,7 @@ import { useState } from 'react'
 
 import { apiFileUrl } from '../../../api/client'
 import { fetchPhotoLibrary } from '../../../api/photos'
-import type { LibraryPhoto } from '../../../api/types'
+import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
 
 const PAGE_SIZE = 24
 
@@ -30,20 +30,20 @@ const PAGE_SIZE = 24
 //
 // It opens on the unassigned ones, because that is what the shelf is for: a
 // photo uploaded before anyone decided what it was. "Wszystkie" is there for
-// the other case — the same picture illustrating two tools, which is allowed
-// and costs a row rather than a second file.
+// the other case — the same picture illustrating a tool and the case it lives
+// in, which is allowed and costs a row rather than a second file.
 export function ExistingPhotoPicker({
   onClose,
   onPick,
   opened,
+  owner,
   saving,
-  toolId,
 }: {
   onClose: () => void
   onPick: (photoIds: number[]) => void
   opened: boolean
+  owner: PhotoOwner
   saving: boolean
-  toolId: number
 }) {
   const [assigned, setAssigned] = useState<'all' | 'unassigned'>('unassigned')
   const [searchText, setSearchText] = useState('')
@@ -78,8 +78,11 @@ export function ExistingPhotoPicker({
     placeholderData: keepPreviousData,
   })
 
-  // A photo already on this tool cannot be added again, so it is not offered.
-  const items = (library.data?.items ?? []).filter((photo) => photo.toolId !== toolId)
+  // A photo already on this card cannot be added again, so it is not offered.
+  // Tool 4 and case 4 are different cards, hence both halves of the check.
+  const items = (library.data?.items ?? []).filter(
+    (photo) => !(photo.ownerKind === owner.kind && ownerIdOf(photo) === owner.id),
+  )
   const pages = Math.max(Math.ceil((library.data?.total ?? 0) / PAGE_SIZE), 1)
 
   return (
@@ -210,7 +213,7 @@ function PickerTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          <Image src={apiFileUrl(photo.url)} alt={photo.toolName} h={110} fit="contain" />
+          <Image src={apiFileUrl(photo.url)} alt={photo.ownerName} h={110} fit="contain" />
           <Checkbox
             checked={checked}
             onChange={onToggle}
@@ -219,10 +222,16 @@ function PickerTile({
             style={{ left: 4, position: 'absolute', top: 4 }}
           />
         </div>
-        <Text size="xs" c={photo.toolName ? undefined : 'dimmed'} lineClamp={1}>
-          {photo.toolName || 'bez narzędzia'}
+        <Text size="xs" c={photo.ownerName ? undefined : 'dimmed'} lineClamp={1}>
+          {photo.ownerName || 'bez przypisania'}
         </Text>
       </Stack>
     </Card>
   )
+}
+
+// Which id to compare against: a library photo carries both columns, and only
+// the one matching its ownerKind is set.
+function ownerIdOf(photo: LibraryPhoto): null | number {
+  return photo.ownerKind === 'case' ? photo.caseId : photo.toolId
 }

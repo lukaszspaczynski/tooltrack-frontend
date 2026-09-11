@@ -25,7 +25,7 @@ import { deleteTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
 import { ToolForm } from '../components/ToolForm'
-import { ToolPhotos } from '../components/ToolPhotos'
+import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime } from '../presentation'
 
 export function ToolDetailPage() {
@@ -163,7 +163,14 @@ export function ToolDetailPage() {
       {/* Outside the editing form on purpose: photos are added and removed one
           at a time, immediately, while the fields are edited and then saved. */}
       <Paper withBorder p="lg" radius="md">
-        <ToolPhotos canEdit={can('catalog.write')} tool={tool} />
+        <PhotoPanel
+          canEdit={can('catalog.write')}
+          label={tool.name}
+          owner={{ id: tool.id, kind: 'tool' }}
+          // Brand and model identify a machine; the name alone would find a
+          // category. The server falls back to the same thing.
+          searchQuery={[tool.brand, tool.model].filter(Boolean).join(' ') || tool.name}
+        />
       </Paper>
 
       <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć kartę?" centered>

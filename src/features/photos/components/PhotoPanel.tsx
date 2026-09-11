@@ -39,33 +39,49 @@ import {
   uploadPhoto,
   type PhotoImportItem,
 } from '../../../api/photos'
-import type { Tool, ToolPhoto } from '../../../api/types'
+import type { Photo, PhotoOwner } from '../../../api/types'
 import { CutoutStudio } from './CutoutStudio'
 import { ExistingPhotoPicker } from './ExistingPhotoPicker'
 import { PhotoSuggestionsModal } from './PhotoSuggestionsModal'
 
-const SOURCE_LABELS: Record<ToolPhoto['source'], string> = {
+const SOURCE_LABELS: Record<Photo['source'], string> = {
   edit: 'wycięte',
   search: 'z wyszukiwarki',
   upload: 'wgrane',
   url: 'z adresu',
 }
 
-// The gallery of a tool: every photo, with one marked as the main one — that is
-// the one the catalog grid shows.
+// The gallery of a card — a tool or a case: every photo, with one marked as
+// the main one, which is what the grid shows.
 //
-// Three ways in, because they are three different situations: a photo taken on
-// site (upload), a link to the manufacturer's page (URL), and "find me
-// something" when nobody has photographed this machine yet (search).
-export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) {
+// Four ways in, because they are four different situations: a photo taken on
+// site (upload), a link to the manufacturer's page (URL), "find me something"
+// when nobody has photographed this one yet (search), and a picture that is
+// already in the library (pick).
+//
+// It takes an owner rather than a tool because a case carries photos on
+// exactly the same terms; the server serves both from one set of routes.
+export function PhotoPanel({
+  canEdit,
+  label,
+  owner,
+  searchQuery,
+}: {
+  canEdit: boolean
+  // What to put in the alt text: the name of the card these belong to.
+  label: string
+  owner: PhotoOwner
+  // What the suggestions modal should search for before anyone types.
+  searchQuery: string
+}) {
   const queryClient = useQueryClient()
   const [url, setUrl] = useState('')
   const [suggestionsOpen, suggestions] = useDisclosure(false)
   const [pickerOpen, picker] = useDisclosure(false)
 
   const photos = useQuery({
-    queryKey: ['tool-photos', tool.id],
-    queryFn: () => fetchPhotos(tool.id),
+    queryKey: ['card-photos', owner.kind, owner.id],
+    queryFn: () => fetchPhotos(owner),
   })
 
   // Whether any search engine is switched on for this account. The button is
@@ -79,13 +95,13 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
   })
 
   const refresh = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['tool-photos', tool.id] })
+    await queryClient.invalidateQueries({ queryKey: ['card-photos', owner.kind, owner.id] })
     // The grid shows the main photo, so it changed too.
     await queryClient.invalidateQueries({ queryKey: ['tools'] })
   }
 
   const upload = useMutation({
-    mutationFn: (file: File) => uploadPhoto(tool.id, file),
+    mutationFn: (file: File) => uploadPhoto(owner, file),
     onSuccess: async () => {
       await refresh()
       notifications.show({ color: 'teal', message: 'Zdjęcie dodane' })
@@ -94,7 +110,7 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
   })
 
   const importFromWeb = useMutation({
-    mutationFn: (items: PhotoImportItem[]) => importPhotos(tool.id, items),
+    mutationFn: (items: PhotoImportItem[]) => importPhotos(owner, items),
     onSuccess: async (result) => {
       await refresh()
       setUrl('')
@@ -112,12 +128,12 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
 
   // The cutout opens a screen of its own: method, parameters, original and
   // result side by side, and nothing written until it is accepted.
-  const [cutoutPhoto, setCutoutPhoto] = useState<null | ToolPhoto>(null)
+  const [cutoutPhoto, setCutoutPhoto] = useState<null | Photo>(null)
 
   // Photos that already exist: the unassigned shelf in the library, or a
   // picture another tool is using.
   const attach = useMutation({
-    mutationFn: (photoIds: number[]) => attachPhotos(tool.id, photoIds),
+    mutationFn: (photoIds: number[]) => attachPhotos(owner, photoIds),
     onSuccess: async (result) => {
       await refresh()
       // The library changed too: an unattached photo just left the shelf.
@@ -137,13 +153,13 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
   })
 
   const promote = useMutation({
-    mutationFn: (photoId: number) => setPrimaryPhoto(tool.id, photoId),
+    mutationFn: (photoId: number) => setPrimaryPhoto(owner, photoId),
     onSuccess: refresh,
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   const remove = useMutation({
-    mutationFn: (photoId: number) => deletePhoto(tool.id, photoId),
+    mutationFn: (photoId: number) => deletePhoto(owner, photoId),
     onSuccess: refresh,
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -242,13 +258,7 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
         {items.map((photo) => (
           <Card key={photo.id} withBorder padding="xs" radius="md">
             <Stack gap={6}>
-              <Image
-                src={apiFileUrl(photo.url)}
-                alt={tool.name}
-                h={140}
-                fit="contain"
-                radius="sm"
-              />
+              <Image src={apiFileUrl(photo.url)} alt={label} h={140} fit="contain" radius="sm" />
 
               <Group justify="space-between" gap={4} wrap="nowrap">
                 <Badge size="xs" variant="light" color={photo.isPrimary ? 'amber' : 'gray'}>
@@ -261,13 +271,13 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
                       label={
                         photo.source === 'edit'
                           ? 'To zdjęcie już jest wycięte'
-                          : 'Wytnij samo narzędzie'
+                          : `Wytnij ${owner.kind === 'case' ? 'samą skrzynkę' : 'samo narzędzie'}`
                       }
                     >
                       <ActionIcon
                         variant="subtle"
                         color="grape"
-                        aria-label="Wytnij samo narzędzie"
+                        aria-label="Wytnij sam przedmiot"
                         disabled={photo.source === 'edit'}
                         onClick={() => setCutoutPhoto(photo)}
                       >
@@ -318,7 +328,7 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
           onClose={() => setCutoutPhoto(null)}
           onSaved={refresh}
           photo={cutoutPhoto}
-          toolId={tool.id}
+          owner={owner}
         />
       ) : null}
 
@@ -330,7 +340,7 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
           onClose={picker.close}
           onPick={(photoIds) => attach.mutate(photoIds)}
           saving={attach.isPending}
-          toolId={tool.id}
+          owner={owner}
         />
       ) : null}
 
@@ -340,7 +350,8 @@ export function ToolPhotos({ canEdit, tool }: { canEdit: boolean; tool: Tool }) 
           onClose={suggestions.close}
           onSave={(chosen) => importFromWeb.mutate(chosen)}
           saving={busy}
-          tool={tool}
+          owner={owner}
+          defaultQuery={searchQuery}
         />
       ) : null}
     </Stack>

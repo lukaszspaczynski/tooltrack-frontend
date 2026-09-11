@@ -37,9 +37,9 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
 import { deletePhotos, fetchPhotoLibrary, uploadLibraryPhoto } from '../../../api/photos'
-import type { LibraryPhoto } from '../../../api/types'
+import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
-import { CutoutStudio } from '../../tools/components/CutoutStudio'
+import { CutoutStudio } from '../../photos/components/CutoutStudio'
 import { formatDateTime } from '../../tools/presentation'
 import {
   ASSIGNED_OPTIONS,
@@ -124,6 +124,16 @@ export function PhotoLibraryPage() {
   // this is where a whole import is reviewed, and "this one needs cutting out"
   // is decided while looking at the batch.
   const [cutoutTarget, setCutoutTarget] = useState<null | LibraryPhoto>(null)
+
+  // The wand works through whichever card the photo belongs to, because that
+  // is the only route the cutout has. A photo waiting in the library has no
+  // card, so it cannot be cut out from here — assign it first.
+  const cutoutOwner: null | PhotoOwner =
+    cutoutTarget?.ownerKind === 'case' && cutoutTarget.caseId !== null
+      ? { id: cutoutTarget.caseId, kind: 'case' }
+      : cutoutTarget?.ownerKind === 'tool' && cutoutTarget.toolId !== null
+        ? { id: cutoutTarget.toolId, kind: 'tool' }
+        : null
 
   const items = library.data?.items ?? []
   const total = library.data?.total ?? 0
@@ -272,16 +282,16 @@ export function PhotoLibraryPage() {
         </Group>
       ) : null}
 
-      {cutoutTarget && cutoutTarget.toolId !== null ? (
+      {cutoutOwner ? (
         <CutoutStudio
           opened
           onClose={() => setCutoutTarget(null)}
           onSaved={async () => {
             await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
-            await queryClient.invalidateQueries({ queryKey: ['tool-photos'] })
+            await queryClient.invalidateQueries({ queryKey: ['card-photos'] })
           }}
-          photo={cutoutTarget}
-          toolId={cutoutTarget.toolId}
+          photo={cutoutTarget!}
+          owner={cutoutOwner}
         />
       ) : null}
 
@@ -323,7 +333,7 @@ function PhotoTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          <Image src={apiFileUrl(photo.url)} alt={photo.toolName} h={110} fit="contain" />
+          <Image src={apiFileUrl(photo.url)} alt={photo.ownerName} h={110} fit="contain" />
           {canEdit ? (
             <Checkbox
               checked={checked}
@@ -347,20 +357,20 @@ function PhotoTile({
           ) : null}
         </div>
 
-        {photo.toolId === null ? (
+        {photo.ownerKind === null ? (
           <Text size="xs" fw={600} c="dimmed" lineClamp={1}>
-            bez narzędzia
+            bez przypisania
           </Text>
         ) : (
           <Text
             component={Link}
-            to={`/tools/${photo.toolId}`}
+            to={photo.ownerKind === 'case' ? `/cases/${photo.caseId}` : `/tools/${photo.toolId}`}
             size="xs"
             fw={600}
             lineClamp={1}
-            title={photo.toolName}
+            title={photo.ownerName}
           >
-            {photo.toolName}
+            {photo.ownerName}
           </Text>
         )}
 
@@ -424,8 +434,14 @@ function DeleteConfirmation({
   pending: LibraryPhoto[]
   working: boolean
 }) {
-  const attached = pending.filter((photo) => photo.toolId !== null)
-  const tools = [...new Map(attached.map((photo) => [photo.toolId, photo.toolName])).entries()]
+  const attached = pending.filter((photo) => photo.ownerKind !== null)
+  // Keyed by kind and id: tool 4 and case 4 are different cards that happen to
+  // share a number, and listing them as one would hide a deletion.
+  const cards = [
+    ...new Map(
+      attached.map((photo) => [`${photo.ownerKind}-${photo.caseId ?? photo.toolId}`, photo]),
+    ).values(),
+  ]
   const loose = pending.length - attached.length
   const primaries = pending.filter((photo) => photo.isPrimary)
 
@@ -438,11 +454,11 @@ function DeleteConfirmation({
             : `Zaznaczono ${pending.length} zdjęć. Zostaną trwale usunięte z dysku.`}
         </Text>
 
-        {tools.length === 0 ? (
+        {cards.length === 0 ? (
           <Text c="dimmed" size="sm">
             {loose === 1
-              ? 'To zdjęcie nie jest przypisane do żadnego narzędzia.'
-              : 'Żadne z tych zdjęć nie jest przypisane do narzędzia.'}
+              ? 'To zdjęcie nie jest przypisane do niczego.'
+              : 'Żadne z tych zdjęć nie jest do niczego przypisane.'}
           </Text>
         ) : (
           <Alert
@@ -450,14 +466,19 @@ function DeleteConfirmation({
             variant="light"
             icon={<IconAlertTriangle size={18} />}
             title={
-              tools.length === 1
-                ? 'Zdjęcie jest przypisane do narzędzia'
-                : `Zdjęcia są przypisane do ${tools.length} narzędzi`
+              cards.length === 1
+                ? 'Zdjęcie jest przypisane do karty'
+                : `Zdjęcia są przypisane do ${cards.length} kart`
             }
           >
             <List size="sm" spacing={2}>
-              {tools.map(([id, name]) => (
-                <List.Item key={id}>{name}</List.Item>
+              {cards.map((photo) => (
+                <List.Item key={`${photo.ownerKind}-${photo.id}`}>
+                  {photo.ownerName}{' '}
+                  <Text span size="xs" c="dimmed">
+                    ({photo.ownerKind === 'case' ? 'skrzynka' : 'narzędzie'})
+                  </Text>
+                </List.Item>
               ))}
             </List>
 

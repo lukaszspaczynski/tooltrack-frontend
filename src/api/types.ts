@@ -31,7 +31,18 @@ export type ToolListItem = Tool & {
 
 export type PhotoSource = 'edit' | 'search' | 'upload' | 'url'
 
-export type ToolPhoto = {
+// Tools and cases carry photos on identical terms, so every photo call names
+// which kind of card it is talking about rather than having two of everything.
+export const PHOTO_OWNER_KINDS = ['case', 'tool'] as const
+
+export type PhotoOwnerKind = (typeof PHOTO_OWNER_KINDS)[number]
+
+export type PhotoOwner = {
+  id: number
+  kind: PhotoOwnerKind
+}
+
+export type Photo = {
   attribution: string
   byteSize: number
   contentType: string
@@ -44,18 +55,22 @@ export type ToolPhoto = {
   isPrimary: boolean
   source: PhotoSource
   sourceUrl: string
-  // Null while the photo belongs to no tool.
+  // At most one of the two is set. Both null means the photo is waiting in the
+  // library for somebody to decide what it is.
+  caseId: null | number
   toolId: null | number
   url: string
   width: null | number
 }
 
-// A photo as the library screen sees it: the same record plus the name of the
-// tool it belongs to, because a photo has no name of its own and "which tool
-// was this" is the question being asked there.
-export type LibraryPhoto = ToolPhoto & {
-  // Empty for a photo that has no tool yet.
-  toolName: string
+// A photo as the library screen sees it: the same record plus what it belongs
+// to, because a photo has no name of its own and "what is this a picture of"
+// is the question being asked there.
+export type LibraryPhoto = Photo & {
+  // Null for a photo nobody has placed yet.
+  ownerKind: null | PhotoOwnerKind
+  // Empty for that same photo, so the screen has one thing to render.
+  ownerName: string
 }
 
 export type PhotoLibraryPage = {

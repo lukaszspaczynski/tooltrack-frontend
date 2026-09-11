@@ -19,28 +19,32 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { fetchPhotoSuggestions } from '../../../api/photos'
-import type { PhotoSuggestion, Tool } from '../../../api/types'
+import type { PhotoOwner, PhotoSuggestion } from '../../../api/types'
 
 // The web search, on demand. It opens empty and searches when asked: the
 // request costs the server a call to a search provider, so it must never be a
-// side effect of opening a tool.
+// side effect of opening a card.
 //
 // Multi-select, because the useful outcome is "these three are the right
 // machine" — the tick boxes are the point of the screen, not a refinement.
 export function PhotoSuggestionsModal({
+  defaultQuery,
   onClose,
   onSave,
   opened,
+  owner,
   saving,
-  tool,
 }: {
+  // What to search for before anyone types. A tool is identified by its brand
+  // and model, a case by its maker and name, and the caller knows which it is.
+  defaultQuery: string
   onClose: () => void
   onSave: (items: { attribution: string; url: string }[]) => void
   opened: boolean
+  owner: PhotoOwner
   saving: boolean
-  tool: Tool
 }) {
-  const [query, setQuery] = useState(defaultQuery(tool))
+  const [query, setQuery] = useState(defaultQuery)
   const [selected, setSelected] = useState<string[]>([])
   // Results whose picture did not load. A search result is a link, and some of
   // them are dead; a tile with nothing in it is not a choice, so it leaves the
@@ -48,7 +52,7 @@ export function PhotoSuggestionsModal({
   const [broken, setBroken] = useState<string[]>([])
 
   const search = useMutation({
-    mutationFn: (value: string) => fetchPhotoSuggestions(tool.id, value),
+    mutationFn: (value: string) => fetchPhotoSuggestions(owner, value),
     onSuccess: () => {
       setSelected([])
       setBroken([])
@@ -241,9 +245,4 @@ const PROVIDER_COLORS: Record<string, string> = {
 
 function providerLabel(provider: string): string {
   return PROVIDER_LABELS[provider] ?? provider
-}
-
-function defaultQuery(tool: Tool): string {
-  const parts = [tool.brand, tool.model].map((part) => part.trim()).filter(Boolean)
-  return parts.length > 0 ? parts.join(' ') : tool.name
 }

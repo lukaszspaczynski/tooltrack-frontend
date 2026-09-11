@@ -22,7 +22,7 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { commitCutout, previewCutout } from '../../../api/photos'
 import { CUTOUT_SETTINGS_KEY, fetchCutoutSettings } from '../../../api/settings'
-import type { CutoutMethod, CutoutPreview, CutoutSettings } from '../../../api/types'
+import type { CutoutMethod, CutoutPreview, CutoutSettings, PhotoOwner } from '../../../api/types'
 
 // The cutout screen: original on the left, result on the right, and nothing is
 // written until somebody says so.
@@ -34,8 +34,8 @@ export function CutoutStudio({
   onClose,
   onSaved,
   opened,
+  owner,
   photo,
-  toolId,
 }: {
   onClose: () => void
   onSaved: () => void
@@ -47,7 +47,7 @@ export function CutoutStudio({
     url: string
     width: null | number
   }
-  toolId: number
+  owner: PhotoOwner
 }) {
   const settings = useQuery({
     queryKey: CUTOUT_SETTINGS_KEY,
@@ -73,7 +73,7 @@ export function CutoutStudio({
 
   const run = useMutation({
     mutationFn: () =>
-      previewCutout(toolId, photo.id, {
+      previewCutout(owner, photo.id, {
         method: method ?? undefined,
         padding: Number(padding),
         removeBgType,
@@ -84,7 +84,7 @@ export function CutoutStudio({
   })
 
   const keep = useMutation({
-    mutationFn: (checksum: string) => commitCutout(toolId, photo.id, checksum),
+    mutationFn: (checksum: string) => commitCutout(owner, photo.id, checksum),
     onSuccess: () => {
       notifications.show({ color: 'teal', message: 'Wycinka zapisana jako nowe zdjęcie' })
       onSaved()

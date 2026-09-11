@@ -48,9 +48,17 @@ src/
 - **Server state is TanStack Query, not useState.** Cache keys: `['tools',
 query]`, `['tool', id]`, `['tool-categories']`, `['users']`, `['session']`.
   A mutation invalidates what it changed — a new tool changes the list _and_
-  the category list.
+  the category list. Photo keys carry the owner's kind as well as its id
+  (`['card-photos', 'case', 4]`): tool 4 and case 4 are different cards that
+  happen to share a number.
 
 ## Photos
+
+`features/photos/` holds the photo components, and they are not under `tools/`
+because a case carries pictures on exactly the same terms. Every one of them
+takes a `PhotoOwner` — `{ kind: 'tool' | 'case', id }` — which `api/photos.ts`
+turns into `/api/tools/7/…` or `/api/cases/7/…`. `PhotoPanel` is the gallery,
+and it is the same component on both detail pages.
 
 `api/photos.ts` is the whole surface: list, upload, import links, promote,
 delete, suggestions. The upload is the one call that does not go through
@@ -61,8 +69,9 @@ not same-origin.
 
 `features/media/` is the library: every photo in the system, with selection and
 a batch delete. Its confirmation modal is the point of the screen, not a
-formality — it names the tools the selection belongs to and calls out the main
-photos, because those change what the catalog grid shows.
+formality — it names the cards the selection belongs to, says which are cases
+and which are tools, and calls out the main photos, because those change what
+the grids show.
 
 `CutoutStudio.tsx` is the wand: method, its parameters, original and result
 side by side, and a save that only happens when the person says so. The method
