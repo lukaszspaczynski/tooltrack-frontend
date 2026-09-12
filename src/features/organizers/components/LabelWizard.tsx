@@ -62,7 +62,11 @@ export function LabelWizard({
   // text is kept even while the other source is chosen, so switching back and
   // forth does not lose what somebody wrote.
   const [titleSource, setTitleSource] = useState<'custom' | 'organizer'>('organizer')
-  const [namesSource, setNamesSource] = useState<'models' | 'text' | 'tools'>('tools')
+  // Null until somebody chooses, so the default can depend on what this
+  // organizer actually has to say.
+  const [chosenNamesSource, setChosenNamesSource] = useState<null | 'models' | 'text' | 'tools'>(
+    null,
+  )
   const [titleText, setTitleText] = useState('')
   const [namesText, setNamesText] = useState('')
   // Null until somebody ticks a picture themselves. Until then the selection is
@@ -119,6 +123,12 @@ export function LabelWizard({
   const automaticModels = [
     ...new Set(organizer.tools.map((tool) => tool.model.trim()).filter(Boolean)),
   ].join(', ')
+
+  // The models by default: "POF 1200 F5" is what is written on the machine and
+  // what a spare part is ordered by, and it fits a 30 mm band where a list of
+  // catalog names does not. Only when there are any — an organizer whose tools
+  // carry no model has nothing to print, and that option is not even offered.
+  const namesSource = chosenNamesSource ?? (automaticModels ? 'models' : 'tools')
 
   const startTyping = (
     source: 'custom' | 'models' | 'organizer' | 'text' | 'tools',
@@ -310,7 +320,7 @@ export function LabelWizard({
                     value={namesSource}
                     onChange={(value) => {
                       const source = value as 'models' | 'text' | 'tools'
-                      setNamesSource(source)
+                      setChosenNamesSource(source)
                       startTyping(source, namesText, automaticNames, setNamesText)
                     }}
                   >
