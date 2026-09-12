@@ -232,6 +232,7 @@ function SuggestionTile({
 const PROVIDER_LABELS: Record<string, string> = {
   brave: 'Brave',
   google: 'Google',
+  mistama: 'mistama.com',
   openverse: 'Openverse',
 }
 
@@ -240,6 +241,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 const PROVIDER_COLORS: Record<string, string> = {
   brave: 'orange',
   google: 'blue',
+  mistama: 'grape',
   openverse: 'teal',
 }
 

@@ -116,7 +116,7 @@ export type PhotoLibraryPage = {
 export type PhotoSuggestion = {
   attribution: string
   height: null | number
-  provider: 'brave' | 'google' | 'openverse'
+  provider: 'brave' | 'google' | 'mistama' | 'openverse'
   sourceUrl: string
   thumbnailUrl: string
   title: string
@@ -124,7 +124,7 @@ export type PhotoSuggestion = {
   width: null | number
 }
 
-export type SearchProvider = 'brave' | 'google' | 'openverse'
+export type SearchProvider = 'brave' | 'google' | 'mistama' | 'openverse'
 
 export type PhotoSearchResult = {
   // Which engines were asked, and which of them failed. Several can be on at
