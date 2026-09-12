@@ -61,12 +61,17 @@ export function fetchLabelSlots(id: number): Promise<{ slots: OrganizerLabelSlot
 }
 
 export type LabelRequest = {
+  // Empty, or absent, means the label works it out: the organizer's name over
+  // the rule and the tool names under it. Anything else is what somebody typed
+  // instead, and the label says that.
+  namesText?: string
   photoIds?: number[]
   // A print-ready file has a margin, crop marks and a measured bar; a plain one
   // is the artwork alone. Defaults to print-ready on the server.
   printReady?: boolean
   slotId: number
   template: 'contents' | 'number'
+  titleText?: string
   withLogos?: boolean
   withNames?: boolean
   withTitle?: boolean

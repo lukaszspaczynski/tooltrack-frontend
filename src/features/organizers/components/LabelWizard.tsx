@@ -12,6 +12,7 @@ import {
   Stack,
   Stepper,
   Text,
+  TextInput,
 } from '@mantine/core'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -21,6 +22,9 @@ import { fetchLabelSlots, type LabelRequest } from '../../../api/organizers'
 import type { Organizer, OrganizerLabelSlot } from '../../../api/types'
 
 const MAX_PHOTOS = 3
+// What the server accepts for a line somebody types. A label is 30 mm across;
+// past this the template can only shrink the type until nobody can read it.
+const MAX_TEXT = 120
 
 type Template = 'contents' | 'number'
 
@@ -49,6 +53,13 @@ export function LabelWizard({
   const [withLogos, setWithLogos] = useState(true)
   const [withTitle, setWithTitle] = useState(true)
   const [withNames, setWithNames] = useState(true)
+  // Each of the two lines is either worked out from the catalog or typed. The
+  // text is kept even while the other source is chosen, so switching back and
+  // forth does not lose what somebody wrote.
+  const [titleSource, setTitleSource] = useState<'custom' | 'organizer'>('organizer')
+  const [namesSource, setNamesSource] = useState<'custom' | 'tools'>('tools')
+  const [titleText, setTitleText] = useState('')
+  const [namesText, setNamesText] = useState('')
   const [photoIds, setPhotoIds] = useState<number[]>([])
   const [printReady, setPrintReady] = useState(true)
 
@@ -83,13 +94,37 @@ export function LabelWizard({
           : [...current, id],
     )
 
+  // What the label would say on its own, and what a custom field starts from:
+  // editing down from the real answer is easier than typing it out.
+  const automaticNames = organizer.tools.map((tool) => tool.name).join(', ')
+
+  const startTyping = (
+    source: 'custom' | 'organizer' | 'tools',
+    current: string,
+    automatic: string,
+    set: (value: string) => void,
+  ) => {
+    if (source === 'custom' && current === '') set(automatic.slice(0, MAX_TEXT))
+  }
+
   const submit = () => {
     if (!slot || !template) return
 
     onCreate(
       template === 'number'
         ? { printReady, slotId: slot.id, template, withLogos }
-        : { photoIds, printReady, slotId: slot.id, template, withNames, withTitle },
+        : {
+            // Empty means "work it out": the server puts the organizer's name
+            // and the tool names on. Only a typed line travels as text.
+            namesText: withNames && namesSource === 'custom' ? namesText.trim() : '',
+            photoIds,
+            printReady,
+            slotId: slot.id,
+            template,
+            titleText: withTitle && titleSource === 'custom' ? titleText.trim() : '',
+            withNames,
+            withTitle,
+          },
     )
   }
 
@@ -195,17 +230,79 @@ export function LabelWizard({
 
         {step === 2 && template === 'contents' ? (
           <Stack gap="sm">
-            <Checkbox
-              checked={withTitle}
-              onChange={(event) => setWithTitle(event.currentTarget.checked)}
-              label={`Nazwa organizera („${organizer.name}")`}
-            />
-            <Checkbox
-              checked={withNames}
-              onChange={(event) => setWithNames(event.currentTarget.checked)}
-              label="Nazwy narzędzi"
-              description="Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało"
-            />
+            <Stack gap={6}>
+              <Checkbox
+                checked={withTitle}
+                onChange={(event) => setWithTitle(event.currentTarget.checked)}
+                label="Nazwa"
+                description="Duży napis nad linią"
+              />
+              {withTitle ? (
+                <Stack gap={6} pl={34}>
+                  <Radio.Group
+                    value={titleSource}
+                    onChange={(value) => {
+                      const source = value as 'custom' | 'organizer'
+                      setTitleSource(source)
+                      startTyping(source, titleText, organizer.name, setTitleText)
+                    }}
+                  >
+                    <Group gap="lg">
+                      <Radio value="organizer" label={`Nazwa organizera („${organizer.name}")`} />
+                      <Radio value="custom" label="Własny tekst" />
+                    </Group>
+                  </Radio.Group>
+                  {titleSource === 'custom' ? (
+                    <TextInput
+                      value={titleText}
+                      onChange={(event) => setTitleText(event.currentTarget.value)}
+                      maxLength={MAX_TEXT}
+                      placeholder="np. Akumulatory"
+                      aria-label="Własna nazwa na etykiecie"
+                    />
+                  ) : null}
+                </Stack>
+              ) : null}
+            </Stack>
+
+            <Stack gap={6}>
+              <Checkbox
+                checked={withNames}
+                onChange={(event) => setWithNames(event.currentTarget.checked)}
+                label="Podpis"
+                description="Mniejszy napis pod linią, wersalikami"
+              />
+              {withNames ? (
+                <Stack gap={6} pl={34}>
+                  <Radio.Group
+                    value={namesSource}
+                    onChange={(value) => {
+                      const source = value as 'custom' | 'tools'
+                      setNamesSource(source)
+                      startTyping(source, namesText, automaticNames, setNamesText)
+                    }}
+                  >
+                    <Group gap="lg">
+                      <Radio
+                        value="tools"
+                        label="Nazwy narzędzi"
+                        description="Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało"
+                      />
+                      <Radio value="custom" label="Własny tekst" />
+                    </Group>
+                  </Radio.Group>
+                  {namesSource === 'custom' ? (
+                    <TextInput
+                      value={namesText}
+                      onChange={(event) => setNamesText(event.currentTarget.value)}
+                      maxLength={MAX_TEXT}
+                      placeholder="np. 18 V + 12 V, Li-Ion"
+                      aria-label="Własny podpis na etykiecie"
+                    />
+                  ) : null}
+                </Stack>
+              ) : null}
+            </Stack>
 
             <Text size="sm" fw={600}>
               Zdjęcia ({photoIds.length}/{MAX_PHOTOS})
