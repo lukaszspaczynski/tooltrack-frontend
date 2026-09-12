@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   Center,
+  Checkbox,
   Collapse,
   Group,
   Image,
@@ -26,6 +27,7 @@ import {
   IconPencil,
   IconPhotoOff,
   IconPlus,
+  IconRefresh,
   IconTag,
   IconTrash,
   IconX,
@@ -41,6 +43,7 @@ import {
   deleteLabel,
   deleteOrganizer,
   fetchOrganizer,
+  refreshLabels,
   removeToolFromOrganizer,
   updateOrganizer,
   type LabelRequest,
@@ -105,6 +108,10 @@ export function OrganizerDetailPage() {
   })
 
   const [wizardOpen, wizard] = useDisclosure(false)
+  // Which labels the refresh button would redraw. Ids rather than the labels
+  // themselves, so a list that changed underneath cannot leave stale copies in
+  // state.
+  const [selectedLabels, setSelectedLabels] = useState<number[]>([])
 
   const makeLabel = useMutation({
     mutationFn: (request: LabelRequest) => createLabel(organizerId, request),
@@ -118,8 +125,33 @@ export function OrganizerDetailPage() {
 
   const dropLabel = useMutation({
     mutationFn: (labelId: number) => deleteLabel(organizerId, labelId),
-    onSuccess: ({ organizer: saved }) =>
-      queryClient.setQueryData(['organizer', organizerId], { organizer: saved }),
+    onSuccess: ({ organizer: saved }, labelId) => {
+      queryClient.setQueryData(['organizer', organizerId], { organizer: saved })
+      setSelectedLabels((ids) => ids.filter((id) => id !== labelId))
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  const redrawLabels = useMutation({
+    mutationFn: (labelIds: number[]) => refreshLabels(organizerId, labelIds),
+    onSuccess: ({ failed, organizer: saved, refreshed }) => {
+      queryClient.setQueryData(['organizer', organizerId], { organizer: saved })
+      setSelectedLabels([])
+
+      // A label whose photos have been deleted since cannot be drawn again, and
+      // the rest were. Saying which is the difference between a screen somebody
+      // trusts and one they check by hand.
+      notifications.show(
+        failed.length === 0
+          ? { color: 'teal', message: `Narysowano od nowa: ${refreshed}` }
+          : {
+              color: 'orange',
+              message: `Narysowano od nowa: ${refreshed}. Nie udało się: ${failed
+                .map((entry) => entry.error)
+                .join('; ')}`,
+            },
+      )
+    },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
@@ -314,8 +346,10 @@ export function OrganizerDetailPage() {
         </Stack>
       </Paper>
 
-      {/* The labels this arrangement has produced. A label is a file: it is
-          made once, looked at, printed, and thrown away — not edited. */}
+      {/* The labels this arrangement has produced. A label is a file rather
+          than a document: it is looked at, printed and thrown away. It is
+          never edited — but it can be drawn again, from the options it was
+          kept with, when the box it describes has changed. */}
       <Paper withBorder p="lg" radius="md">
         <Stack gap="md">
           <Group justify="space-between" align="center">
@@ -324,14 +358,27 @@ export function OrganizerDetailPage() {
               <Text fw={600}>Etykiety ({organizer.labels.length})</Text>
             </Group>
             {canEdit ? (
-              <Button
-                size="sm"
-                variant="light"
-                leftSection={<IconPlus size={16} />}
-                onClick={wizard.open}
-              >
-                Nowa etykieta
-              </Button>
+              <Group gap="xs">
+                <Button
+                  size="sm"
+                  variant="subtle"
+                  leftSection={<IconRefresh size={16} />}
+                  disabled={selectedLabels.length === 0}
+                  loading={redrawLabels.isPending}
+                  onClick={() => redrawLabels.mutate(selectedLabels)}
+                >
+                  Odśwież zaznaczone
+                  {selectedLabels.length > 0 ? ` (${selectedLabels.length})` : ''}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="light"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={wizard.open}
+                >
+                  Nowa etykieta
+                </Button>
+              </Group>
             ) : null}
           </Group>
 
@@ -363,6 +410,24 @@ export function OrganizerDetailPage() {
                     </Anchor>
 
                     <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
+                      {canEdit ? (
+                        <Checkbox
+                          size="xs"
+                          mt={2}
+                          aria-label={`Zaznacz etykietę ${label.widthMm} × ${label.heightMm} mm`}
+                          checked={selectedLabels.includes(label.id)}
+                          onChange={(event) => {
+                            // Read now, not inside the updater: React clears
+                            // currentTarget once the handler returns, and the
+                            // updater runs after that.
+                            const { checked } = event.currentTarget
+                            setSelectedLabels((ids) => {
+                              const rest = ids.filter((id) => id !== label.id)
+                              return checked ? [...rest, label.id] : rest
+                            })
+                          }}
+                        />
+                      ) : null}
                       <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
                         <Anchor href={apiFileUrl(label.url)} target="_blank" size="xs" fw={600}>
                           {label.template === 'number' ? 'Numer porządkowy' : 'Zawartość'}

@@ -77,6 +77,16 @@ export function createLabel(id: number, body: LabelRequest): Promise<{ organizer
   return request(`/organizers/${id}/labels`, { body, method: 'POST' })
 }
 
+// Draws the chosen labels again from the options they were kept with. One that
+// cannot be drawn — its photos deleted since — comes back in `failed` rather
+// than failing the call, so the rest are still brought up to date.
+export function refreshLabels(
+  id: number,
+  labelIds: number[],
+): Promise<{ failed: { error: string; id: number }[]; organizer: Organizer; refreshed: number }> {
+  return request(`/organizers/${id}/labels/refresh`, { body: { labelIds }, method: 'POST' })
+}
+
 export function deleteLabel(id: number, labelId: number): Promise<{ organizer: Organizer }> {
   return request(`/organizers/${id}/labels/${labelId}`, { method: 'DELETE' })
 }
