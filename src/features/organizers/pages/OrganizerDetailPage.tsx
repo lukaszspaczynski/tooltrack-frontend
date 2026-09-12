@@ -28,6 +28,7 @@ import {
   IconPhotoOff,
   IconPlus,
   IconRefresh,
+  IconSparkles,
   IconTag,
   IconTrash,
   IconX,
@@ -42,6 +43,7 @@ import {
   createLabel,
   deleteLabel,
   deleteOrganizer,
+  fetchLabelSlots,
   fetchOrganizer,
   refreshLabels,
   removeToolFromOrganizer,
@@ -51,6 +53,7 @@ import {
 import type { Organizer } from '../../../api/types'
 import { formatDateTime } from '../../tools/presentation'
 import { useSession } from '../../../session/SessionContext'
+import { defaultLabelRequest, missingLabels } from '../labelDefaults'
 import { LabelWizard } from '../components/LabelWizard'
 import { OrganizerForm, type OrganizerFormValues } from '../components/OrganizerForm'
 import { ToolPicker } from '../components/ToolPicker'
@@ -71,6 +74,14 @@ export function OrganizerDetailPage() {
   const query = useQuery({
     queryKey: ['organizer', organizerId],
     queryFn: () => fetchOrganizer(organizerId),
+    enabled: Number.isInteger(organizerId),
+  })
+
+  // Where labels go on this organizer's case. The same key and the same call
+  // the wizard makes, so opening it afterwards costs nothing.
+  const slots = useQuery({
+    queryKey: ['organizer-label-slots', organizerId],
+    queryFn: () => fetchLabelSlots(organizerId),
     enabled: Number.isInteger(organizerId),
   })
 
@@ -155,6 +166,41 @@ export function OrganizerDetailPage() {
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
+  // One label per empty place, one request each: the server draws a PDF per
+  // call, and a place whose picture has gone missing must not cost the others
+  // their labels — so a failure is named and the rest are still made.
+  const fillGaps = useMutation({
+    mutationFn: async (jobs: { request: LabelRequest; size: string }[]) => {
+      const failed: string[] = []
+      let made = 0
+
+      for (const job of jobs) {
+        try {
+          await createLabel(organizerId, job.request)
+          made += 1
+        } catch (error) {
+          failed.push(`${job.size}: ${(error as Error).message}`)
+        }
+      }
+
+      return { failed, made }
+    },
+    onSuccess: async ({ failed, made }) => {
+      await queryClient.invalidateQueries({ queryKey: ['organizer', organizerId] })
+      await queryClient.invalidateQueries({ queryKey: ['labels'] })
+
+      notifications.show(
+        failed.length === 0
+          ? { color: 'teal', message: `Wygenerowano etykiety: ${made}` }
+          : {
+              color: 'orange',
+              message: `Wygenerowano: ${made}. Nie udało się: ${failed.join('; ')}`,
+            },
+      )
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
   const remove = useMutation({
     mutationFn: () => deleteOrganizer(organizerId),
     onSuccess: async () => {
@@ -197,6 +243,10 @@ export function OrganizerDetailPage() {
   const allLabelsSelected =
     organizer.labels.length > 0 &&
     organizer.labels.every((label) => selectedLabels.includes(label.id))
+
+  // Every place on the box crossed with every template, minus what has already
+  // been drawn.
+  const gaps = missingLabels(slots.data?.slots ?? [], organizer.labels)
 
   return (
     <Stack gap="md" maw={860}>
@@ -403,6 +453,31 @@ export function OrganizerDetailPage() {
                 >
                   Odśwież zaznaczone
                   {selectedLabels.length > 0 ? ` (${selectedLabels.length})` : ''}
+                </Button>
+                {/* Every label this box could carry and does not — each place
+                    crossed with each template — drawn from the defaults in one
+                    press. A box is labelled once, when it is filled, and
+                    walking the wizard four times to say nothing unusual is
+                    four times nothing. */}
+                <Button
+                  size="sm"
+                  variant="subtle"
+                  leftSection={<IconSparkles size={16} />}
+                  disabled={gaps.length === 0}
+                  loading={fillGaps.isPending}
+                  onClick={() =>
+                    fillGaps.mutate(
+                      gaps.map(({ slot, template }) => ({
+                        request: defaultLabelRequest(organizer.tools, slot, template),
+                        size: `${slot.widthMm} × ${slot.heightMm} mm (${
+                          template === 'number' ? 'numer' : 'zawartość'
+                        })`,
+                      })),
+                    )
+                  }
+                >
+                  Uzupełnij brakujące
+                  {gaps.length > 0 ? ` (${gaps.length})` : ''}
                 </Button>
                 <Button
                   size="sm"

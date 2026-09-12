@@ -20,13 +20,8 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchLabelSlots, type LabelRequest } from '../../../api/organizers'
 import type { Organizer, OrganizerLabelSlot } from '../../../api/types'
+import { defaultCaptionSource, labelPhotos, maxPhotosFor, toolModels } from '../labelDefaults'
 
-// How many pictures a card holds depends on its shape: six across a 200 x 60
-// lid are still bigger than three down a 30 x 40 front. The same rule as the
-// server, which refuses a seventh rather than dropping it quietly.
-function maxPhotosFor(slot: null | OrganizerLabelSlot): number {
-  return slot && slot.widthMm / slot.heightMm >= 2 ? 6 : 3
-}
 // What the server accepts for a line somebody types. A label is 30 mm across;
 // past this the template can only shrink the type until nobody can read it.
 const MAX_TEXT = 120
@@ -82,21 +77,7 @@ export function LabelWizard({
     enabled: opened,
   })
 
-  // The pictures the contents template may show, each offered once.
-  //
-  // Two identical batteries are two tools sharing one photograph, so the same
-  // picture would otherwise appear twice — and ticking both would spend two of
-  // the three places on one image. The first tool to carry it gives it a name.
-  const photos = [
-    ...new Map(
-      organizer.tools
-        .filter((tool) => tool.primaryPhotoUrl !== null)
-        .map((tool) => {
-          const id = Number(tool.primaryPhotoUrl!.split('/')[3])
-          return [id, { id, name: tool.name, url: tool.primaryPhotoUrl! }] as const
-        }),
-    ).values(),
-  ]
+  const photos = labelPhotos(organizer.tools)
 
   const maxPhotos = maxPhotosFor(slot)
 
@@ -118,17 +99,8 @@ export function LabelWizard({
   // What the label would say on its own, and what a custom field starts from:
   // editing down from the real answer is easier than typing it out.
   const automaticNames = organizer.tools.map((tool) => tool.name).join(', ')
-  // What is written on the machine, and what a spare part is ordered by. Shown
-  // in the option itself: "POF 1200 F5" means nothing until you see it.
-  const automaticModels = [
-    ...new Set(organizer.tools.map((tool) => tool.model.trim()).filter(Boolean)),
-  ].join(', ')
-
-  // The models by default: "POF 1200 F5" is what is written on the machine and
-  // what a spare part is ordered by, and it fits a 30 mm band where a list of
-  // catalog names does not. Only when there are any — an organizer whose tools
-  // carry no model has nothing to print, and that option is not even offered.
-  const namesSource = chosenNamesSource ?? (automaticModels ? 'models' : 'tools')
+  const automaticModels = toolModels(organizer.tools)
+  const namesSource = chosenNamesSource ?? defaultCaptionSource(organizer.tools)
 
   const startTyping = (
     source: 'custom' | 'models' | 'organizer' | 'text' | 'tools',

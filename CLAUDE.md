@@ -162,6 +162,20 @@ stickers is stale. The action is a redraw rather than a delete: a label is never
 edited, it is drawn again from the options it was kept with, so the only thing
 that changes is the file behind the tile.
 
+`labelDefaults.ts` is what a label says when nobody has said otherwise: both
+contents lines left empty so the server works them out, the models as the
+caption where any tool has one, as many pictures as the shape holds, and the
+logos on a number label. The wizard starts from it and the **Uzupełnij
+brakujące** button sends it unchanged.
+
+What that button fills is the whole matrix: every place on the case crossed
+with every template, minus what has been drawn. A place is not done once it has
+a sticker — the number is read across a workshop and the contents with the box
+in your hands, and a box wants both. The match is on the size and the template
+rather than on the slot id, because a label carries its own size and a case
+cannot have two places of the same size. Without the shared module "the
+defaults" would be two sets of rules that agree until one of them is edited.
+
 `labelListParams.ts` puts its filters in the URL like every other list, and it
 also holds `refreshBatches`: the API redraws fifty at a time, a page of ticks
 can be more, and somebody who ticked everything asked for everything. The
