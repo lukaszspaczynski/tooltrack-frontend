@@ -36,7 +36,9 @@ import {
   labelListPage,
   readLabelListParams,
   refreshBatches,
+  showingAll,
   TEMPLATE_OPTIONS,
+  withAllShown,
   withLabelFilter,
   writeLabelListParams,
 } from '../labelListParams'
@@ -125,7 +127,14 @@ export function LabelsPage() {
 
   const items = labels.data?.items ?? []
   const total = labels.data?.total ?? 0
+  const all = showingAll(query)
   const pages = Math.max(Math.ceil(total / LABEL_PAGE_SIZE), 1)
+
+  const show = (everything: boolean) => {
+    setSearchParams(writeLabelListParams(withAllShown(query, everything)))
+    setSelected([])
+    window.scrollTo({ top: 0 })
+  }
   // Asked of the labels rather than by counting: the selection can still hold
   // the id of one deleted in another tab, and two lists of the same length
   // would then look like the same list.
@@ -215,7 +224,7 @@ export function LabelsPage() {
           </Text>
           {items.length > 0 ? (
             <Checkbox
-              label="Zaznacz wszystkie na tej stronie"
+              label={all ? 'Zaznacz wszystkie' : 'Zaznacz wszystkie na tej stronie'}
               checked={allOnPageSelected}
               indeterminate={!allOnPageSelected && items.some((item) => selected.includes(item.id))}
               onChange={(event) =>
@@ -254,19 +263,28 @@ export function LabelsPage() {
         ))}
       </SimpleGrid>
 
-      {pages > 1 ? (
-        <Group justify="center" mt="sm">
-          <Pagination
-            total={pages}
-            value={labelListPage(query)}
-            onChange={(page) => {
-              setSearchParams(
-                writeLabelListParams({ ...query, offset: (page - 1) * LABEL_PAGE_SIZE }),
-              )
-              setSelected([])
-              window.scrollTo({ top: 0 })
-            }}
-          />
+      {/* The pager, and beside it the way out of it. A selection is about what
+          is on the screen — it is cleared on every turn of the page — so
+          gathering thirty labels for one print sheet means seeing thirty at
+          once. */}
+      {total > LABEL_PAGE_SIZE ? (
+        <Group justify="center" mt="sm" gap="sm">
+          {all ? null : (
+            <Pagination
+              total={pages}
+              value={labelListPage(query)}
+              onChange={(page) => {
+                setSearchParams(
+                  writeLabelListParams({ ...query, offset: (page - 1) * LABEL_PAGE_SIZE }),
+                )
+                setSelected([])
+                window.scrollTo({ top: 0 })
+              }}
+            />
+          )}
+          <Button variant="subtle" size="sm" onClick={() => show(!all)}>
+            {all ? 'Po stronach' : `Wszystkie (${total})`}
+          </Button>
         </Group>
       ) : null}
     </Stack>

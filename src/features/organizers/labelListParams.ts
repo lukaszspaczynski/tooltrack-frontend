@@ -6,6 +6,12 @@ import type { LabelQuery } from '../../api/labels'
 
 export const LABEL_PAGE_SIZE = 24
 
+// What "wszystkie" asks for: the server's own ceiling on this list. A shelf of
+// labels is hundreds at most, so one page of them is a page and not a denial
+// of service — and the button that turns it on says how many it is about to
+// show.
+export const LABEL_ALL_LIMIT = 200
+
 // The server takes at most fifty ids per redraw. The screen may hold more than
 // that in one selection, so it sends them in batches of this size rather than
 // letting the last ones fail.
@@ -19,10 +25,14 @@ export const TEMPLATE_OPTIONS = [
 export function readLabelListParams(search: URLSearchParams): LabelQuery {
   const page = Number(search.get('page'))
   const organizerId = Number(search.get('organizerId'))
+  // Everything on one page, and then the page is the selection: ticking labels
+  // for a print sheet across four pages loses the ticks at every turn, because
+  // a selection is about what is on the screen.
+  const all = search.get('all') === '1'
 
   return {
-    limit: LABEL_PAGE_SIZE,
-    offset: Number.isInteger(page) && page > 1 ? (page - 1) * LABEL_PAGE_SIZE : 0,
+    limit: all ? LABEL_ALL_LIMIT : LABEL_PAGE_SIZE,
+    offset: all || !(Number.isInteger(page) && page > 1) ? 0 : (page - 1) * LABEL_PAGE_SIZE,
     organizerId: Number.isSafeInteger(organizerId) && organizerId > 0 ? organizerId : null,
     search: search.get('q')?.trim() || null,
     template: readTemplate(search.get('template')),
@@ -36,10 +46,25 @@ export function writeLabelListParams(query: LabelQuery): URLSearchParams {
   if (query.template) params.set('template', query.template)
   if (query.organizerId !== null) params.set('organizerId', String(query.organizerId))
 
+  if (showingAll(query)) {
+    params.set('all', '1')
+    return params
+  }
+
   const page = labelListPage(query)
   if (page > 1) params.set('page', String(page))
 
   return params
+}
+
+export function showingAll(query: LabelQuery): boolean {
+  return query.limit > LABEL_PAGE_SIZE
+}
+
+// Switching between the two views. Either way it starts from the top: page 4
+// of a paged list is nowhere in particular once the list stops being paged.
+export function withAllShown(query: LabelQuery, all: boolean): LabelQuery {
+  return { ...query, limit: all ? LABEL_ALL_LIMIT : LABEL_PAGE_SIZE, offset: 0 }
 }
 
 export function labelListPage(query: LabelQuery): number {

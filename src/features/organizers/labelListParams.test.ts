@@ -2,11 +2,14 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  LABEL_ALL_LIMIT,
   LABEL_PAGE_SIZE,
   labelListPage,
   readLabelListParams,
   refreshBatches,
   REFRESH_BATCH_SIZE,
+  showingAll,
+  withAllShown,
   withLabelFilter,
   writeLabelListParams,
 } from './labelListParams'
@@ -57,6 +60,40 @@ test('changing a filter goes back to the first page', () => {
 
   assert.equal(query.offset, 0)
   assert.equal(query.template, 'number')
+})
+
+test('everything on one page is a state of the address bar like any other', () => {
+  // It has to survive a refresh and be sendable as a link, same as the filters.
+  const query = read('all=1&template=number')
+
+  assert.equal(showingAll(query), true)
+  assert.equal(query.limit, LABEL_ALL_LIMIT)
+  assert.equal(writeLabelListParams(query).toString(), 'template=number&all=1')
+})
+
+test('a page number left over from the paged view is ignored while showing everything', () => {
+  // Page 4 is nowhere in particular once the list stops being paged, and an
+  // offset would hide the first three pages' worth of labels.
+  assert.equal(read('all=1&page=4').offset, 0)
+})
+
+test('switching either way starts from the top', () => {
+  assert.equal(withAllShown(read('page=3'), true).limit, LABEL_ALL_LIMIT)
+  assert.equal(withAllShown(read('page=3'), true).offset, 0)
+
+  const paged = withAllShown(read('all=1'), false)
+  assert.equal(paged.limit, LABEL_PAGE_SIZE)
+  assert.equal(paged.offset, 0)
+  assert.equal(showingAll(paged), false)
+})
+
+test('a filter change keeps the view it was made in', () => {
+  // Turning off paging to gather a print sheet and then narrowing the search
+  // must not drop the person back into pages of twenty-four.
+  const narrowed = withLabelFilter(read('all=1'), { template: 'number' })
+
+  assert.equal(showingAll(narrowed), true)
+  assert.equal(narrowed.offset, 0)
 })
 
 test('a selection larger than the server takes is sent in batches', () => {

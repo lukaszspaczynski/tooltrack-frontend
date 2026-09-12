@@ -176,6 +176,13 @@ rather than on the slot id, because a label carries its own size and a case
 cannot have two places of the same size. Without the shared module "the
 defaults" would be two sets of rules that agree until one of them is edited.
 
+Next to the pager sits **Wszystkie (n)**, which drops the paging and puts the
+whole result on one page. It is there because a selection is about what is on
+the screen — it is cleared on every turn of the page — so gathering thirty
+labels for one print sheet means seeing thirty at once. The state is `all=1` in
+the URL like every other list setting, and the API's own ceiling of 200 is what
+"all" asks for, which is also the most labels one sheet will draw.
+
 The selection is also what **Arkusz do druku** prints: one A4 with all of them
 ganged onto it, which is what a batch is printed from — the per-label PDF has a
 margin and crop marks, and thirty margins is most of a sheet of paper. That
