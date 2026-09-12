@@ -7,6 +7,7 @@ import { CaseCreatePage } from './features/cases/pages/CaseCreatePage'
 import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
 import { BrandsPage } from './features/brands/pages/BrandsPage'
 import { CasesListPage } from './features/cases/pages/CasesListPage'
+import { LabelsPage } from './features/organizers/pages/LabelsPage'
 import { OrganizerDetailPage } from './features/organizers/pages/OrganizerDetailPage'
 import { OrganizersPage } from './features/organizers/pages/OrganizersPage'
 import { PhotoLibraryPage } from './features/media/pages/PhotoLibraryPage'
@@ -92,6 +93,16 @@ export function App() {
           element={
             <RequireCapability capability="catalog.read">
               <OrganizersPage />
+            </RequireCapability>
+          }
+        />
+        {/* Before the :id route, as on the server: "labels" must not be read
+            as the id of an organizer. */}
+        <Route
+          path="organizers/labels"
+          element={
+            <RequireCapability capability="catalog.read">
+              <LabelsPage />
             </RequireCapability>
           }
         />

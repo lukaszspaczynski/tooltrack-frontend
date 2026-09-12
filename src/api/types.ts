@@ -338,6 +338,21 @@ export type OrganizerLabel = {
   widthMm: number
 }
 
+// A label as the cross-organizer list shows it: the same PDF, plus the
+// arrangement and the box it was made for. A label has no name of its own, so
+// without those two a tile is a picture nobody can place.
+export type LabelListItem = OrganizerLabel & {
+  case: { id: number; manufacturer: string; name: string }
+  organizer: { id: number; name: string; number: number }
+}
+
+export type LabelPage = {
+  items: LabelListItem[]
+  limit: number
+  offset: number
+  total: number
+}
+
 // A size this organizer's case has a place for. The wizard's first step, and
 // the only sizes a label may be drawn at.
 export type OrganizerLabelSlot = {

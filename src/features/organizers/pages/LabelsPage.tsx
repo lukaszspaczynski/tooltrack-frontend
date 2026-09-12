@@ -1,0 +1,369 @@
+import {
+  ActionIcon,
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Card,
+  Center,
+  Checkbox,
+  Group,
+  Image,
+  Loader,
+  Pagination,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+  Tooltip,
+} from '@mantine/core'
+import { useDebouncedCallback } from '@mantine/hooks'
+import { notifications } from '@mantine/notifications'
+import { IconFileTypePdf, IconRefresh, IconSearch } from '@tabler/icons-react'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import { apiFileUrl } from '../../../api/client'
+import { fetchLabels, refreshAllLabels } from '../../../api/labels'
+import type { LabelListItem } from '../../../api/types'
+import { useSession } from '../../../session/SessionContext'
+import { formatDateTime } from '../../tools/presentation'
+import {
+  LABEL_PAGE_SIZE,
+  labelListPage,
+  readLabelListParams,
+  refreshBatches,
+  TEMPLATE_OPTIONS,
+  withLabelFilter,
+  writeLabelListParams,
+} from '../labelListParams'
+
+const TEMPLATE_LABELS: Record<string, string> = {
+  contents: 'Zawartość',
+  number: 'Numer porządkowy',
+}
+
+// Every label the organizers have produced, in one place. The per-organizer
+// panel answers "what has this arrangement produced"; this screen answers "what
+// have we printed", which is the question after a box changed and half a shelf
+// of stickers went stale — hence the tick boxes and the batch redraw, which is
+// the whole reason it exists.
+//
+// A label is never edited. It is drawn again from the options it was kept with,
+// so the only thing this screen changes is the file underneath a tile.
+export function LabelsPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const queryClient = useQueryClient()
+  const { can } = useSession()
+  const canEdit = can('catalog.write')
+
+  const query = readLabelListParams(searchParams)
+  const [searchText, setSearchText] = useState(query.search ?? '')
+  // Ids rather than the labels themselves, so a list that changed underneath
+  // cannot leave stale copies in state.
+  const [selected, setSelected] = useState<number[]>([])
+
+  const apply = (changes: Parameters<typeof withLabelFilter>[1]) => {
+    setSearchParams(writeLabelListParams(withLabelFilter(query, changes)), { replace: true })
+    setSelected([])
+  }
+
+  const applySearch = useDebouncedCallback((value: string) => {
+    apply({ search: value.trim() || null })
+  }, 300)
+
+  const labels = useQuery({
+    queryKey: ['labels', query],
+    queryFn: () => fetchLabels(query),
+    placeholderData: keepPreviousData,
+  })
+
+  const redraw = useMutation({
+    // The server takes fifty ids at a time, and a page of ticks can be more
+    // than that, so the batches go one after another rather than at once: each
+    // one draws PDFs, and firing them together would be a queue on the server
+    // disguised as parallelism.
+    mutationFn: async (labelIds: number[]) => {
+      const failed: { error: string; id: number }[] = []
+      let refreshed = 0
+
+      for (const batch of refreshBatches(labelIds)) {
+        const result = await refreshAllLabels(batch)
+        failed.push(...result.failed)
+        refreshed += result.refreshed
+      }
+
+      return { failed, refreshed }
+    },
+    onSuccess: async ({ failed, refreshed }) => {
+      setSelected([])
+      await queryClient.invalidateQueries({ queryKey: ['labels'] })
+      // The organizer screens show the same rows, and a redrawn label is a new
+      // file behind the same id.
+      await queryClient.invalidateQueries({ queryKey: ['organizer'] })
+      await queryClient.invalidateQueries({ queryKey: ['organizers'] })
+
+      // A label whose photos have been deleted since cannot be drawn again, and
+      // the rest were. Saying which is the difference between a screen somebody
+      // trusts and one they check by hand.
+      notifications.show(
+        failed.length === 0
+          ? { color: 'teal', message: `Narysowano od nowa: ${refreshed}` }
+          : {
+              color: 'orange',
+              message: `Narysowano od nowa: ${refreshed}. Nie udało się: ${failed
+                .map((entry) => entry.error)
+                .join('; ')}`,
+            },
+      )
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  const items = labels.data?.items ?? []
+  const total = labels.data?.total ?? 0
+  const pages = Math.max(Math.ceil(total / LABEL_PAGE_SIZE), 1)
+  // Asked of the labels rather than by counting: the selection can still hold
+  // the id of one deleted in another tab, and two lists of the same length
+  // would then look like the same list.
+  const allOnPageSelected = items.length > 0 && items.every((item) => selected.includes(item.id))
+
+  return (
+    <Stack gap="md">
+      <Group justify="space-between" align="flex-start">
+        <Stack gap={0}>
+          <Title order={2}>Etykiety</Title>
+          <Text c="dimmed" size="sm">
+            Wszystkie wygenerowane etykiety, niezależnie od organizera.
+          </Text>
+        </Stack>
+
+        {canEdit ? (
+          <Button
+            leftSection={<IconRefresh size={18} />}
+            disabled={selected.length === 0}
+            loading={redraw.isPending}
+            onClick={() => redraw.mutate(selected)}
+          >
+            Generuj ponownie{selected.length > 0 ? ` (${selected.length})` : ''}
+          </Button>
+        ) : null}
+      </Group>
+
+      <Group align="flex-end" gap="sm">
+        <TextInput
+          label="Szukaj organizera"
+          description="Etykieta nie ma własnej nazwy — szukamy po organizerze i skrzynce"
+          placeholder="Nazwa organizera, opis, skrzynka…"
+          leftSection={<IconSearch size={16} />}
+          value={searchText}
+          onChange={(event) => {
+            setSearchText(event.currentTarget.value)
+            applySearch(event.currentTarget.value)
+          }}
+          style={{ flexGrow: 1 }}
+          miw={220}
+        />
+        <Select
+          label="Wzór"
+          placeholder="Dowolny"
+          clearable
+          data={TEMPLATE_OPTIONS.map((option) => ({ ...option }))}
+          value={query.template}
+          onChange={(value) => apply({ template: value })}
+          miw={190}
+        />
+      </Group>
+
+      {labels.isError ? (
+        <Alert color="red" variant="light" title="Nie udało się wczytać etykiet">
+          {(labels.error as Error).message}
+        </Alert>
+      ) : null}
+
+      {labels.isPending ? (
+        <Center py="xl">
+          <Loader />
+        </Center>
+      ) : null}
+
+      {labels.data ? (
+        <Group justify="space-between">
+          <Text size="sm" c="dimmed">
+            {total === 0 ? 'Brak etykiet' : `${total} etykiet`}
+          </Text>
+          {canEdit && items.length > 0 ? (
+            <Checkbox
+              label="Zaznacz wszystkie na tej stronie"
+              checked={allOnPageSelected}
+              indeterminate={!allOnPageSelected && items.some((item) => selected.includes(item.id))}
+              onChange={(event) =>
+                setSelected(event.currentTarget.checked ? items.map((item) => item.id) : [])
+              }
+            />
+          ) : null}
+        </Group>
+      ) : null}
+
+      {labels.data && items.length === 0 ? (
+        <Text c="dimmed" size="sm">
+          {query.search || query.template
+            ? 'Nic nie pasuje do tych filtrów.'
+            : 'Nie wygenerowano jeszcze żadnej etykiety. Robi się je na stronie organizera.'}
+        </Text>
+      ) : null}
+
+      <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="sm">
+        {items.map((label) => (
+          <LabelTile
+            key={label.id}
+            canEdit={canEdit}
+            checked={selected.includes(label.id)}
+            label={label}
+            onRedraw={() => redraw.mutate([label.id])}
+            onToggle={() =>
+              setSelected((current) =>
+                current.includes(label.id)
+                  ? current.filter((id) => id !== label.id)
+                  : [...current, label.id],
+              )
+            }
+            working={redraw.isPending}
+          />
+        ))}
+      </SimpleGrid>
+
+      {pages > 1 ? (
+        <Group justify="center" mt="sm">
+          <Pagination
+            total={pages}
+            value={labelListPage(query)}
+            onChange={(page) => {
+              setSearchParams(
+                writeLabelListParams({ ...query, offset: (page - 1) * LABEL_PAGE_SIZE }),
+              )
+              setSelected([])
+              window.scrollTo({ top: 0 })
+            }}
+          />
+        </Group>
+      ) : null}
+    </Stack>
+  )
+}
+
+function LabelTile({
+  canEdit,
+  checked,
+  label,
+  onRedraw,
+  onToggle,
+  working,
+}: {
+  canEdit: boolean
+  checked: boolean
+  label: LabelListItem
+  onRedraw: () => void
+  onToggle: () => void
+  working: boolean
+}) {
+  return (
+    <Card
+      withBorder
+      padding="xs"
+      radius="md"
+      style={{ borderColor: checked ? 'var(--mantine-color-amber-6)' : undefined }}
+    >
+      <Stack gap={6}>
+        {/* The label is a picture, so the tile shows it. A row made before
+            previews existed, or one the rasteriser could not read, keeps the
+            icon — both still have to appear. */}
+        <div style={{ position: 'relative' }}>
+          <Anchor href={apiFileUrl(label.url)} target="_blank" style={{ lineHeight: 0 }}>
+            {label.previewUrl ? (
+              <Image
+                src={apiFileUrl(label.previewUrl)}
+                alt={`Etykieta ${label.widthMm} × ${label.heightMm} mm`}
+                h={110}
+                fit="contain"
+              />
+            ) : (
+              <Group h={110} justify="center">
+                <IconFileTypePdf size={24} color="var(--mantine-color-dimmed)" />
+              </Group>
+            )}
+          </Anchor>
+          {canEdit ? (
+            <Checkbox
+              checked={checked}
+              onChange={onToggle}
+              aria-label={`Zaznacz etykietę organizera ${label.organizer.number}`}
+              style={{ left: 4, position: 'absolute', top: 4 }}
+            />
+          ) : null}
+        </div>
+
+        {/* Which arrangement and which box: a label has no name of its own, and
+            the box is what somebody holds while looking for its sticker. */}
+        <Group gap={4} wrap="nowrap" align="center">
+          <Badge variant="filled" color="amber" size="sm">
+            {label.organizer.number}
+          </Badge>
+          <Anchor
+            component={Link}
+            to={`/organizers/${label.organizer.id}`}
+            size="xs"
+            fw={600}
+            lineClamp={1}
+            title={label.organizer.name}
+          >
+            {label.organizer.name}
+          </Anchor>
+        </Group>
+
+        <Anchor
+          component={Link}
+          to={`/cases/${label.case.id}`}
+          size="xs"
+          c="dimmed"
+          lineClamp={1}
+          title={`${label.case.name} (${label.case.manufacturer})`}
+        >
+          {label.case.name}
+        </Anchor>
+
+        <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
+          <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+            <Anchor href={apiFileUrl(label.url)} target="_blank" size="xs" fw={600}>
+              {TEMPLATE_LABELS[label.template] ?? label.template}
+            </Anchor>
+            <Text size="xs" c="dimmed">
+              {label.widthMm} × {label.heightMm} mm ·{' '}
+              {label.options.printReady === false ? 'sama grafika' : 'do druku'}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {formatDateTime(label.createdAt)} · {Math.round(label.byteSize / 1024)} kB
+            </Text>
+          </Stack>
+          {canEdit ? (
+            <Tooltip label="Generuj tę etykietę ponownie">
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                color="gray"
+                aria-label="Generuj ponownie"
+                disabled={working}
+                onClick={onRedraw}
+              >
+                <IconRefresh size={15} />
+              </ActionIcon>
+            </Tooltip>
+          ) : null}
+        </Group>
+      </Stack>
+    </Card>
+  )
+}
