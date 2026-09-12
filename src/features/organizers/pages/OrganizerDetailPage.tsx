@@ -191,6 +191,13 @@ export function OrganizerDetailPage() {
 
   const organizer = query.data.organizer
 
+  // Asked of the labels rather than by counting: the selection can still hold
+  // the id of one deleted in another tab, and two lists of the same length
+  // would then look like the same list.
+  const allLabelsSelected =
+    organizer.labels.length > 0 &&
+    organizer.labels.every((label) => selectedLabels.includes(label.id))
+
   return (
     <Stack gap="md" maw={860}>
       <Anchor component={Link} to="/organizers" size="sm" c="dimmed">
@@ -359,6 +366,19 @@ export function OrganizerDetailPage() {
             </Group>
             {canEdit ? (
               <Group gap="xs">
+                {organizer.labels.length > 0 ? (
+                  <Checkbox
+                    size="xs"
+                    label="Zaznacz wszystkie"
+                    checked={allLabelsSelected}
+                    indeterminate={selectedLabels.length > 0 && !allLabelsSelected}
+                    onChange={() =>
+                      setSelectedLabels(
+                        allLabelsSelected ? [] : organizer.labels.map((label) => label.id),
+                      )
+                    }
+                  />
+                ) : null}
                 <Button
                   size="sm"
                   variant="subtle"
