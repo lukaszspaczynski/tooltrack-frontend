@@ -65,7 +65,11 @@ export function LabelWizard({
   const [namesSource, setNamesSource] = useState<'models' | 'text' | 'tools'>('tools')
   const [titleText, setTitleText] = useState('')
   const [namesText, setNamesText] = useState('')
-  const [photoIds, setPhotoIds] = useState<number[]>([])
+  // Null until somebody ticks a picture themselves. Until then the selection is
+  // worked out from the slot, so a bigger place fills up on its own and a
+  // smaller one drops what no longer fits; afterwards it is theirs, and an
+  // empty list is a decision too.
+  const [pickedPhotos, setPickedPhotos] = useState<null | number[]>(null)
   const [printReady, setPrintReady] = useState(true)
 
   const slots = useQuery({
@@ -92,13 +96,19 @@ export function LabelWizard({
 
   const maxPhotos = maxPhotosFor(slot)
 
+  // A label with empty picture places is a label nobody wanted: the template
+  // draws as many as it holds, and the tools of this organizer are what it is
+  // for. The first ones, in the order the catalog lists them — somebody who
+  // wants other ones says so, and from then on the choice is theirs.
+  const photoIds = pickedPhotos ?? photos.slice(0, maxPhotos).map((photo) => photo.id)
+
   const togglePhoto = (id: number) =>
-    setPhotoIds((current) =>
-      current.includes(id)
-        ? current.filter((entry) => entry !== id)
-        : current.length >= maxPhotos
-          ? current
-          : [...current, id],
+    setPickedPhotos(
+      photoIds.includes(id)
+        ? photoIds.filter((entry) => entry !== id)
+        : photoIds.length >= maxPhotos
+          ? photoIds
+          : [...photoIds, id],
     )
 
   // What the label would say on its own, and what a custom field starts from:
@@ -179,8 +189,12 @@ export function LabelWizard({
                     setSlot(entry)
                     // A front holds three where a lid held six, so going back
                     // and choosing a smaller place drops what no longer fits
-                    // rather than letting the server refuse the whole label.
-                    setPhotoIds((current) => current.slice(0, maxPhotosFor(entry)))
+                    // rather than letting the server refuse the whole label. A
+                    // selection nobody has touched is left alone: it follows
+                    // the new shape by itself.
+                    setPickedPhotos((current) =>
+                      current === null ? null : current.slice(0, maxPhotosFor(entry)),
+                    )
                     setStep(1)
                   }}
                   style={{
