@@ -363,6 +363,18 @@ export function OrganizerDetailPage() {
             <Group gap="xs">
               <IconTag size={18} />
               <Text fw={600}>Etykiety ({organizer.labels.length})</Text>
+              {/* The same rows on the screen that holds every organizer's,
+                  already filtered to this one — that is where a shelf is
+                  drawn again, and this panel is where somebody is standing
+                  when they decide to. */}
+              <Anchor
+                component={Link}
+                to={`/organizers/labels?organizerId=${organizer.id}`}
+                size="xs"
+                c="dimmed"
+              >
+                Wszystkie etykiety
+              </Anchor>
             </Group>
             {canEdit ? (
               <Group gap="xs">
