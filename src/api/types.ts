@@ -317,6 +317,27 @@ export type OrganizerTool = {
   primaryPhotoUrl: null | string
 }
 
+// A generated label: the PDF and the options it was drawn from.
+export type OrganizerLabel = {
+  byteSize: number
+  createdAt: string
+  createdBy: null | number
+  heightMm: number
+  id: number
+  options: Record<string, unknown>
+  template: string
+  url: string
+  widthMm: number
+}
+
+// A size this organizer's case has a place for. The wizard's first step, and
+// the only sizes a label may be drawn at.
+export type OrganizerLabelSlot = {
+  heightMm: number
+  id: number
+  widthMm: number
+}
+
 export type Organizer = {
   case: {
     id: number
@@ -328,6 +349,7 @@ export type Organizer = {
   createdBy: null | number
   description: string
   id: number
+  labels: OrganizerLabel[]
   name: string
   number: number
   tools: OrganizerTool[]

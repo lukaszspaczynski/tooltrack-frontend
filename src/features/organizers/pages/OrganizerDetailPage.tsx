@@ -22,9 +22,11 @@ import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
 import {
   IconChevronLeft,
+  IconFileTypePdf,
   IconPencil,
   IconPhotoOff,
   IconPlus,
+  IconTag,
   IconTrash,
   IconX,
 } from '@tabler/icons-react'
@@ -35,14 +37,18 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { apiFileUrl } from '../../../api/client'
 import {
   addToolsToOrganizer,
+  createLabel,
+  deleteLabel,
   deleteOrganizer,
   fetchOrganizer,
   removeToolFromOrganizer,
   updateOrganizer,
+  type LabelRequest,
 } from '../../../api/organizers'
 import type { Organizer } from '../../../api/types'
 import { formatDateTime } from '../../tools/presentation'
 import { useSession } from '../../../session/SessionContext'
+import { LabelWizard } from '../components/LabelWizard'
 import { OrganizerForm, type OrganizerFormValues } from '../components/OrganizerForm'
 import { ToolPicker } from '../components/ToolPicker'
 
@@ -95,6 +101,25 @@ export function OrganizerDetailPage() {
   const takeOut = useMutation({
     mutationFn: (toolId: number) => removeToolFromOrganizer(organizerId, toolId),
     onSuccess: refresh,
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  const [wizardOpen, wizard] = useDisclosure(false)
+
+  const makeLabel = useMutation({
+    mutationFn: (request: LabelRequest) => createLabel(organizerId, request),
+    onSuccess: async ({ organizer: saved }) => {
+      queryClient.setQueryData(['organizer', organizerId], { organizer: saved })
+      wizard.close()
+      notifications.show({ color: 'teal', message: 'Etykieta wygenerowana' })
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  const dropLabel = useMutation({
+    mutationFn: (labelId: number) => deleteLabel(organizerId, labelId),
+    onSuccess: ({ organizer: saved }) =>
+      queryClient.setQueryData(['organizer', organizerId], { organizer: saved }),
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
@@ -288,6 +313,79 @@ export function OrganizerDetailPage() {
           ) : null}
         </Stack>
       </Paper>
+
+      {/* The labels this arrangement has produced. A label is a file: it is
+          made once, looked at, printed, and thrown away — not edited. */}
+      <Paper withBorder p="lg" radius="md">
+        <Stack gap="md">
+          <Group justify="space-between" align="center">
+            <Group gap="xs">
+              <IconTag size={18} />
+              <Text fw={600}>Etykiety ({organizer.labels.length})</Text>
+            </Group>
+            {canEdit ? (
+              <Button
+                size="sm"
+                variant="light"
+                leftSection={<IconPlus size={16} />}
+                onClick={wizard.open}
+              >
+                Nowa etykieta
+              </Button>
+            ) : null}
+          </Group>
+
+          {organizer.labels.length === 0 ? (
+            <Text c="dimmed" size="sm">
+              Nie ma jeszcze żadnej etykiety.
+            </Text>
+          ) : (
+            <Stack gap="xs">
+              {organizer.labels.map((label) => (
+                <Group key={label.id} justify="space-between" wrap="nowrap" gap="sm">
+                  <Group gap="sm" wrap="nowrap">
+                    <IconFileTypePdf size={20} />
+                    <Stack gap={0}>
+                      <Anchor href={apiFileUrl(label.url)} target="_blank" size="sm" fw={600}>
+                        {label.template === 'number' ? 'Numer porządkowy' : 'Zawartość'} ·{' '}
+                        {label.widthMm} × {label.heightMm} mm
+                      </Anchor>
+                      <Text size="xs" c="dimmed">
+                        {label.options.printReady === false ? 'sama grafika' : 'do druku'} ·{' '}
+                        {formatDateTime(label.createdAt)} · {Math.round(label.byteSize / 1024)} kB
+                      </Text>
+                    </Stack>
+                  </Group>
+
+                  {canEdit ? (
+                    <Tooltip label="Usuń etykietę">
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        aria-label="Usuń etykietę"
+                        loading={dropLabel.isPending && dropLabel.variables === label.id}
+                        onClick={() => dropLabel.mutate(label.id)}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                  ) : null}
+                </Group>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </Paper>
+
+      {canEdit && wizardOpen ? (
+        <LabelWizard
+          opened
+          organizer={organizer}
+          onClose={wizard.close}
+          onCreate={(request) => makeLabel.mutate(request)}
+          saving={makeLabel.isPending}
+        />
+      ) : null}
 
       <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć organizer?" centered>
         <Stack gap="md">

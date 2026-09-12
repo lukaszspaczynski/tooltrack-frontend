@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { Organizer, OrganizerFields, OrganizerPage } from './types'
+import type { Organizer, OrganizerFields, OrganizerLabelSlot, OrganizerPage } from './types'
 
 export type OrganizerQuery = {
   caseId: null | number
@@ -51,6 +51,34 @@ export function addToolsToOrganizer(
   toolIds: number[],
 ): Promise<{ organizer: Organizer }> {
   return request(`/organizers/${id}/tools`, { body: { toolIds }, method: 'POST' })
+}
+
+// The sizes this organizer's case has places for. The wizard offers these and
+// nothing else: a label printed at a size the box has no place for is a label
+// nobody can stick anywhere.
+export function fetchLabelSlots(id: number): Promise<{ slots: OrganizerLabelSlot[] }> {
+  return request(`/organizers/${id}/label-slots`)
+}
+
+export type LabelRequest = {
+  photoIds?: number[]
+  // A print-ready file has a margin, crop marks and a measured bar; a plain one
+  // is the artwork alone. Defaults to print-ready on the server.
+  printReady?: boolean
+  slotId: number
+  template: 'contents' | 'number'
+  withLogos?: boolean
+  withNames?: boolean
+  withTitle?: boolean
+}
+
+// Draws one and keeps it. The whole organizer comes back, labels included.
+export function createLabel(id: number, body: LabelRequest): Promise<{ organizer: Organizer }> {
+  return request(`/organizers/${id}/labels`, { body, method: 'POST' })
+}
+
+export function deleteLabel(id: number, labelId: number): Promise<{ organizer: Organizer }> {
+  return request(`/organizers/${id}/labels/${labelId}`, { method: 'DELETE' })
 }
 
 export function deleteOrganizer(id: number): Promise<{ ok: true }> {
