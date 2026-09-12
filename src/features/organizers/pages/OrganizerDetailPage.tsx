@@ -328,13 +328,15 @@ export function OrganizerDetailPage() {
           {canEdit ? (
             <Collapse expanded={toolsOpen}>
               <Stack gap="sm">
+                {/* Only the id matters here: this page adds tools to an
+                    arrangement that already has a name. */}
                 <ToolPicker
                   selected={picked}
-                  onToggle={(toolId) =>
+                  onToggle={(tool) =>
                     setPicked((current) =>
-                      current.includes(toolId)
-                        ? current.filter((entry) => entry !== toolId)
-                        : [...current, toolId],
+                      current.includes(tool.id)
+                        ? current.filter((entry) => entry !== tool.id)
+                        : [...current, tool.id],
                     )
                   }
                 />

@@ -29,7 +29,9 @@ export function ToolPicker({
   onToggle,
   selected,
 }: {
-  onToggle: (id: number) => void
+  // The whole tool, not just its id: the wizard names an arrangement after the
+  // single machine in it, and the picker is the only place that has the name.
+  onToggle: (tool: ToolListItem) => void
   selected: number[]
 }) {
   const [searchText, setSearchText] = useState('')
@@ -81,7 +83,7 @@ export function ToolPicker({
             <ToolTile
               key={tool.id}
               checked={selected.includes(tool.id)}
-              onToggle={() => onToggle(tool.id)}
+              onToggle={() => onToggle(tool)}
               tool={tool}
             />
           ))}
