@@ -340,39 +340,60 @@ export function OrganizerDetailPage() {
               Nie ma jeszcze żadnej etykiety.
             </Text>
           ) : (
-            <Stack gap="xs">
+            <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
               {organizer.labels.map((label) => (
-                <Group key={label.id} justify="space-between" wrap="nowrap" gap="sm">
-                  <Group gap="sm" wrap="nowrap">
-                    <IconFileTypePdf size={20} />
-                    <Stack gap={0}>
-                      <Anchor href={apiFileUrl(label.url)} target="_blank" size="sm" fw={600}>
-                        {label.template === 'number' ? 'Numer porządkowy' : 'Zawartość'} ·{' '}
-                        {label.widthMm} × {label.heightMm} mm
-                      </Anchor>
-                      <Text size="xs" c="dimmed">
-                        {label.options.printReady === false ? 'sama grafika' : 'do druku'} ·{' '}
-                        {formatDateTime(label.createdAt)} · {Math.round(label.byteSize / 1024)} kB
-                      </Text>
-                    </Stack>
-                  </Group>
+                <Card key={label.id} withBorder padding="xs" radius="md">
+                  <Stack gap={6}>
+                    {/* The label is a picture, so the tile shows it. A row
+                        that made before previews existed, or one the
+                        rasteriser could not read, keeps the icon. */}
+                    <Anchor href={apiFileUrl(label.url)} target="_blank" style={{ lineHeight: 0 }}>
+                      {label.previewUrl ? (
+                        <Image
+                          src={apiFileUrl(label.previewUrl)}
+                          alt={`Etykieta ${label.widthMm} × ${label.heightMm} mm`}
+                          h={110}
+                          fit="contain"
+                        />
+                      ) : (
+                        <Group h={110} justify="center">
+                          <IconFileTypePdf size={24} color="var(--mantine-color-dimmed)" />
+                        </Group>
+                      )}
+                    </Anchor>
 
-                  {canEdit ? (
-                    <Tooltip label="Usuń etykietę">
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        aria-label="Usuń etykietę"
-                        loading={dropLabel.isPending && dropLabel.variables === label.id}
-                        onClick={() => dropLabel.mutate(label.id)}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Tooltip>
-                  ) : null}
-                </Group>
+                    <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
+                      <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+                        <Anchor href={apiFileUrl(label.url)} target="_blank" size="xs" fw={600}>
+                          {label.template === 'number' ? 'Numer porządkowy' : 'Zawartość'}
+                        </Anchor>
+                        <Text size="xs" c="dimmed">
+                          {label.widthMm} × {label.heightMm} mm ·{' '}
+                          {label.options.printReady === false ? 'sama grafika' : 'do druku'}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {formatDateTime(label.createdAt)} · {Math.round(label.byteSize / 1024)} kB
+                        </Text>
+                      </Stack>
+                      {canEdit ? (
+                        <Tooltip label="Usuń etykietę">
+                          <ActionIcon
+                            size="sm"
+                            variant="subtle"
+                            color="red"
+                            aria-label="Usuń etykietę"
+                            loading={dropLabel.isPending && dropLabel.variables === label.id}
+                            onClick={() => dropLabel.mutate(label.id)}
+                          >
+                            <IconTrash size={14} />
+                          </ActionIcon>
+                        </Tooltip>
+                      ) : null}
+                    </Group>
+                  </Stack>
+                </Card>
               ))}
-            </Stack>
+            </SimpleGrid>
           )}
         </Stack>
       </Paper>

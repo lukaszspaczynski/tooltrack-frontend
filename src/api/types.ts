@@ -325,6 +325,9 @@ export type OrganizerLabel = {
   heightMm: number
   id: number
   options: Record<string, unknown>
+  // A picture of the label for the tile, or null: a label made before previews
+  // existed, or one the rasteriser could not read, still has to appear.
+  previewUrl: null | string
   template: string
   url: string
   widthMm: number
