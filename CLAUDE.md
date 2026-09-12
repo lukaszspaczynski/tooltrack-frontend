@@ -152,15 +152,15 @@ A case's delete confirmation asks `organizers?caseId=…` while it is open and
 names what would go with the box. An arrangement is not obviously part of a
 case, so it has to be said before the person agrees.
 
-`LabelsPage` is the fourth screen: every label anybody has generated, whichever
-arrangement made it. It is to the label panel on the detail page what the photo
-library is to a card's gallery — the panel answers "what has this arrangement
-produced", this one answers "what have we printed" — and like the library it
-has tick boxes, a select-all and a batch action, because the reason to open it
-is that a box changed and half a shelf of stickers is stale. The action is a
-redraw rather than a delete: a label is never edited, it is drawn again from the
-options it was kept with, so the only thing that changes is the file behind the
-tile.
+`LabelsPage` is the fourth screen and the submenu under **Organizer**: every
+label anybody has generated, whichever arrangement made it. It is to the label
+panel on the detail page what the photo library is to a card's gallery — the
+panel answers "what has this arrangement produced", this one answers "what have
+we printed" — and like the library it has tick boxes, a select-all and a batch
+action, because the reason to open it is that a box changed and half a shelf of
+stickers is stale. The action is a redraw rather than a delete: a label is never
+edited, it is drawn again from the options it was kept with, so the only thing
+that changes is the file behind the tile.
 
 `labelListParams.ts` puts its filters in the URL like every other list, and it
 also holds `refreshBatches`: the API redraws fifty at a time, a page of ticks

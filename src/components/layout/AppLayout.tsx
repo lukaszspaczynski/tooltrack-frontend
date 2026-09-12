@@ -21,6 +21,7 @@ import {
   IconPhoto,
   IconSettings,
   IconSun,
+  IconTag,
   IconTool,
   IconUsers,
 } from '@tabler/icons-react'
@@ -37,6 +38,10 @@ export function AppLayout() {
     location.pathname === '/' ||
     location.pathname.startsWith('/tools') ||
     location.pathname.startsWith('/brands')
+  const organizerSection = location.pathname.startsWith('/organizers')
+  // The labels screen has its own path under the organizers, so the list of
+  // arrangements must not light up while it is showing.
+  const labelsShowing = location.pathname.startsWith('/organizers/labels')
   const navigate = useNavigate()
 
   const handleSignOut = async () => {
@@ -106,14 +111,32 @@ export function AppLayout() {
           active={location.pathname.startsWith('/cases')}
           onClick={close}
         />
+        {/* Labels hang under the organizer for the same reason producers hang
+            under the tools: a label is something an arrangement produces, and
+            the submenu says so. Open whenever either of the two is showing. */}
         <NavLink
-          component={Link}
-          to="/organizers"
           label="Organizer"
           leftSection={<IconLayoutGrid size={18} />}
-          active={location.pathname.startsWith('/organizers')}
-          onClick={close}
-        />
+          defaultOpened={organizerSection}
+          active={organizerSection && !labelsShowing}
+          childrenOffset={28}
+        >
+          <NavLink
+            component={Link}
+            to="/organizers"
+            label="Układy"
+            active={organizerSection && !labelsShowing}
+            onClick={close}
+          />
+          <NavLink
+            component={Link}
+            to="/organizers/labels"
+            label="Etykiety"
+            leftSection={<IconTag size={16} />}
+            active={labelsShowing}
+            onClick={close}
+          />
+        </NavLink>
         <NavLink
           component={Link}
           to="/photos"
