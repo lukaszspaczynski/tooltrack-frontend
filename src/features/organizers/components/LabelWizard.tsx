@@ -21,7 +21,12 @@ import { apiFileUrl } from '../../../api/client'
 import { fetchLabelSlots, type LabelRequest } from '../../../api/organizers'
 import type { Organizer, OrganizerLabelSlot } from '../../../api/types'
 
-const MAX_PHOTOS = 3
+// How many pictures a card holds depends on its shape: six across a 200 x 60
+// lid are still bigger than three down a 30 x 40 front. The same rule as the
+// server, which refuses a seventh rather than dropping it quietly.
+function maxPhotosFor(slot: null | OrganizerLabelSlot): number {
+  return slot && slot.widthMm / slot.heightMm >= 2 ? 6 : 3
+}
 // What the server accepts for a line somebody types. A label is 30 mm across;
 // past this the template can only shrink the type until nobody can read it.
 const MAX_TEXT = 120
@@ -85,11 +90,13 @@ export function LabelWizard({
     ).values(),
   ]
 
+  const maxPhotos = maxPhotosFor(slot)
+
   const togglePhoto = (id: number) =>
     setPhotoIds((current) =>
       current.includes(id)
         ? current.filter((entry) => entry !== id)
-        : current.length >= MAX_PHOTOS
+        : current.length >= maxPhotos
           ? current
           : [...current, id],
     )
@@ -163,6 +170,10 @@ export function LabelWizard({
                   radius="md"
                   onClick={() => {
                     setSlot(entry)
+                    // A front holds three where a lid held six, so going back
+                    // and choosing a smaller place drops what no longer fits
+                    // rather than letting the server refuse the whole label.
+                    setPhotoIds((current) => current.slice(0, maxPhotosFor(entry)))
                     setStep(1)
                   }}
                   style={{
@@ -305,7 +316,7 @@ export function LabelWizard({
             </Stack>
 
             <Text size="sm" fw={600}>
-              Zdjęcia ({photoIds.length}/{MAX_PHOTOS})
+              Zdjęcia ({photoIds.length}/{maxPhotos})
             </Text>
 
             {photos.length === 0 ? (
@@ -327,7 +338,7 @@ export function LabelWizard({
                         style={{
                           borderColor: chosen ? 'var(--mantine-color-amber-6)' : undefined,
                           cursor: 'pointer',
-                          opacity: !chosen && photoIds.length >= MAX_PHOTOS ? 0.45 : 1,
+                          opacity: !chosen && photoIds.length >= maxPhotos ? 0.45 : 1,
                         }}
                       >
                         <Stack gap={4}>
