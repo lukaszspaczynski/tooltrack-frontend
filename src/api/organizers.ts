@@ -61,9 +61,12 @@ export function fetchLabelSlots(id: number): Promise<{ slots: OrganizerLabelSlot
 }
 
 export type LabelRequest = {
-  // Empty, or absent, means the label works it out: the organizer's name over
-  // the rule and the tool names under it. Anything else is what somebody typed
-  // instead, and the label says that.
+  // Where the line under the rule comes from: the tool names, their model
+  // numbers, or `namesText`. Absent means the server works it out from
+  // whether a text was sent, which is what labels made before the choice
+  // existed still mean.
+  namesSource?: 'models' | 'text' | 'tools'
+  // Only read when `namesSource` is 'text'.
   namesText?: string
   photoIds?: number[]
   // A print-ready file has a margin, crop marks and a measured bar; a plain one

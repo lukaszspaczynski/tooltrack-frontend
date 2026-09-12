@@ -62,7 +62,7 @@ export function LabelWizard({
   // text is kept even while the other source is chosen, so switching back and
   // forth does not lose what somebody wrote.
   const [titleSource, setTitleSource] = useState<'custom' | 'organizer'>('organizer')
-  const [namesSource, setNamesSource] = useState<'custom' | 'tools'>('tools')
+  const [namesSource, setNamesSource] = useState<'models' | 'text' | 'tools'>('tools')
   const [titleText, setTitleText] = useState('')
   const [namesText, setNamesText] = useState('')
   const [photoIds, setPhotoIds] = useState<number[]>([])
@@ -104,14 +104,20 @@ export function LabelWizard({
   // What the label would say on its own, and what a custom field starts from:
   // editing down from the real answer is easier than typing it out.
   const automaticNames = organizer.tools.map((tool) => tool.name).join(', ')
+  // What is written on the machine, and what a spare part is ordered by. Shown
+  // in the option itself: "POF 1200 F5" means nothing until you see it.
+  const automaticModels = [
+    ...new Set(organizer.tools.map((tool) => tool.model.trim()).filter(Boolean)),
+  ].join(', ')
 
   const startTyping = (
-    source: 'custom' | 'organizer' | 'tools',
+    source: 'custom' | 'models' | 'organizer' | 'text' | 'tools',
     current: string,
     automatic: string,
     set: (value: string) => void,
   ) => {
-    if (source === 'custom' && current === '') set(automatic.slice(0, MAX_TEXT))
+    if ((source === 'custom' || source === 'text') && current === '')
+      set(automatic.slice(0, MAX_TEXT))
   }
 
   const submit = () => {
@@ -123,7 +129,8 @@ export function LabelWizard({
         : {
             // Empty means "work it out": the server puts the organizer's name
             // and the tool names on. Only a typed line travels as text.
-            namesText: withNames && namesSource === 'custom' ? namesText.trim() : '',
+            namesSource,
+            namesText: withNames && namesSource === 'text' ? namesText.trim() : '',
             photoIds,
             printReady,
             slotId: slot.id,
@@ -288,7 +295,7 @@ export function LabelWizard({
                   <Radio.Group
                     value={namesSource}
                     onChange={(value) => {
-                      const source = value as 'custom' | 'tools'
+                      const source = value as 'models' | 'text' | 'tools'
                       setNamesSource(source)
                       startTyping(source, namesText, automaticNames, setNamesText)
                     }}
@@ -299,10 +306,20 @@ export function LabelWizard({
                         label="Nazwy narzędzi"
                         description="Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało"
                       />
-                      <Radio value="custom" label="Własny tekst" />
+                      <Radio
+                        value="models"
+                        label="Modele urządzeń"
+                        description={
+                          automaticModels
+                            ? `Na tej etykiecie: „${automaticModels}"`
+                            : 'Żadne narzędzie tutaj nie ma wpisanego modelu'
+                        }
+                        disabled={automaticModels === ''}
+                      />
+                      <Radio value="text" label="Własny tekst" />
                     </Group>
                   </Radio.Group>
-                  {namesSource === 'custom' ? (
+                  {namesSource === 'text' ? (
                     <TextInput
                       value={namesText}
                       onChange={(event) => setNamesText(event.currentTarget.value)}
