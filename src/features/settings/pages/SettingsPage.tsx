@@ -7,6 +7,7 @@ import {
   Divider,
   Group,
   Loader,
+  NumberInput,
   PasswordInput,
   Stack,
   Switch,
@@ -215,11 +216,17 @@ function GlobalEngineCard({
   pending,
 }: {
   engine: SearchEngineSettings
-  onSave: (changes: { apiKey?: string; apiSecret?: string; enabled?: boolean }) => void
+  onSave: (changes: {
+    apiKey?: string
+    apiSecret?: string
+    enabled?: boolean
+    resultLimit?: number
+  }) => void
   pending: boolean
 }) {
   const [key, setKey] = useState('')
   const [secret, setSecret] = useState('')
+  const [limit, setLimit] = useState(engine.resultLimit)
 
   const save = () => {
     // Only what was typed is sent. An untouched field must not overwrite a
@@ -230,6 +237,12 @@ function GlobalEngineCard({
     onSave(changes)
     setKey('')
     setSecret('')
+  }
+
+  // Saved when the field is left rather than on every keystroke: typing "20"
+  // would otherwise be a request for 2 and a request for 20.
+  const saveLimit = () => {
+    if (limit !== engine.resultLimit) onSave({ resultLimit: limit })
   }
 
   return (
@@ -272,6 +285,25 @@ function GlobalEngineCard({
             </div>
           </Tooltip>
         </Group>
+
+        <NumberInput
+          label="Limit wyników"
+          description={
+            engine.maxResults < 30
+              ? `Ile zdjęć ta wyszukiwarka dokłada do jednego wyszukiwania. Nie więcej niż ${engine.maxResults} — tyle oddaje jej API.`
+              : `Ile zdjęć ta wyszukiwarka dokłada do jednego wyszukiwania (1–${engine.maxResults})`
+          }
+          min={1}
+          max={engine.maxResults}
+          clampBehavior="strict"
+          allowDecimal={false}
+          value={limit}
+          onChange={(value) => setLimit(typeof value === 'number' ? value : engine.resultLimit)}
+          onBlur={saveLimit}
+          disabled={pending}
+          size="sm"
+          w={260}
+        />
 
         {engine.requiresKey ? (
           <Group align="flex-end" gap="sm" grow>

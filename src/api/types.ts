@@ -144,10 +144,15 @@ export type SearchEngineSettings = {
   keyLabel: string
   keySource: 'database' | 'environment' | 'none'
   label: string
+  // The highest limit this engine may be given: its provider's ceiling where
+  // there is one, otherwise the server's.
+  maxResults: number
   note: string
   provider: SearchProvider
   requiresKey: boolean
   requiresSecret: boolean
+  // How many pictures this engine contributes to one search.
+  resultLimit: number
   secretHint: string
   secretLabel: string
   usedByMe: boolean

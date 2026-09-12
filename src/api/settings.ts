@@ -13,7 +13,7 @@ export function fetchSearchEngines(): Promise<SearchEnginesResponse> {
 // back unless it was typed.
 export function saveSearchEngine(
   provider: SearchProvider,
-  changes: { apiKey?: string; apiSecret?: string; enabled?: boolean },
+  changes: { apiKey?: string; apiSecret?: string; enabled?: boolean; resultLimit?: number },
 ): Promise<SearchEnginesResponse> {
   return request(`/settings/search-engines/${provider}`, { body: changes, method: 'PATCH' })
 }
