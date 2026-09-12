@@ -75,6 +75,20 @@ export function PhotoSuggestionsModal({
     )
   }
 
+  // What each engine contributed, in the order the results came back. Built
+  // from the visible ones only: a tile that failed to load is not something
+  // "select all" may put in the basket.
+  const byProvider = new Map<string, string[]>()
+  for (const suggestion of suggestions) {
+    byProvider.set(suggestion.provider, [
+      ...(byProvider.get(suggestion.provider) ?? []),
+      suggestion.url,
+    ])
+  }
+
+  const allSelected =
+    suggestions.length > 0 && suggestions.every((suggestion) => selected.includes(suggestion.url))
+
   const save = () => {
     const chosen = suggestions.filter((suggestion) => selected.includes(suggestion.url))
     onSave(chosen.map((s) => ({ attribution: s.attribution, url: s.url })))
@@ -128,6 +142,41 @@ export function PhotoSuggestionsModal({
 
         {suggestions.length > 0 ? (
           <>
+            <Group gap="sm" align="center">
+              <Checkbox
+                size="xs"
+                label={`Zaznacz wszystkie (${suggestions.length})`}
+                checked={allSelected}
+                indeterminate={selected.length > 0 && !allSelected}
+                onChange={() =>
+                  setSelected(allSelected ? [] : suggestions.map((suggestion) => suggestion.url))
+                }
+              />
+
+              {/* With one engine on, "only from it" is the same button twice.
+                  With several it is the useful one: a search for a model the
+                  shop sells finds the right machine there and lookalikes
+                  everywhere else. */}
+              {byProvider.size > 1 ? (
+                <>
+                  <Text size="xs" c="dimmed">
+                    tylko z:
+                  </Text>
+                  {[...byProvider].map(([provider, urls]) => (
+                    <Button
+                      key={provider}
+                      size="compact-xs"
+                      variant="light"
+                      color={providerColor(provider)}
+                      onClick={() => setSelected(urls)}
+                    >
+                      {providerLabel(provider)} ({urls.length})
+                    </Button>
+                  ))}
+                </>
+              ) : null}
+            </Group>
+
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
               {suggestions.map((suggestion) => (
                 <SuggestionTile
@@ -210,7 +259,7 @@ function SuggestionTile({
           <Badge
             size="xs"
             variant="filled"
-            color={PROVIDER_COLORS[suggestion.provider] ?? 'gray'}
+            color={providerColor(suggestion.provider)}
             style={{ position: 'absolute', right: 6, top: 6 }}
           >
             {providerLabel(suggestion.provider)}
@@ -247,4 +296,8 @@ const PROVIDER_COLORS: Record<string, string> = {
 
 function providerLabel(provider: string): string {
   return PROVIDER_LABELS[provider] ?? provider
+}
+
+function providerColor(provider: string): string {
+  return PROVIDER_COLORS[provider] ?? 'gray'
 }
