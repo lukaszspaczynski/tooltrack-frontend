@@ -1,4 +1,4 @@
-import { request } from './client'
+import { apiFileUrl, request } from './client'
 import type { LabelPage } from './types'
 
 // Every label in the system, whichever organizer made it. The per-organizer
@@ -21,6 +21,13 @@ export function fetchLabels(query: LabelQuery): Promise<LabelPage> {
   if (query.offset > 0) search.set('offset', String(query.offset))
 
   return request('/labels', { search })
+}
+
+// Where the print sheet for these labels lives. An address rather than a call:
+// the answer is a PDF to look at and print, so the screen opens it in a tab and
+// the browser sends the session cookie it already has.
+export function labelSheetUrl(labelIds: number[]): string {
+  return apiFileUrl(`/api/labels/sheet?ids=${labelIds.join(',')}`)
 }
 
 // Draws the chosen labels again from the options they were kept with, across

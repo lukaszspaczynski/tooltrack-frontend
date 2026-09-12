@@ -176,6 +176,13 @@ rather than on the slot id, because a label carries its own size and a case
 cannot have two places of the same size. Without the shared module "the
 defaults" would be two sets of rules that agree until one of them is edited.
 
+The selection is also what **Arkusz do druku** prints: one A4 with all of them
+ganged onto it, which is what a batch is printed from — the per-label PDF has a
+margin and crop marks, and thirty margins is most of a sheet of paper. That
+button is a link rather than a call, because the answer is a file to look at,
+and it is offered to everyone: the sheet writes nothing, so ticking labels is
+not editing them. Only the redraw asks for `catalog.write`.
+
 `labelListParams.ts` puts its filters in the URL like every other list, and it
 also holds `refreshBatches`: the API redraws fifty at a time, a page of ticks
 can be more, and somebody who ticked everything asked for everything. The

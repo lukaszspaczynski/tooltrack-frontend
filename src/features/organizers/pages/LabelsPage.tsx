@@ -21,13 +21,13 @@ import {
 } from '@mantine/core'
 import { useDebouncedCallback } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconFileTypePdf, IconRefresh, IconSearch } from '@tabler/icons-react'
+import { IconFileTypePdf, IconPrinter, IconRefresh, IconSearch } from '@tabler/icons-react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
-import { fetchLabels, refreshAllLabels } from '../../../api/labels'
+import { fetchLabels, labelSheetUrl, refreshAllLabels } from '../../../api/labels'
 import type { LabelListItem } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
 import { formatDateTime } from '../../tools/presentation'
@@ -141,16 +141,34 @@ export function LabelsPage() {
           </Text>
         </Stack>
 
-        {canEdit ? (
+        <Group gap="sm">
+          {/* Many labels on one sheet, for the afternoon a batch is printed.
+              The per-label PDF is right for printing one and wrong for thirty:
+              thirty margins is most of a sheet of paper. Readable with the
+              catalog, like the labels themselves — printing changes nothing. */}
           <Button
-            leftSection={<IconRefresh size={18} />}
+            component="a"
+            variant="light"
+            href={selected.length > 0 ? labelSheetUrl(selected) : undefined}
+            target="_blank"
+            rel="noopener"
+            leftSection={<IconPrinter size={18} />}
             disabled={selected.length === 0}
-            loading={redraw.isPending}
-            onClick={() => redraw.mutate(selected)}
           >
-            Generuj ponownie{selected.length > 0 ? ` (${selected.length})` : ''}
+            Arkusz do druku{selected.length > 0 ? ` (${selected.length})` : ''}
           </Button>
-        ) : null}
+
+          {canEdit ? (
+            <Button
+              leftSection={<IconRefresh size={18} />}
+              disabled={selected.length === 0}
+              loading={redraw.isPending}
+              onClick={() => redraw.mutate(selected)}
+            >
+              Generuj ponownie{selected.length > 0 ? ` (${selected.length})` : ''}
+            </Button>
+          ) : null}
+        </Group>
       </Group>
 
       <Group align="flex-end" gap="sm">
@@ -195,7 +213,7 @@ export function LabelsPage() {
           <Text size="sm" c="dimmed">
             {total === 0 ? 'Brak etykiet' : `${total} etykiet`}
           </Text>
-          {canEdit && items.length > 0 ? (
+          {items.length > 0 ? (
             <Checkbox
               label="Zaznacz wszystkie na tej stronie"
               checked={allOnPageSelected}
@@ -296,14 +314,14 @@ function LabelTile({
               </Group>
             )}
           </Anchor>
-          {canEdit ? (
-            <Checkbox
-              checked={checked}
-              onChange={onToggle}
-              aria-label={`Zaznacz etykietę organizera ${label.organizer.number}`}
-              style={{ left: 4, position: 'absolute', top: 4 }}
-            />
-          ) : null}
+          {/* Ticking is not editing: the sheet a selection prints is readable
+              with the catalog, so everybody who may look may gather labels. */}
+          <Checkbox
+            checked={checked}
+            onChange={onToggle}
+            aria-label={`Zaznacz etykietę organizera ${label.organizer.number}`}
+            style={{ left: 4, position: 'absolute', top: 4 }}
+          />
         </div>
 
         {/* Which arrangement and which box: a label has no name of its own, and
