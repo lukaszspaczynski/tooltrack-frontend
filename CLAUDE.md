@@ -18,8 +18,10 @@ src/
 ├── i18n/                What the interface says, in Polish and English
 │   ├── lang.ts              Plural rules, dates, the language itself. Pure.
 │   ├── catalog.ts           The English side, keyed by the Polish phrase
-│   ├── index.ts             t(), tCount(), tDate() — plain functions
-│   └── I18nProvider.tsx     Holds the choice; LanguageMenu.tsx switches it
+│   ├── index.ts             t(), tCount(), tDate(), and the store they read
+│   ├── useLanguage.ts       How React subscribes to it
+│   ├── I18nProvider.tsx     Remounts the tree on a change
+│   └── AccountLanguage.tsx  Adopts the language the account remembers
 ├── session/             Who is signed in and what they may do
 │   ├── SessionContext.ts    The context, the hook, the query key
 │   ├── SessionProvider.tsx  Resolves /auth/me once for the whole app
@@ -239,9 +241,25 @@ a button that only ever fails is worse than a disabled one.
 
 The interface speaks Polish and English, chosen from the menu in the header —
 next to the theme, and outside the session, because the login screen is the
-first thing somebody who does not read Polish sees. The choice is kept in
-`localStorage` and guessed from the browser the first time; the server knows
-nothing about it, so it does not follow an account onto another device yet.
+first thing somebody who does not read Polish sees.
+
+**The choice belongs to the account.** Signed in, the menu also sends it to
+`PATCH /api/auth/language`, and `/auth/me` brings it back on the next device;
+`AccountLanguage` adopts what the account says as soon as the session resolves,
+overriding the browser — signing in on somebody else's phone should not mean
+reading in their language. Signed out there is no account to ask, so
+`localStorage` holds the last choice and the browser's own languages are the
+first guess.
+
+Adoption happens once per value rather than on every render, which is what
+keeps it from fighting a choice still in flight: the session says Polish until
+the PATCH lands, and the value has already been adopted, so the new choice
+stands.
+
+The language itself lives in a module and React subscribes to it with
+`useSyncExternalStore`. It has to be readable where a hook cannot go, and it
+changes from two directions — a click and a query — so a store is what it
+actually is.
 
 **The Polish phrase is the key.** `t('Zapisz zmiany')`, not `t('form.save')`.
 There is no key namespace to invent or keep in step, the code reads the way the

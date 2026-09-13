@@ -1,10 +1,11 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-import { LanguageContext } from './I18nContext'
-import { getLang, preferredLang, setLang, storedLang, type Lang } from './index'
+import { preferredLang, setLang, storedLang } from './index'
+import { useLanguage } from './useLanguage'
 
 // The language is settled before anything renders, so no screen paints in one
-// language and repaints in another.
+// language and repaints in another. What the account says overrides this as
+// soon as /auth/me answers; see AccountLanguage.tsx.
 setLang(preferredLang(storedLang(), navigator.languages ?? [navigator.language]))
 
 // Everything under here is remounted when the language changes — that is what
@@ -12,21 +13,11 @@ setLang(preferredLang(storedLang(), navigator.languages ?? [navigator.language])
 // event handlers, and remounting is the one way to be sure nothing kept a
 // phrase from before. Switching language is something somebody does once.
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, choose] = useState<Lang>(getLang())
+  const lang = useLanguage()
 
   return (
-    <LanguageContext.Provider
-      value={{
-        lang,
-        setLang: (next) => {
-          setLang(next)
-          choose(next)
-        },
-      }}
-    >
-      <div key={lang} style={{ display: 'contents' }}>
-        {children}
-      </div>
-    </LanguageContext.Provider>
+    <div key={lang} style={{ display: 'contents' }}>
+      {children}
+    </div>
   )
 }

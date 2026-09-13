@@ -1,4 +1,5 @@
 import { isApiError, request } from './client'
+import type { Lang } from '../i18n/lang'
 import type { Session, User } from './types'
 
 export type Credentials = {
@@ -27,6 +28,14 @@ export function login(credentials: Credentials): Promise<{ user: User }> {
 
 export function register(input: RegisterInput): Promise<{ user: User }> {
   return request('/auth/register', { body: input, method: 'POST' })
+}
+
+// Which language this account reads in, kept on the account rather than in one
+// browser. The answer is the whole session again, because the user being shown
+// has just changed and asking for it a second time would be a round trip for
+// something the server already sent.
+export function setAccountLanguage(language: Lang): Promise<Session> {
+  return request('/auth/language', { body: { language }, method: 'PATCH' })
 }
 
 export function logout(): Promise<{ ok: true }> {

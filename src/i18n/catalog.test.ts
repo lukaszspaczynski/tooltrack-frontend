@@ -117,3 +117,37 @@ test('capitals are not one operation for every language', () => {
   assert.equal(upperCase('ćwiartka', 'pl'), 'ĆWIARTKA')
   assert.equal(upperCase('quarter', 'en'), 'QUARTER')
 })
+
+test('a change reaches React, a repeat does not', async () => {
+  // The provider remounts the tree on every notification, so setting the
+  // language somebody is already reading in would throw away their screen for
+  // nothing. The store is imported here rather than at the top because it
+  // writes to `document` and `localStorage`, which a test runner has neither of.
+  ;(globalThis as { document?: unknown }).document = { documentElement: {} }
+  ;(globalThis as { localStorage?: unknown }).localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+  }
+
+  const { getLang, setLang, subscribeToLang } = await import('./index')
+
+  let heard = 0
+  const stop = subscribeToLang(() => {
+    heard += 1
+  })
+
+  setLang('en')
+  assert.equal(getLang(), 'en')
+  assert.equal(heard, 1)
+
+  setLang('en')
+  assert.equal(heard, 1)
+
+  setLang('pl')
+  assert.equal(heard, 2)
+
+  stop()
+  setLang('en')
+  assert.equal(heard, 2)
+  setLang('pl')
+})

@@ -4,6 +4,8 @@
 // generated one, and a drift shows up as a type error the first time a screen
 // touches the field.
 
+import type { Lang } from '../i18n/lang'
+
 export const TOOL_CONDITIONS = ['new', 'good', 'worn', 'needs_repair', 'retired'] as const
 
 export type ToolCondition = (typeof TOOL_CONDITIONS)[number]
@@ -446,6 +448,9 @@ export type User = {
   displayName: string
   email: string
   id: number
+  // Which language this account reads the interface in. It belongs to the
+  // account rather than to the browser, so a phone and a laptop agree.
+  language: Lang
   role: Role
   status: AccountStatus
 }

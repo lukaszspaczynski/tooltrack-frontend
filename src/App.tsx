@@ -2,6 +2,7 @@ import { Button, Stack, Text, Title } from '@mantine/core'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from './components/layout/AppLayout'
+import { AccountLanguage } from './i18n/AccountLanguage'
 import { LoginPage } from './features/auth/pages/LoginPage'
 import { CaseCreatePage } from './features/cases/pages/CaseCreatePage'
 import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
@@ -27,121 +28,124 @@ export function App() {
   const { session } = useSession()
 
   return (
-    <Routes>
-      <Route path="/login" element={session ? <Navigate to="/" replace /> : <LoginPage />} />
+    <>
+      <AccountLanguage />
+      <Routes>
+        <Route path="/login" element={session ? <Navigate to="/" replace /> : <LoginPage />} />
 
-      <Route element={<AppLayout />}>
-        <Route
-          index
-          element={
-            <RequireCapability capability="catalog.read">
-              <ToolsListPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="tools/new"
-          element={
-            <RequireCapability capability="catalog.write">
-              <ToolCreatePage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="tools/:id"
-          element={
-            <RequireCapability capability="catalog.read">
-              <ToolDetailPage />
-            </RequireCapability>
-          }
-        />
-        {/* Cases before the :id route, as on the server: "new" must not be
+        <Route element={<AppLayout />}>
+          <Route
+            index
+            element={
+              <RequireCapability capability="catalog.read">
+                <ToolsListPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="tools/new"
+            element={
+              <RequireCapability capability="catalog.write">
+                <ToolCreatePage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="tools/:id"
+            element={
+              <RequireCapability capability="catalog.read">
+                <ToolDetailPage />
+              </RequireCapability>
+            }
+          />
+          {/* Cases before the :id route, as on the server: "new" must not be
             read as the id of a case. */}
-        <Route
-          path="brands"
-          element={
-            <RequireCapability capability="catalog.read">
-              <BrandsPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="cases"
-          element={
-            <RequireCapability capability="catalog.read">
-              <CasesListPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="cases/new"
-          element={
-            <RequireCapability capability="catalog.write">
-              <CaseCreatePage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="cases/:id"
-          element={
-            <RequireCapability capability="catalog.read">
-              <CaseDetailPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="organizers"
-          element={
-            <RequireCapability capability="catalog.read">
-              <OrganizersPage />
-            </RequireCapability>
-          }
-        />
-        {/* Before the :id route, as on the server: "labels" must not be read
+          <Route
+            path="brands"
+            element={
+              <RequireCapability capability="catalog.read">
+                <BrandsPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="cases"
+            element={
+              <RequireCapability capability="catalog.read">
+                <CasesListPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="cases/new"
+            element={
+              <RequireCapability capability="catalog.write">
+                <CaseCreatePage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="cases/:id"
+            element={
+              <RequireCapability capability="catalog.read">
+                <CaseDetailPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="organizers"
+            element={
+              <RequireCapability capability="catalog.read">
+                <OrganizersPage />
+              </RequireCapability>
+            }
+          />
+          {/* Before the :id route, as on the server: "labels" must not be read
             as the id of an organizer. */}
-        <Route
-          path="organizers/labels"
-          element={
-            <RequireCapability capability="catalog.read">
-              <LabelsPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="organizers/:id"
-          element={
-            <RequireCapability capability="catalog.read">
-              <OrganizerDetailPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="photos"
-          element={
-            <RequireCapability capability="catalog.read">
-              <PhotoLibraryPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="settings"
-          element={
-            <RequireCapability capability="catalog.read">
-              <SettingsPage />
-            </RequireCapability>
-          }
-        />
-        <Route
-          path="users"
-          element={
-            <RequireCapability capability="users.manage">
-              <UsersPage />
-            </RequireCapability>
-          }
-        />
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+          <Route
+            path="organizers/labels"
+            element={
+              <RequireCapability capability="catalog.read">
+                <LabelsPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="organizers/:id"
+            element={
+              <RequireCapability capability="catalog.read">
+                <OrganizerDetailPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="photos"
+            element={
+              <RequireCapability capability="catalog.read">
+                <PhotoLibraryPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <RequireCapability capability="catalog.read">
+                <SettingsPage />
+              </RequireCapability>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <RequireCapability capability="users.manage">
+                <UsersPage />
+              </RequireCapability>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </>
   )
 }
 

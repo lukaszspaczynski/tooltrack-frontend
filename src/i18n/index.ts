@@ -23,13 +23,25 @@ import {
 
 const STORAGE_KEY = 'tooltrack.lang'
 
+// The language lives here rather than in React state, and React subscribes to
+// it: `t` has to be readable from a lookup table and an event handler, and the
+// account's own language arrives from a query rather than from a click.
 let current: Lang = 'pl'
+
+const listeners = new Set<() => void>()
 
 export function getLang(): Lang {
   return current
 }
 
+export function subscribeToLang(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
 export function setLang(lang: Lang): void {
+  if (lang === current) return
+
   current = lang
   document.documentElement.lang = lang
 
@@ -39,6 +51,8 @@ export function setLang(lang: Lang): void {
     // A browser refusing storage is a browser that asks again next time, which
     // is worse than remembering and not a reason to fail the switch.
   }
+
+  for (const listener of listeners) listener()
 }
 
 export function storedLang(): null | string {
