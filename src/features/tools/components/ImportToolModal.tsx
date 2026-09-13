@@ -78,7 +78,7 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
 
         <TextInput
           label={t('Adres strony produktu')}
-          placeholder="https://mistama.com/…"
+          placeholder={`https://${known[0]?.host ?? ''}/…`}
           value={url}
           error={unsupported ? t('Ten sklep nie jest obsługiwany') : null}
           onChange={(event) => setUrl(event.currentTarget.value)}
