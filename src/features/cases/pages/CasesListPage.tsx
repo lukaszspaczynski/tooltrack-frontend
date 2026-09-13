@@ -29,6 +29,7 @@ import {
   withFilter,
   writeCaseParams,
 } from '../listParams'
+import { t } from '../../../i18n'
 import { caseCountLabel } from '../presentation'
 
 export function CasesListPage() {
@@ -65,7 +66,7 @@ export function CasesListPage() {
     <Stack gap="lg">
       <Group justify="space-between" align="flex-end">
         <Stack gap={0}>
-          <Title order={2}>Skrzynki</Title>
+          <Title order={2}>{t('Skrzynki')}</Title>
           {cases.data ? (
             <Text c="dimmed" size="sm">
               {caseCountLabel(total)}
@@ -75,15 +76,15 @@ export function CasesListPage() {
 
         {can('catalog.write') ? (
           <Button component={Link} to="/cases/new" leftSection={<IconPlus size={18} />}>
-            Dodaj
+            {t('Dodaj')}
           </Button>
         ) : null}
       </Group>
 
       <Group align="flex-end" gap="sm" grow preventGrowOverflow={false} wrap="wrap">
         <TextInput
-          label="Szukaj"
-          placeholder="Nazwa, producent, system, EAN, SKU…"
+          label={t('Szukaj')}
+          placeholder={t('Nazwa, producent, system, EAN, SKU…')}
           leftSection={<IconSearch size={16} />}
           value={searchText}
           onChange={(event) => {
@@ -94,8 +95,8 @@ export function CasesListPage() {
           style={{ flexGrow: 2 }}
         />
         <Select
-          label="Sortowanie"
-          data={SORT_OPTIONS.map((option) => ({ ...option }))}
+          label={t('Sortowanie')}
+          data={SORT_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           allowDeselect={false}
           value={query.sort}
           onChange={(value) => apply({ sort: value ?? 'name' })}
@@ -104,7 +105,7 @@ export function CasesListPage() {
       </Group>
 
       {cases.isError ? (
-        <Alert color="red" variant="light" title="Nie udało się wczytać skrzynek">
+        <Alert color="red" variant="light" title={t('Nie udało się wczytać skrzynek')}>
           {(cases.error as Error).message}
         </Alert>
       ) : null}
@@ -118,8 +119,8 @@ export function CasesListPage() {
       {cases.data && cases.data.items.length === 0 ? (
         <Alert color="gray" variant="light">
           {query.search
-            ? 'Nic nie pasuje do tego wyszukiwania.'
-            : 'Nie ma jeszcze żadnych skrzynek.'}
+            ? t('Nic nie pasuje do tego wyszukiwania.')
+            : t('Nie ma jeszcze żadnych skrzynek.')}
         </Alert>
       ) : null}
 

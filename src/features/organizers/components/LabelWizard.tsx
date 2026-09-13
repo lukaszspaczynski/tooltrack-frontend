@@ -20,6 +20,7 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchLabelSlots, type LabelRequest } from '../../../api/organizers'
 import type { Organizer, OrganizerLabelSlot } from '../../../api/types'
+import { t } from '../../../i18n'
 import { defaultCaptionSource, labelPhotos, maxPhotosFor, toolModels } from '../labelDefaults'
 
 // What the server accepts for a line somebody types. A label is 30 mm across;
@@ -135,28 +136,34 @@ export function LabelWizard({
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Nowa etykieta" size="xl" centered>
+    <Modal opened={opened} onClose={onClose} title={t('Nowa etykieta')} size="xl" centered>
       <Stack gap="md">
         <Stepper active={step} onStepClick={setStep} size="sm" allowNextStepsSelect={false}>
           <Stepper.Step
-            label="Rozmiar"
+            label={t('Rozmiar')}
             description={slot ? `${slot.widthMm} × ${slot.heightMm} mm` : 'nie wybrano'}
           />
           <Stepper.Step
-            label="Szablon"
+            label={t('Szablon')}
             description={
-              template === 'number' ? 'numer' : template === 'contents' ? 'zawartość' : '—'
+              template === 'number' ? 'numer' : template === 'contents' ? t('zawartość') : '—'
             }
           />
-          <Stepper.Step label="Opcje" />
-          <Stepper.Step label="Plik" description={printReady ? 'do druku' : 'sama grafika'} />
+          <Stepper.Step label={t('Opcje')} />
+          <Stepper.Step label={t('Plik')} description={printReady ? 'do druku' : 'sama grafika'} />
         </Stepper>
 
         {step === 0 ? (
           <Stack gap="sm">
             {slots.data && slots.data.slots.length === 0 ? (
-              <Alert color="orange" variant="light" title="Ta skrzynka nie ma miejsc na etykiety">
-                Dodaj rozmiar na karcie skrzynki „{organizer.case.name}", a potem wróć tutaj.
+              <Alert
+                color="orange"
+                variant="light"
+                title={t('Ta skrzynka nie ma miejsc na etykiety')}
+              >
+                {t('Dodaj rozmiar na karcie skrzynki „{name}”, a potem wróć tutaj.', {
+                  name: organizer.case.name,
+                })}
               </Alert>
             ) : null}
 
@@ -212,21 +219,25 @@ export function LabelWizard({
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
             <TemplateCard
               chosen={template === 'number'}
-              description="Duży numer organizera na tle w kolorach producentów. Opcjonalnie z ich logo."
+              description={t(
+                'Duży numer organizera na tle w kolorach producentów. Opcjonalnie z ich logo.',
+              )}
               onChoose={() => {
                 setTemplate('number')
                 setStep(2)
               }}
-              title="Numer porządkowy"
+              title={t('Numer porządkowy')}
             />
             <TemplateCard
               chosen={template === 'contents'}
-              description="Do trzech zdjęć narzędzi, pod nimi nazwa organizera i nazwy narzędzi."
+              description={t(
+                'Do trzech zdjęć narzędzi, pod nimi nazwa organizera i nazwy narzędzi.',
+              )}
               onChoose={() => {
                 setTemplate('contents')
                 setStep(2)
               }}
-              title="Zawartość"
+              title={t('Zawartość')}
             />
           </SimpleGrid>
         ) : null}
@@ -236,8 +247,8 @@ export function LabelWizard({
             <Checkbox
               checked={withLogos}
               onChange={(event) => setWithLogos(event.currentTarget.checked)}
-              label="Umieść logo producentów"
-              description="Marki bez logo są pomijane"
+              label={t('Umieść logo producentów')}
+              description={t('Marki bez logo są pomijane')}
             />
           </Stack>
         ) : null}
@@ -248,8 +259,8 @@ export function LabelWizard({
               <Checkbox
                 checked={withTitle}
                 onChange={(event) => setWithTitle(event.currentTarget.checked)}
-                label="Nazwa"
-                description="Duży napis nad linią"
+                label={t('Nazwa')}
+                description={t('Duży napis nad linią')}
               />
               {withTitle ? (
                 <Stack gap={6} pl={34}>
@@ -263,7 +274,7 @@ export function LabelWizard({
                   >
                     <Group gap="lg">
                       <Radio value="organizer" label={`Nazwa organizera („${organizer.name}")`} />
-                      <Radio value="custom" label="Własny tekst" />
+                      <Radio value="custom" label={t('Własny tekst')} />
                     </Group>
                   </Radio.Group>
                   {titleSource === 'custom' ? (
@@ -272,7 +283,7 @@ export function LabelWizard({
                       onChange={(event) => setTitleText(event.currentTarget.value)}
                       maxLength={MAX_TEXT}
                       placeholder="np. Akumulatory"
-                      aria-label="Własna nazwa na etykiecie"
+                      aria-label={t('Własna nazwa na etykiecie')}
                     />
                   ) : null}
                 </Stack>
@@ -283,8 +294,8 @@ export function LabelWizard({
               <Checkbox
                 checked={withNames}
                 onChange={(event) => setWithNames(event.currentTarget.checked)}
-                label="Podpis"
-                description="Mniejszy napis pod linią, wersalikami"
+                label={t('Podpis')}
+                description={t('Mniejszy napis pod linią, wersalikami')}
               />
               {withNames ? (
                 <Stack gap={6} pl={34}>
@@ -299,20 +310,22 @@ export function LabelWizard({
                     <Group gap="lg">
                       <Radio
                         value="tools"
-                        label="Nazwy narzędzi"
-                        description="Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało"
+                        label={t('Nazwy narzędzi')}
+                        description={t(
+                          'Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało',
+                        )}
                       />
                       <Radio
                         value="models"
-                        label="Modele urządzeń"
+                        label={t('Modele urządzeń')}
                         description={
                           automaticModels
                             ? `Na tej etykiecie: „${automaticModels}"`
-                            : 'Żadne narzędzie tutaj nie ma wpisanego modelu'
+                            : t('Żadne narzędzie tutaj nie ma wpisanego modelu')
                         }
                         disabled={automaticModels === ''}
                       />
-                      <Radio value="text" label="Własny tekst" />
+                      <Radio value="text" label={t('Własny tekst')} />
                     </Group>
                   </Radio.Group>
                   {namesSource === 'text' ? (
@@ -321,7 +334,7 @@ export function LabelWizard({
                       onChange={(event) => setNamesText(event.currentTarget.value)}
                       maxLength={MAX_TEXT}
                       placeholder="np. 18 V + 12 V, Li-Ion"
-                      aria-label="Własny podpis na etykiecie"
+                      aria-label={t('Własny podpis na etykiecie')}
                     />
                   ) : null}
                 </Stack>
@@ -329,12 +342,12 @@ export function LabelWizard({
             </Stack>
 
             <Text size="sm" fw={600}>
-              Zdjęcia ({photoIds.length}/{maxPhotos})
+              {t('Zdjęcia')} ({photoIds.length}/{maxPhotos})
             </Text>
 
             {photos.length === 0 ? (
               <Alert color="gray" variant="light">
-                Narzędzia w tym organizerze nie mają zdjęć.
+                {t('Narzędzia w tym organizerze nie mają zdjęć.')}
               </Alert>
             ) : (
               <ScrollArea.Autosize mah={260}>
@@ -383,13 +396,17 @@ export function LabelWizard({
               <Stack gap="sm">
                 <Radio
                   value="print"
-                  label="Gotowy do druku"
-                  description="Margines ze znacznikami cięcia w rogach, linia cięcia wzdłuż etykiety i linijka kontrolna — zmierz ją po wydruku, żeby sprawdzić, czy drukarka nie przeskalowała pliku"
+                  label={t('Gotowy do druku')}
+                  description={t(
+                    'Margines ze znacznikami cięcia w rogach, linia cięcia wzdłuż etykiety i linijka kontrolna — zmierz ją po wydruku, żeby sprawdzić, czy drukarka nie przeskalowała pliku',
+                  )}
                 />
                 <Radio
                   value="plain"
-                  label="Sama grafika"
-                  description="Strona dokładnie w rozmiarze etykiety, bez żadnych linii. Do wstawienia gdzie indziej albo do obejrzenia"
+                  label={t('Sama grafika')}
+                  description={t(
+                    'Strona dokładnie w rozmiarze etykiety, bez żadnych linii. Do wstawienia gdzie indziej albo do obejrzenia',
+                  )}
                 />
               </Stack>
             </Radio.Group>
@@ -407,11 +424,11 @@ export function LabelWizard({
 
           {step < 3 ? (
             <Button onClick={() => setStep(step + 1)} disabled={step === 0 ? !slot : !template}>
-              Dalej
+              {t('Dalej')}
             </Button>
           ) : (
             <Button onClick={submit} loading={saving} disabled={!slot || !template}>
-              Wygeneruj PDF
+              {t('Wygeneruj PDF')}
             </Button>
           )}
         </Group>

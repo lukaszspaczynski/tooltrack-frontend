@@ -44,6 +44,7 @@ import {
   uploadLibraryPhoto,
 } from '../../../api/photos'
 import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
+import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutStudio } from '../../photos/components/CutoutStudio'
 import { formatDateTime } from '../../tools/presentation'
@@ -99,7 +100,7 @@ export function PhotoLibraryPage() {
     mutationFn: (file: File) => uploadLibraryPhoto(file),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
-      notifications.show({ color: 'teal', message: 'Zdjęcie dodane do biblioteki' })
+      notifications.show({ color: 'teal', message: t('Zdjęcie dodane do biblioteki') })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -115,7 +116,7 @@ export function PhotoLibraryPage() {
       setUrl('')
       notifications.show({
         color: created ? 'teal' : 'blue',
-        message: created ? 'Zdjęcie dodane do biblioteki' : 'To zdjęcie już tu było',
+        message: created ? t('Zdjęcie dodane do biblioteki') : t('To zdjęcie już tu było'),
       })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -136,8 +137,11 @@ export function PhotoLibraryPage() {
         color: 'teal',
         message:
           result.deleted === result.requested
-            ? `Usunięto ${result.deleted}`
-            : `Usunięto ${result.deleted} z ${result.requested} — reszty już nie było`,
+            ? t('Usunięto {n}', { n: result.deleted })
+            : t('Usunięto {n} z {asked} — reszty już nie było', {
+                asked: result.requested,
+                n: result.deleted,
+              }),
       })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -171,9 +175,9 @@ export function PhotoLibraryPage() {
     <Stack gap="md">
       <Group justify="space-between" align="flex-start">
         <Stack gap={0}>
-          <Title order={2}>Zdjęcia</Title>
+          <Title order={2}>{t('Zdjęcia')}</Title>
           <Text c="dimmed" size="sm">
-            Wszystkie zdjęcia w systemie, niezależnie od narzędzia.
+            {t('Wszystkie zdjęcia w systemie, niezależnie od narzędzia.')}
           </Text>
         </Stack>
 
@@ -185,7 +189,7 @@ export function PhotoLibraryPage() {
                 leftSection={<IconTrash size={18} />}
                 onClick={() => askToDelete(items.filter((item) => selected.includes(item.id)))}
               >
-                Usuń zaznaczone ({selected.length})
+                {t('Usuń zaznaczone')} ({selected.length})
               </Button>
             ) : null}
             <FileButton onChange={(file) => file && upload.mutate(file)} accept="image/*">
@@ -195,7 +199,7 @@ export function PhotoLibraryPage() {
                   leftSection={<IconPhotoPlus size={18} />}
                   loading={upload.isPending}
                 >
-                  Wgraj zdjęcie
+                  {t('Wgraj zdjęcie')}
                 </Button>
               )}
             </FileButton>
@@ -219,7 +223,7 @@ export function PhotoLibraryPage() {
               loading={importFromUrl.isPending}
               onClick={() => importFromUrl.mutate(url.trim())}
             >
-              Pobierz
+              {t('Pobierz')}
             </Button>
           </Group>
         ) : null}
@@ -227,9 +231,9 @@ export function PhotoLibraryPage() {
 
       <Group align="flex-end" gap="sm">
         <TextInput
-          label="Szukaj narzędzia"
-          description="Zdjęcie nie ma własnej nazwy — szukamy po narzędziu"
-          placeholder="Nazwa, marka, model…"
+          label={t('Szukaj narzędzia')}
+          description={t('Zdjęcie nie ma własnej nazwy — szukamy po narzędziu')}
+          placeholder={t('Nazwa, marka, model…')}
           leftSection={<IconSearch size={16} />}
           value={searchText}
           onChange={(event) => {
@@ -240,19 +244,19 @@ export function PhotoLibraryPage() {
           miw={220}
         />
         <Select
-          label="Źródło"
-          placeholder="Dowolne"
+          label={t('Źródło')}
+          placeholder={t('Dowolne')}
           clearable
-          data={SOURCE_OPTIONS.map((option) => ({ ...option }))}
+          data={SOURCE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           value={query.source}
           onChange={(value) => apply({ source: value })}
           miw={170}
         />
         <Select
-          label="Przypisanie"
-          placeholder="Wszystkie"
+          label={t('Przypisanie')}
+          placeholder={t('Wszystkie')}
           clearable
-          data={ASSIGNED_OPTIONS.map((option) => ({ ...option }))}
+          data={ASSIGNED_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           value={query.assigned === null ? null : String(query.assigned)}
           onChange={(value) => apply({ assigned: value === null ? null : value === 'true' })}
           miw={200}
@@ -260,7 +264,7 @@ export function PhotoLibraryPage() {
       </Group>
 
       {library.isError ? (
-        <Alert color="red" variant="light" title="Nie udało się wczytać zdjęć">
+        <Alert color="red" variant="light" title={t('Nie udało się wczytać zdjęć')}>
           {(library.error as Error).message}
         </Alert>
       ) : null}
@@ -274,11 +278,11 @@ export function PhotoLibraryPage() {
       {library.data ? (
         <Group justify="space-between">
           <Text size="sm" c="dimmed">
-            {total === 0 ? 'Brak zdjęć' : `${total} zdjęć`}
+            {total === 0 ? t('Brak zdjęć') : tCount(COUNTS.photo, total)}
           </Text>
           {can('catalog.write') && items.length > 0 ? (
             <Checkbox
-              label="Zaznacz wszystkie na tej stronie"
+              label={t('Zaznacz wszystkie na tej stronie')}
               checked={allOnPageSelected}
               indeterminate={!allOnPageSelected && items.some((item) => selected.includes(item.id))}
               onChange={(event) =>
@@ -381,7 +385,7 @@ function PhotoTile({
             <Checkbox
               checked={checked}
               onChange={onToggle}
-              aria-label={`Zaznacz zdjęcie ${photo.id}`}
+              aria-label={t('Zaznacz zdjęcie {id}', { id: String(photo.id) })}
               style={{ left: 4, position: 'absolute', top: 4 }}
             />
           ) : null}
@@ -418,7 +422,7 @@ function PhotoTile({
                 size="xs"
                 fw={600}
                 lineClamp={1}
-                title={`${owner.name} (${owner.kind === 'case' ? 'skrzynka' : 'narzędzie'})`}
+                title={`${owner.name} (${owner.kind === 'case' ? t('skrzynka') : t('narzędzie')})`}
               >
                 {owner.name}
                 {index < photo.owners.length - 1 || photo.logoForBrand !== null ? ',' : ''}
@@ -446,30 +450,32 @@ function PhotoTile({
 
         <Group justify="space-between" gap={4} wrap="nowrap">
           <Badge size="xs" variant="default">
-            {SOURCE_LABELS[photo.source] ?? photo.source}
+            {t(SOURCE_LABELS[photo.source] ?? photo.source)}
           </Badge>
           {canEdit ? (
             <Group gap={2} wrap="nowrap">
               <Tooltip
                 label={
-                  photo.source === 'edit' ? 'To zdjęcie już jest wycięte' : 'Wytnij samo narzędzie'
+                  photo.source === 'edit'
+                    ? t('To zdjęcie już jest wycięte')
+                    : t('Wytnij samo narzędzie')
                 }
               >
                 <ActionIcon
                   variant="subtle"
                   color="grape"
-                  aria-label="Wytnij samo narzędzie"
+                  aria-label={t('Wytnij samo narzędzie')}
                   disabled={photo.source === 'edit'}
                   onClick={onCutout}
                 >
                   <IconWand size={15} />
                 </ActionIcon>
               </Tooltip>
-              <Tooltip label="Usuń zdjęcie">
+              <Tooltip label={t('Usuń zdjęcie')}>
                 <ActionIcon
                   variant="subtle"
                   color="red"
-                  aria-label="Usuń zdjęcie"
+                  aria-label={t('Usuń zdjęcie')}
                   onClick={onDelete}
                 >
                   <IconTrash size={15} />
@@ -525,19 +531,21 @@ function DeleteConfirmation({
   const primaries = pending.flatMap((photo) => photo.owners.filter((owner) => owner.isPrimary))
 
   return (
-    <Modal opened={opened} onClose={onCancel} title="Usunąć zdjęcia?" centered>
+    <Modal opened={opened} onClose={onCancel} title={t('Usunąć zdjęcia?')} centered>
       <Stack gap="md">
         <Text size="sm">
           {pending.length === 1
-            ? 'To zdjęcie zostanie trwale usunięte z dysku.'
-            : `Zaznaczono ${pending.length} zdjęć. Zostaną trwale usunięte z dysku.`}
+            ? t('To zdjęcie zostanie trwale usunięte z dysku.')
+            : t('Zaznaczono {n}. Zostaną trwale usunięte z dysku.', {
+                n: tCount(COUNTS.photo, pending.length),
+              })}
         </Text>
 
         {cards.length === 0 && logos.length === 0 ? (
           <Text c="dimmed" size="sm">
             {loose === 1
-              ? 'To zdjęcie nie jest przypisane do niczego.'
-              : 'Żadne z tych zdjęć nie jest do niczego przypisane.'}
+              ? t('To zdjęcie nie jest przypisane do niczego.')
+              : t('Żadne z tych zdjęć nie jest do niczego przypisane.')}
           </Text>
         ) : (
           <Alert
@@ -546,8 +554,8 @@ function DeleteConfirmation({
             icon={<IconAlertTriangle size={18} />}
             title={
               cards.length === 1
-                ? 'Zdjęcie jest przypisane do karty'
-                : `Zdjęcia są przypisane do ${cards.length} kart`
+                ? t('Zdjęcie jest przypisane do karty')
+                : t('Zdjęcia są przypisane do {n} kart', { n: cards.length })
             }
           >
             <List size="sm" spacing={2}>
@@ -555,7 +563,7 @@ function DeleteConfirmation({
                 <List.Item key={`${owner.kind}-${owner.id}`}>
                   {owner.name}{' '}
                   <Text span size="xs" c="dimmed">
-                    ({owner.kind === 'case' ? 'skrzynka' : 'narzędzie'})
+                    ({owner.kind === 'case' ? t('skrzynka') : t('narzędzie')})
                   </Text>
                 </List.Item>
               ))}
@@ -564,21 +572,30 @@ function DeleteConfirmation({
             {primaries.length > 0 ? (
               <Text size="sm" mt="xs">
                 {primaries.length === 1
-                  ? 'Jedno z nich to zdjęcie główne — kartę zacznie ilustrować inne zdjęcie, a jeśli innych nie ma, karta zostanie bez zdjęcia.'
-                  : `${primaries.length} z nich to zdjęcia główne — te karty zaczną pokazywać inne zdjęcia, a te bez zapasu zostaną bez zdjęcia.`}
+                  ? t(
+                      'Jedno z nich to zdjęcie główne — kartę zacznie ilustrować inne zdjęcie, a jeśli innych nie ma, karta zostanie bez zdjęcia.',
+                    )
+                  : t(
+                      '{n} z nich to zdjęcia główne — te karty zaczną pokazywać inne zdjęcia, a te bez zapasu zostaną bez zdjęcia.',
+                      {
+                        n: primaries.length,
+                      },
+                    )}
               </Text>
             ) : null}
 
             {loose > 0 ? (
               <Text size="sm" mt="xs">
-                Do tego {loose === 1 ? 'jedno zdjęcie' : `${loose} zdjęć`} bez przypisania.
+                {t('Do tego {n} bez przypisania.', {
+                  n: loose === 1 ? t('jedno zdjęcie') : tCount(COUNTS.photo, loose),
+                })}
               </Text>
             ) : null}
           </Alert>
         )}
 
         <Text size="xs" c="dimmed">
-          Same narzędzia zostają w katalogu — usuwasz wyłącznie zdjęcia.
+          {t('Same narzędzia zostają w katalogu — usuwasz wyłącznie zdjęcia.')}
         </Text>
 
         {logos.length > 0 ? (
@@ -588,8 +605,8 @@ function DeleteConfirmation({
             icon={<IconAlertTriangle size={18} />}
             title={
               logos.length === 1
-                ? 'Zdjęcie jest logo producenta'
-                : `Zdjęcia są logo ${logos.length} producentów`
+                ? t('Zdjęcie jest logo producenta')
+                : t('Zdjęcia są logo {n} producentów', { n: logos.length })
             }
           >
             <List size="sm" spacing={2}>
@@ -599,18 +616,18 @@ function DeleteConfirmation({
             </List>
             <Text size="sm" mt="xs">
               {logos.length === 1
-                ? 'Ten producent zostanie bez logo. Sama pozycja i jej narzędzia zostają.'
-                : 'Ci producenci zostaną bez logo. Same pozycje i ich narzędzia zostają.'}
+                ? t('Ten producent zostanie bez logo. Sama pozycja i jej narzędzia zostają.')
+                : t('Ci producenci zostaną bez logo. Same pozycje i ich narzędzia zostają.')}
             </Text>
           </Alert>
         ) : null}
 
         <Group justify="flex-end">
           <Button variant="default" onClick={onCancel}>
-            Anuluj
+            {t('Anuluj')}
           </Button>
           <Button color="red" loading={working} onClick={onConfirm}>
-            Usuń {pending.length > 1 ? `(${pending.length})` : ''}
+            {t('Usuń')} {pending.length > 1 ? `(${pending.length})` : ''}
           </Button>
         </Group>
       </Stack>
@@ -637,5 +654,5 @@ function isPrimarySomewhere(photo: LibraryPhoto): boolean {
 function primaryLabel(photo: LibraryPhoto): string {
   const cards = photo.owners.filter((owner) => owner.isPrimary).map((owner) => owner.name)
 
-  return cards.length === 1 ? `Zdjęcie główne: ${cards[0]}` : `Zdjęcie główne: ${cards.join(', ')}`
+  return t('Zdjęcie główne: {cards}', { cards: cards.join(', ') })
 }

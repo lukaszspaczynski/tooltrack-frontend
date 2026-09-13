@@ -13,6 +13,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 
 import type { CaseListItem } from '../../../api/types'
+import { t } from '../../../i18n'
 import { CasePicker } from './CasePicker'
 
 export type OrganizerFormValues = {
@@ -41,7 +42,7 @@ export function OrganizerForm({
   const form = useForm<OrganizerFormValues>({
     mode: 'uncontrolled',
     initialValues,
-    validate: { name: (value) => (value.trim() ? null : 'Nazwa jest wymagana') },
+    validate: { name: (value) => (value.trim() ? null : t('Nazwa jest wymagana')) },
   })
 
   const [chosenCase, setChosenCase] = useState({ id: initialValues.caseId, name: caseName })
@@ -56,15 +57,15 @@ export function OrganizerForm({
       <Stack gap="md">
         <Group grow align="flex-start">
           <TextInput
-            label="Nazwa"
+            label={t('Nazwa')}
             required
             data-autofocus
             key={form.key('name')}
             {...form.getInputProps('name')}
           />
           <NumberInput
-            label="Numer porządkowy"
-            description="Musi być wolny"
+            label={t('Numer porządkowy')}
+            description={t('Musi być wolny')}
             min={1}
             allowDecimal={false}
             key={form.key('number')}
@@ -73,8 +74,8 @@ export function OrganizerForm({
         </Group>
 
         <Textarea
-          label="Opis"
-          placeholder="Co i dlaczego jest w tym układzie"
+          label={t('Opis')}
+          placeholder={t('Co i dlaczego jest w tym układzie')}
           autosize
           minRows={2}
           key={form.key('description')}
@@ -85,14 +86,14 @@ export function OrganizerForm({
           <Group justify="space-between" align="center">
             <Stack gap={0}>
               <Text size="sm" fw={600}>
-                Skrzynka
+                {t('Skrzynka')}
               </Text>
               <Text size="sm" c="dimmed">
                 {chosenCase.name}
               </Text>
             </Stack>
             <Button size="xs" variant="light" onClick={casePicker.toggle}>
-              {caseOpen ? 'Zwiń' : 'Zmień'}
+              {caseOpen ? t('Zwiń') : t('Zmień')}
             </Button>
           </Group>
 
@@ -109,10 +110,10 @@ export function OrganizerForm({
 
         <Group justify="flex-end" gap="sm">
           <Button variant="default" onClick={onCancel} disabled={pending}>
-            Anuluj
+            {t('Anuluj')}
           </Button>
           <Button type="submit" loading={pending}>
-            Zapisz zmiany
+            {t('Zapisz zmiany')}
           </Button>
         </Group>
       </Stack>

@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { createOrganizer, fetchOrganizers } from '../../../api/organizers'
 import type { OrganizerFields } from '../../../api/types'
+import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { OrganizerCard } from '../components/OrganizerCard'
 import { OrganizerWizard } from '../components/OrganizerWizard'
@@ -62,22 +63,22 @@ export function OrganizersPage() {
     <Stack gap="lg">
       <Group justify="space-between" align="flex-end">
         <Stack gap={0}>
-          <Title order={2}>Organizer</Title>
+          <Title order={2}>{t('Organizer')}</Title>
           <Text c="dimmed" size="sm">
-            Co leży w której skrzynce
+            {t('Co leży w której skrzynce')}
           </Text>
         </Stack>
 
         {canEdit ? (
           <Button leftSection={<IconPlus size={18} />} onClick={wizard.open}>
-            Nowy organizer
+            {t('Nowy organizer')}
           </Button>
         ) : null}
       </Group>
 
       <TextInput
-        label="Szukaj"
-        placeholder="Nazwa organizera, opis, skrzynka…"
+        label={t('Szukaj')}
+        placeholder={t('Nazwa organizera, opis, skrzynka…')}
         leftSection={<IconSearch size={16} />}
         value={searchText}
         onChange={(event) => {
@@ -88,7 +89,7 @@ export function OrganizersPage() {
       />
 
       {organizers.isError ? (
-        <Alert color="red" variant="light" title="Nie udało się wczytać organizerów">
+        <Alert color="red" variant="light" title={t('Nie udało się wczytać organizerów')}>
           {(organizers.error as Error).message}
         </Alert>
       ) : null}
@@ -102,8 +103,8 @@ export function OrganizersPage() {
       {organizers.data && items.length === 0 ? (
         <Alert color="gray" variant="light">
           {search
-            ? 'Nic nie pasuje do tego wyszukiwania.'
-            : 'Nie ma jeszcze żadnego organizera. Zacznij od wybrania skrzynki.'}
+            ? t('Nic nie pasuje do tego wyszukiwania.')
+            : t('Nie ma jeszcze żadnego organizera. Zacznij od wybrania skrzynki.')}
         </Alert>
       ) : null}
 

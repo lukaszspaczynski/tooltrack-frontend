@@ -16,6 +16,7 @@ import { ToolCreatePage } from './features/tools/pages/ToolCreatePage'
 import { ToolDetailPage } from './features/tools/pages/ToolDetailPage'
 import { ToolsListPage } from './features/tools/pages/ToolsListPage'
 import { UsersPage } from './features/users/pages/UsersPage'
+import { t } from './i18n'
 import { RequireCapability } from './session/RequireCapability'
 import { useSession } from './session/SessionContext'
 
@@ -147,10 +148,10 @@ export function App() {
 function NotFound() {
   return (
     <Stack align="flex-start">
-      <Title order={2}>Nie ma tu nic</Title>
-      <Text c="dimmed">Ten adres nie prowadzi do żadnego ekranu.</Text>
+      <Title order={2}>{t('Nie ma tu nic')}</Title>
+      <Text c="dimmed">{t('Ten adres nie prowadzi do żadnego ekranu.')}</Text>
       <Button component={Link} to="/" variant="light">
-        Wróć do katalogu
+        {t('Wróć do katalogu')}
       </Button>
     </Stack>
   )

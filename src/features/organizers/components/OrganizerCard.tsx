@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
 import type { Organizer } from '../../../api/types'
+import { COUNTS, t, tCount } from '../../../i18n'
 
 // One arrangement, as it appears in the list. The whole card opens it, the
 // same as a tool or a case card — everything that changes anything lives on
@@ -97,14 +98,7 @@ function Thumbnail({
   )
 }
 
-// "3 narzędzia" is not "3 narzędzi". Polish picks a form by the last digits.
+// An arrangement with nothing in it is empty rather than "0 narzędzi".
 function toolCountLabel(count: number): string {
-  const lastTwo = count % 100
-  const last = count % 10
-
-  if (count === 0) return 'pusty'
-  if (count === 1) return '1 narzędzie'
-  if (lastTwo >= 12 && lastTwo <= 14) return `${count} narzędzi`
-  if (last >= 2 && last <= 4) return `${count} narzędzia`
-  return `${count} narzędzi`
+  return count === 0 ? t('pusty') : tCount(COUNTS.tool, count)
 }

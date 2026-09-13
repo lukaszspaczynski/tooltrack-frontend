@@ -40,6 +40,7 @@ import {
 } from '../../../api/cases'
 import { fetchOrganizersOfCase } from '../../../api/organizers'
 import type { CaseFields, ToolCase } from '../../../api/types'
+import { COUNTS, t, tCount } from '../../../i18n'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { useSession } from '../../../session/SessionContext'
 import { CaseForm } from '../components/CaseForm'
@@ -68,7 +69,7 @@ export function CaseDetailPage() {
       queryClient.setQueryData(['case', caseId], { case: saved })
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
       await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
-      notifications.show({ color: 'teal', message: 'Zapisano zmiany' })
+      notifications.show({ color: 'teal', message: t('Zapisano zmiany') })
       setEditing(false)
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -113,7 +114,7 @@ export function CaseDetailPage() {
       // organizers that arranged this case.
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
       await queryClient.invalidateQueries({ queryKey: ['organizers'] })
-      notifications.show({ color: 'teal', message: 'Skrzynka usunięta' })
+      notifications.show({ color: 'teal', message: t('Skrzynka usunięta') })
       navigate('/cases', { replace: true })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -122,7 +123,7 @@ export function CaseDetailPage() {
   if (!Number.isInteger(caseId)) {
     return (
       <Alert color="red" variant="light">
-        Nie ma takiej skrzynki.
+        {t('Nie ma takiej skrzynki.')}
       </Alert>
     )
   }
@@ -137,8 +138,8 @@ export function CaseDetailPage() {
 
   if (query.isError || !query.data) {
     return (
-      <Alert color="red" variant="light" title="Nie udało się wczytać skrzynki">
-        {(query.error as Error)?.message ?? 'Nieznany błąd'}
+      <Alert color="red" variant="light" title={t('Nie udało się wczytać skrzynki')}>
+        {(query.error as Error)?.message ?? t('Nieznany błąd')}
       </Alert>
     )
   }
@@ -150,7 +151,7 @@ export function CaseDetailPage() {
       <Anchor component={Link} to="/cases" size="sm" c="dimmed">
         <Group gap={2} wrap="nowrap">
           <IconChevronLeft size={14} />
-          Skrzynki
+          {t('Skrzynki')}
         </Group>
       </Anchor>
 
@@ -174,7 +175,7 @@ export function CaseDetailPage() {
               leftSection={<IconPencil size={18} />}
               onClick={() => setEditing(true)}
             >
-              Edytuj
+              {t('Edytuj')}
             </Button>
             <Button
               color="red"
@@ -182,7 +183,7 @@ export function CaseDetailPage() {
               leftSection={<IconTrash size={18} />}
               onClick={confirm.open}
             >
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         ) : null}
@@ -198,7 +199,7 @@ export function CaseDetailPage() {
             }}
             onSubmit={(fields) => save.mutate(fields)}
             pending={save.isPending}
-            submitLabel="Zapisz zmiany"
+            submitLabel={t('Zapisz zmiany')}
           />
         ) : (
           <CaseDetails item={item} />
@@ -217,7 +218,7 @@ export function CaseDetailPage() {
 
           {item.labelSlots.length === 0 ? (
             <Text c="dimmed" size="sm">
-              Nie ma jeszcze żadnego miejsca.
+              {t('Nie ma jeszcze żadnego miejsca.')}
             </Text>
           ) : (
             <Group gap="xs">
@@ -232,7 +233,10 @@ export function CaseDetailPage() {
                         size="xs"
                         variant="transparent"
                         color="gray"
-                        aria-label={`Usuń miejsce ${slot.widthMm} na ${slot.heightMm}`}
+                        aria-label={t('Usuń miejsce {width} na {height}', {
+                          height: slot.heightMm,
+                          width: slot.widthMm,
+                        })}
                         loading={dropSlot.isPending && dropSlot.variables === slot.id}
                         onClick={() => dropSlot.mutate(slot.id)}
                       >
@@ -250,7 +254,7 @@ export function CaseDetailPage() {
           {can('catalog.write') ? (
             <Group align="flex-end" gap="sm">
               <NumberInput
-                label="Szerokość"
+                label={t('Szerokość')}
                 suffix=" mm"
                 min={1}
                 allowDecimal={false}
@@ -259,7 +263,7 @@ export function CaseDetailPage() {
                 w={130}
               />
               <NumberInput
-                label="Wysokość"
+                label={t('Wysokość')}
                 suffix=" mm"
                 min={1}
                 allowDecimal={false}
@@ -278,7 +282,7 @@ export function CaseDetailPage() {
                   addSlot.mutate({ heightMm: slotHeight, widthMm: slotWidth })
                 }
               >
-                Dodaj miejsce
+                {t('Dodaj miejsce')}
               </Button>
             </Group>
           ) : null}
@@ -298,11 +302,15 @@ export function CaseDetailPage() {
         />
       </Paper>
 
-      <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć skrzynkę?" centered>
+      <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć skrzynkę?')} centered>
         <Stack gap="md">
           <Text size="sm">
-            Skrzynka „{item.name}" zniknie z listy razem ze swoimi zdjęciami. Tej operacji nie da
-            się cofnąć.
+            {t(
+              'Skrzynka „{name}” zniknie z listy razem ze swoimi zdjęciami. Tej operacji nie da się cofnąć.',
+              {
+                name: item.name,
+              },
+            )}
           </Text>
 
           {organizers.data && organizers.data.total > 0 ? (
@@ -312,8 +320,10 @@ export function CaseDetailPage() {
               icon={<IconAlertTriangle size={18} />}
               title={
                 organizers.data.total === 1
-                  ? 'Zniknie też organizer tej skrzynki'
-                  : `Zniknie też ${organizers.data.total} organizerów tej skrzynki`
+                  ? t('Zniknie też organizer tej skrzynki')
+                  : t('Zniknie też {n} organizerów tej skrzynki', {
+                      n: organizers.data.total,
+                    })
               }
             >
               <List size="sm" spacing={2}>
@@ -323,23 +333,23 @@ export function CaseDetailPage() {
                     {organizer.tools.length > 0 ? (
                       <Text span size="xs" c="dimmed">
                         {' '}
-                        ({organizer.tools.length} narzędzi)
+                        ({tCount(COUNTS.tool, organizer.tools.length)})
                       </Text>
                     ) : null}
                   </List.Item>
                 ))}
               </List>
               <Text size="sm" mt="xs">
-                Same narzędzia zostają w katalogu — znika tylko informacja, co w czym leżało.
+                {t('Same narzędzia zostają w katalogu — znika tylko informacja, co w czym leżało.')}
               </Text>
             </Alert>
           ) : null}
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button color="red" loading={remove.isPending} onClick={() => remove.mutate()}>
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         </Stack>
@@ -352,13 +362,13 @@ function CaseDetails({ item }: { item: ToolCase }) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        <Field label="Producent" value={item.manufacturer} />
+        <Field label={t('Producent')} value={item.manufacturer} />
         <Field label="System" value={item.system} />
-        <Field label="Wymiary zewnętrzne" value={outerDimensions(item)} />
-        <Field label="Wymiary wewnętrzne" value={innerDimensions(item)} />
-        <Field label="Przekątna" value={formatNumber(item.diagonalMm, 'mm')} />
-        <Field label="Pojemność" value={formatNumber(item.capacityL, 'L')} />
-        <Field label="Ładowność" value={formatNumber(item.loadKg, 'kg')} />
+        <Field label={t('Wymiary zewnętrzne')} value={outerDimensions(item)} />
+        <Field label={t('Wymiary wewnętrzne')} value={innerDimensions(item)} />
+        <Field label={t('Przekątna')} value={formatNumber(item.diagonalMm, 'mm')} />
+        <Field label={t('Pojemność')} value={formatNumber(item.capacityL, 'L')} />
+        <Field label={t('Ładowność')} value={formatNumber(item.loadKg, 'kg')} />
         <Field label="EAN" value={item.ean} />
         <Field label="SKU" value={item.sku} />
       </SimpleGrid>
@@ -366,7 +376,7 @@ function CaseDetails({ item }: { item: ToolCase }) {
       {item.notes ? (
         <Stack gap={4}>
           <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-            Notatki
+            {t('Notatki')}
           </Text>
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {item.notes}

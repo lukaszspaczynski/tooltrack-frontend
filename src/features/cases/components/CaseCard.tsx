@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
 import type { CaseListItem } from '../../../api/types'
+import { t } from '../../../i18n'
 import { caseSubtitle, formatNumber, outerDimensions } from '../presentation'
 
 // One case, as it appears in the grid. The same card shape as a tool, because
@@ -64,7 +65,7 @@ export function CaseCard({ item }: { item: CaseListItem }) {
         {/* The outside measurements, because the question a shelf answers is
             whether the box fits where it has to go. */}
         <Text size="xs" c="dimmed">
-          {dimensions || 'bez wymiarów'}
+          {dimensions || t('bez wymiarów')}
         </Text>
       </Stack>
     </Card>

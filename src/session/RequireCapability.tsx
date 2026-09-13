@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 
 import type { Capability } from '../api/types'
+import { t } from '../i18n'
 import { useSession } from './SessionContext'
 
 // The client-side half of the server's route policy. It decides what is worth
@@ -27,14 +28,18 @@ export function RequireCapability({
 
   if (!can(capability)) {
     return (
-      <Alert color="gray" icon={<IconLock size={20} />} title="Brak uprawnień" variant="light">
+      <Alert color="gray" icon={<IconLock size={20} />} title={t('Brak uprawnień')} variant="light">
         <Stack align="flex-start" gap="sm">
           <Text size="sm">
-            Twoja rola to {session.effectiveRole === 'viewer' ? 'Podgląd' : session.effectiveRole}.
-            Poproś administratora o wyższe uprawnienia, jeśli potrzebujesz tej sekcji.
+            {t(
+              'Twoja rola to {role}. Poproś administratora o wyższe uprawnienia, jeśli potrzebujesz tej sekcji.',
+              {
+                role: session.effectiveRole === 'viewer' ? t('Podgląd') : session.effectiveRole,
+              },
+            )}
           </Text>
           <Button component={Link} to="/" variant="light">
-            Wróć do katalogu
+            {t('Wróć do katalogu')}
           </Button>
         </Stack>
       </Alert>

@@ -23,6 +23,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../../../api/client'
 import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
+import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { ToolForm } from '../components/ToolForm'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
@@ -50,7 +51,7 @@ export function ToolDetailPage() {
       queryClient.setQueryData(['tool', toolId], { tool })
       await queryClient.invalidateQueries({ queryKey: ['tools'] })
       await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
-      notifications.show({ color: 'teal', message: 'Zapisano zmiany' })
+      notifications.show({ color: 'teal', message: t('Zapisano zmiany') })
       setEditing(false)
     },
     onError: (error) => {
@@ -66,7 +67,10 @@ export function ToolDetailPage() {
     mutationFn: () => duplicateTool(toolId),
     onSuccess: async ({ tool: copy }) => {
       await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      notifications.show({ color: 'teal', message: `Utworzono kopię „${copy.name}"` })
+      notifications.show({
+        color: 'teal',
+        message: t('Utworzono kopię „{name}”', { name: copy.name }),
+      })
       navigate(`/tools/${copy.id}`)
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -77,7 +81,7 @@ export function ToolDetailPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['tools'] })
       await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
-      notifications.show({ color: 'teal', message: 'Karta usunięta' })
+      notifications.show({ color: 'teal', message: t('Karta usunięta') })
       navigate('/', { replace: true })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -99,12 +103,12 @@ export function ToolDetailPage() {
         <Alert
           color={notFound ? 'gray' : 'red'}
           variant="light"
-          title={notFound ? 'Nie ma takiej karty' : 'Błąd'}
+          title={notFound ? t('Nie ma takiej karty') : t('Błąd')}
         >
           {(query.error as Error).message}
         </Alert>
         <Button component={Link} to="/" variant="light">
-          Wróć do katalogu
+          {t('Wróć do katalogu')}
         </Button>
       </Stack>
     )
@@ -119,7 +123,7 @@ export function ToolDetailPage() {
       <Anchor component={Link} to="/" size="sm" c="dimmed">
         <Group gap={2} wrap="nowrap">
           <IconChevronLeft size={14} />
-          Katalog
+          {t('Katalog')}
         </Group>
       </Anchor>
 
@@ -128,7 +132,7 @@ export function ToolDetailPage() {
           <Title order={2}>{tool.name}</Title>
           <Group gap="xs">
             <Badge color={CONDITION_COLORS[tool.condition]} variant="light">
-              {CONDITION_LABELS[tool.condition]}
+              {t(CONDITION_LABELS[tool.condition])}
             </Badge>
             {tool.category ? <Badge variant="default">{tool.category}</Badge> : null}
           </Group>
@@ -141,7 +145,7 @@ export function ToolDetailPage() {
               leftSection={<IconPencil size={18} />}
               onClick={() => setEditing(true)}
             >
-              Edytuj
+              {t('Edytuj')}
             </Button>
             <Button
               variant="light"
@@ -150,7 +154,7 @@ export function ToolDetailPage() {
               loading={duplicate.isPending}
               onClick={() => duplicate.mutate()}
             >
-              Duplikuj
+              {t('Duplikuj')}
             </Button>
             <Button
               color="red"
@@ -158,7 +162,7 @@ export function ToolDetailPage() {
               leftSection={<IconTrash size={18} />}
               onClick={confirm.open}
             >
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         ) : null}
@@ -175,7 +179,7 @@ export function ToolDetailPage() {
             onSubmit={(fields) => save.mutate(fields)}
             pending={save.isPending}
             serialNumberError={serialConflict}
-            submitLabel="Zapisz zmiany"
+            submitLabel={t('Zapisz zmiany')}
           />
         ) : (
           <ToolDetails tool={tool} />
@@ -195,17 +199,19 @@ export function ToolDetailPage() {
         />
       </Paper>
 
-      <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć kartę?" centered>
+      <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć kartę?')} centered>
         <Stack gap="md">
           <Text size="sm">
-            Karta „{tool.name}" zniknie z katalogu. Tej operacji nie da się cofnąć.
+            {t('Karta „{name}” zniknie z katalogu. Tej operacji nie da się cofnąć.', {
+              name: tool.name,
+            })}
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button color="red" loading={remove.isPending} onClick={() => remove.mutate()}>
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         </Stack>
@@ -218,13 +224,13 @@ function ToolDetails({ tool }: { tool: Tool }) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        <Field label="Marka" value={tool.brand} />
-        <Field label="Model" value={tool.model} />
-        <Field label="Numer seryjny" value={tool.serialNumber} />
-        <Field label="Kategoria" value={tool.category} />
+        <Field label={t('Marka')} value={tool.brand} />
+        <Field label={t('Model')} value={tool.model} />
+        <Field label={t('Numer seryjny')} value={tool.serialNumber} />
+        <Field label={t('Kategoria')} value={tool.category} />
       </SimpleGrid>
 
-      <Field label="Notatki" value={tool.notes} multiline />
+      <Field label={t('Notatki')} value={tool.notes} multiline />
 
       <Text size="xs" c="dimmed">
         Dodano {formatDateTime(tool.createdAt)} · ostatnia zmiana {formatDateTime(tool.updatedAt)}

@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom'
 import { fetchBrands } from '../../../api/brands'
 import { fetchCategories } from '../../../api/tools'
 import type { ToolFields } from '../../../api/types'
+import { t } from '../../../i18n'
 import { conditionOptions } from '../presentation'
 
 const EMPTY: ToolFields = {
@@ -51,7 +52,7 @@ export function ToolForm({
     mode: 'uncontrolled',
     initialValues: initialValues ?? EMPTY,
     validate: {
-      name: (value) => (value.trim() ? null : 'Nazwa jest wymagana'),
+      name: (value) => (value.trim() ? null : t('Nazwa jest wymagana')),
     },
   })
 
@@ -84,8 +85,8 @@ export function ToolForm({
     <form onSubmit={form.onSubmit((values) => onSubmit(trimAll(values)))}>
       <Stack gap="md">
         <TextInput
-          label="Nazwa"
-          placeholder="Młotowiertarka SDS"
+          label={t('Nazwa')}
+          placeholder={t('Młotowiertarka SDS')}
           required
           data-autofocus
           key={form.key('name')}
@@ -93,7 +94,7 @@ export function ToolForm({
         />
 
         <Autocomplete
-          label="Kategoria"
+          label={t('Kategoria')}
           placeholder="Wiertarki"
           data={categories.data?.categories.map((entry) => entry.category) ?? []}
           key={form.key('category')}
@@ -102,25 +103,25 @@ export function ToolForm({
 
         <Group grow align="flex-start">
           <Select
-            label="Marka"
-            placeholder="Wybierz producenta"
+            label={t('Marka')}
+            placeholder={t('Wybierz producenta')}
             description={
               <>
                 Nowego dodasz na ekranie{' '}
                 <Anchor component={Link} to="/brands" size="xs">
-                  Producenci
+                  {t('Producenci')}
                 </Anchor>
               </>
             }
             data={brandOptions}
             searchable
             clearable
-            nothingFoundMessage="Nie ma takiego producenta"
+            nothingFoundMessage={t('Nie ma takiego producenta')}
             key={form.key('brand')}
             {...form.getInputProps('brand')}
           />
           <TextInput
-            label="Model"
+            label={t('Model')}
             placeholder="HR2470"
             key={form.key('model')}
             {...form.getInputProps('model')}
@@ -129,15 +130,15 @@ export function ToolForm({
 
         <Group grow align="flex-start">
           <TextInput
-            label="Numer seryjny"
+            label={t('Numer seryjny')}
             placeholder="12345-AB"
-            description="Musi być unikalny — dwa razy ten sam numer to duplikat karty"
+            description={t('Musi być unikalny — dwa razy ten sam numer to duplikat karty')}
             error={serialNumberError ?? undefined}
             key={form.key('serialNumber')}
             {...form.getInputProps('serialNumber')}
           />
           <Select
-            label="Stan"
+            label={t('Stan')}
             data={conditionOptions()}
             allowDeselect={false}
             key={form.key('condition')}
@@ -146,8 +147,8 @@ export function ToolForm({
         </Group>
 
         <Textarea
-          label="Notatki"
-          placeholder="Szczotki do wymiany, walizka bez zamka…"
+          label={t('Notatki')}
+          placeholder={t('Szczotki do wymiany, walizka bez zamka…')}
           autosize
           minRows={3}
           maxRows={8}
@@ -157,7 +158,7 @@ export function ToolForm({
 
         <Group justify="flex-end" mt="xs">
           <Button variant="default" onClick={onCancel} type="button">
-            Anuluj
+            {t('Anuluj')}
           </Button>
           <Button type="submit" loading={pending}>
             {submitLabel}

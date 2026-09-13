@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
 import type { ToolListItem } from '../../../api/types'
+import { t } from '../../../i18n'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime, toolSubtitle } from '../presentation'
 
 // One tool, as it appears in the grid. A card rather than a table row on
@@ -59,7 +60,7 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
               variant="light"
               style={{ flexShrink: 0 }}
             >
-              {CONDITION_LABELS[tool.condition]}
+              {t(CONDITION_LABELS[tool.condition])}
             </Badge>
           </Group>
 

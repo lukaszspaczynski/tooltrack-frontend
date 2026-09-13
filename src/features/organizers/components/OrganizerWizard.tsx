@@ -12,6 +12,7 @@ import {
 import { useState } from 'react'
 
 import type { CaseListItem, OrganizerFields, ToolListItem } from '../../../api/types'
+import { COUNTS, t, tCount } from '../../../i18n'
 import { CasePicker } from './CasePicker'
 import { ToolPicker } from './ToolPicker'
 
@@ -67,15 +68,15 @@ export function OrganizerWizard({
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Nowy organizer" size="xl" centered>
+    <Modal opened={opened} onClose={onClose} title={t('Nowy organizer')} size="xl" centered>
       <Stack gap="md">
         <Stepper active={step} onStepClick={setStep} size="sm" allowNextStepsSelect={false}>
-          <Stepper.Step label="Skrzynka" description={chosenCase?.name ?? 'nie wybrano'} />
+          <Stepper.Step label={t('Skrzynka')} description={chosenCase?.name ?? 'nie wybrano'} />
           <Stepper.Step
-            label="Narzędzia"
+            label={t('Narzędzia')}
             description={tools.length > 0 ? `wybrano ${tools.length}` : 'opcjonalnie'}
           />
-          <Stepper.Step label="Nazwa" />
+          <Stepper.Step label={t('Nazwa')} />
         </Stepper>
 
         {step === 0 ? (
@@ -95,24 +96,24 @@ export function OrganizerWizard({
         {step === 2 ? (
           <Stack gap="sm">
             <TextInput
-              label="Nazwa organizera"
-              placeholder="Wiertarki i wkrętarki"
+              label={t('Nazwa organizera')}
+              placeholder={t('Wiertarki i wkrętarki')}
               required
               data-autofocus
               value={name}
               onChange={(event) => setTypedName(event.currentTarget.value)}
             />
             <Textarea
-              label="Opis"
-              placeholder="Co i dlaczego jest w tym układzie"
+              label={t('Opis')}
+              placeholder={t('Co i dlaczego jest w tym układzie')}
               autosize
               minRows={2}
               value={description}
               onChange={(event) => setDescription(event.currentTarget.value)}
             />
             <NumberInput
-              label="Numer porządkowy"
-              description="Zostaw puste, żeby dostać kolejny wolny"
+              label={t('Numer porządkowy')}
+              description={t('Zostaw puste, żeby dostać kolejny wolny')}
               placeholder="kolejny wolny"
               min={1}
               allowDecimal={false}
@@ -133,19 +134,21 @@ export function OrganizerWizard({
 
           {step < 2 ? (
             <Button onClick={() => setStep(step + 1)} disabled={!chosenCase}>
-              Dalej
+              {t('Dalej')}
             </Button>
           ) : (
             <Button onClick={submit} loading={saving} disabled={!name.trim() || !chosenCase}>
-              Utwórz
+              {t('Utwórz')}
             </Button>
           )}
         </Group>
 
         {step === 2 ? (
           <Text size="xs" c="dimmed">
-            Skrzynka: {chosenCase?.name ?? '—'}
-            {tools.length > 0 ? ` · narzędzi: ${tools.length}` : ' · bez narzędzi'}
+            {t('Skrzynka')}: {chosenCase?.name ?? '—'}
+            {tools.length > 0
+              ? ` · ${tCount(COUNTS.tool, tools.length)}`
+              : ` · ${t('bez narzędzi')}`}
           </Text>
         ) : null}
       </Stack>

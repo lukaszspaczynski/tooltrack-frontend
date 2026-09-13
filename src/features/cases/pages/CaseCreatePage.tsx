@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { createCase } from '../../../api/cases'
 import type { CaseFields } from '../../../api/types'
+import { t } from '../../../i18n'
 import { CaseForm } from '../components/CaseForm'
 
 export function CaseCreatePage() {
@@ -30,12 +31,12 @@ export function CaseCreatePage() {
         <Anchor component={Link} to="/cases" size="sm" c="dimmed">
           <Group gap={2} wrap="nowrap">
             <IconChevronLeft size={14} />
-            Skrzynki
+            {t('Skrzynki')}
           </Group>
         </Anchor>
       </Group>
 
-      <Title order={2}>Nowa skrzynka</Title>
+      <Title order={2}>{t('Nowa skrzynka')}</Title>
 
       <Paper withBorder p="lg" radius="md">
         <CaseForm

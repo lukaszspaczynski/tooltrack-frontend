@@ -18,6 +18,7 @@ import { useState } from 'react'
 
 import { apiFileUrl } from '../../../api/client'
 import { fetchPhotoLibrary } from '../../../api/photos'
+import { t } from '../../../i18n'
 
 const PAGE_SIZE = 24
 
@@ -62,11 +63,11 @@ export function LogoPicker({
   const pages = Math.max(Math.ceil((library.data?.total ?? 0) / PAGE_SIZE), 1)
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Wybierz logo" size="xl" centered>
+    <Modal opened={opened} onClose={onClose} title={t('Wybierz logo')} size="xl" centered>
       <Stack gap="md">
         <TextInput
-          label="Szukaj"
-          placeholder="Nazwa karty, do której zdjęcie należy…"
+          label={t('Szukaj')}
+          placeholder={t('Nazwa karty, do której zdjęcie należy…')}
           leftSection={<IconSearch size={16} />}
           value={searchText}
           onChange={(event) => {
@@ -79,7 +80,7 @@ export function LogoPicker({
 
         {library.data && items.length === 0 ? (
           <Alert color="gray" variant="light">
-            Nic tu nie ma. Wgraj logo na ekranie Zdjęcia, a potem wróć tutaj.
+            {t('Nic tu nie ma. Wgraj logo na ekranie Zdjęcia, a potem wróć tutaj.')}
           </Alert>
         ) : null}
 
@@ -105,7 +106,7 @@ export function LogoPicker({
         ) : null}
 
         <Text size="xs" c="dimmed">
-          Jedno zdjęcie może być logo tylko jednej marki.
+          {t('Jedno zdjęcie może być logo tylko jednej marki.')}
         </Text>
       </Stack>
     </Modal>

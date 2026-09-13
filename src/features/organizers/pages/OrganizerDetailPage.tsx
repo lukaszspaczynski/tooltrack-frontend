@@ -51,6 +51,7 @@ import {
   type LabelRequest,
 } from '../../../api/organizers'
 import type { Organizer } from '../../../api/types'
+import { t } from '../../../i18n'
 import { formatDateTime } from '../../tools/presentation'
 import { useSession } from '../../../session/SessionContext'
 import { defaultLabelRequest, missingLabels } from '../labelDefaults'
@@ -96,7 +97,7 @@ export function OrganizerDetailPage() {
     mutationFn: (values: OrganizerFormValues) => updateOrganizer(organizerId, values),
     onSuccess: async () => {
       await refresh()
-      notifications.show({ color: 'teal', message: 'Zapisano zmiany' })
+      notifications.show({ color: 'teal', message: t('Zapisano zmiany') })
       setEditing(false)
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -129,7 +130,7 @@ export function OrganizerDetailPage() {
     onSuccess: async ({ organizer: saved }) => {
       queryClient.setQueryData(['organizer', organizerId], { organizer: saved })
       wizard.close()
-      notifications.show({ color: 'teal', message: 'Etykieta wygenerowana' })
+      notifications.show({ color: 'teal', message: t('Etykieta wygenerowana') })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -157,9 +158,10 @@ export function OrganizerDetailPage() {
           ? { color: 'teal', message: `Narysowano od nowa: ${refreshed}` }
           : {
               color: 'orange',
-              message: `Narysowano od nowa: ${refreshed}. Nie udało się: ${failed
-                .map((entry) => entry.error)
-                .join('; ')}`,
+              message: t('Narysowano od nowa: {done}. Nie udało się: {reasons}', {
+                done: refreshed,
+                reasons: failed.map((entry) => entry.error).join('; '),
+              }),
             },
       )
     },
@@ -194,7 +196,10 @@ export function OrganizerDetailPage() {
           ? { color: 'teal', message: `Wygenerowano etykiety: ${made}` }
           : {
               color: 'orange',
-              message: `Wygenerowano: ${made}. Nie udało się: ${failed.join('; ')}`,
+              message: t('Wygenerowano: {done}. Nie udało się: {reasons}', {
+                done: made,
+                reasons: failed.join('; '),
+              }),
             },
       )
     },
@@ -205,7 +210,7 @@ export function OrganizerDetailPage() {
     mutationFn: () => deleteOrganizer(organizerId),
     onSuccess: async () => {
       await refresh()
-      notifications.show({ color: 'teal', message: 'Organizer usunięty' })
+      notifications.show({ color: 'teal', message: t('Organizer usunięty') })
       navigate('/organizers', { replace: true })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -214,7 +219,7 @@ export function OrganizerDetailPage() {
   if (!Number.isInteger(organizerId)) {
     return (
       <Alert color="red" variant="light">
-        Nie ma takiego organizera.
+        {t('Nie ma takiego organizera.')}
       </Alert>
     )
   }
@@ -229,8 +234,8 @@ export function OrganizerDetailPage() {
 
   if (query.isError || !query.data) {
     return (
-      <Alert color="red" variant="light" title="Nie udało się wczytać organizera">
-        {(query.error as Error)?.message ?? 'Nieznany błąd'}
+      <Alert color="red" variant="light" title={t('Nie udało się wczytać organizera')}>
+        {(query.error as Error)?.message ?? t('Nieznany błąd')}
       </Alert>
     )
   }
@@ -253,7 +258,7 @@ export function OrganizerDetailPage() {
       <Anchor component={Link} to="/organizers" size="sm" c="dimmed">
         <Group gap={2} wrap="nowrap">
           <IconChevronLeft size={14} />
-          Organizer
+          {t('Organizer')}
         </Group>
       </Anchor>
 
@@ -272,7 +277,7 @@ export function OrganizerDetailPage() {
               leftSection={<IconPencil size={18} />}
               onClick={() => setEditing(true)}
             >
-              Edytuj
+              {t('Edytuj')}
             </Button>
             <Button
               color="red"
@@ -280,7 +285,7 @@ export function OrganizerDetailPage() {
               leftSection={<IconTrash size={18} />}
               onClick={confirm.open}
             >
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         ) : null}
@@ -313,7 +318,9 @@ export function OrganizerDetailPage() {
       <Paper withBorder p="lg" radius="md">
         <Stack gap="md">
           <Group justify="space-between" align="center">
-            <Text fw={600}>Narzędzia ({organizer.tools.length})</Text>
+            <Text fw={600}>
+              {t('Narzędzia')} ({organizer.tools.length})
+            </Text>
             {canEdit ? (
               <Button
                 size="sm"
@@ -321,14 +328,14 @@ export function OrganizerDetailPage() {
                 leftSection={<IconPlus size={16} />}
                 onClick={toolPicker.toggle}
               >
-                {toolsOpen ? 'Zwiń' : 'Dodaj narzędzia'}
+                {toolsOpen ? t('Zwiń') : t('Dodaj narzędzia')}
               </Button>
             ) : null}
           </Group>
 
           {organizer.tools.length === 0 ? (
             <Text c="dimmed" size="sm">
-              Nic tu jeszcze nie leży.
+              {t('Nic tu jeszcze nie leży.')}
             </Text>
           ) : (
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
@@ -355,7 +362,7 @@ export function OrganizerDetailPage() {
                         {tool.name}
                       </Text>
                       {canEdit ? (
-                        <Tooltip label="Wyjmij z organizera">
+                        <Tooltip label={t('Wyjmij z organizera')}>
                           <ActionIcon
                             size="sm"
                             variant="subtle"
@@ -425,7 +432,7 @@ export function OrganizerDetailPage() {
                 size="xs"
                 c="dimmed"
               >
-                Wszystkie etykiety
+                {t('Wszystkie etykiety')}
               </Anchor>
             </Group>
             {canEdit ? (
@@ -433,7 +440,7 @@ export function OrganizerDetailPage() {
                 {organizer.labels.length > 0 ? (
                   <Checkbox
                     size="xs"
-                    label="Zaznacz wszystkie"
+                    label={t('Zaznacz wszystkie')}
                     checked={allLabelsSelected}
                     indeterminate={selectedLabels.length > 0 && !allLabelsSelected}
                     onChange={() =>
@@ -451,7 +458,7 @@ export function OrganizerDetailPage() {
                   loading={redrawLabels.isPending}
                   onClick={() => redrawLabels.mutate(selectedLabels)}
                 >
-                  Odśwież zaznaczone
+                  {t('Odśwież zaznaczone')}
                   {selectedLabels.length > 0 ? ` (${selectedLabels.length})` : ''}
                 </Button>
                 {/* Every label this box could carry and does not — each place
@@ -470,13 +477,13 @@ export function OrganizerDetailPage() {
                       gaps.map(({ slot, template }) => ({
                         request: defaultLabelRequest(organizer.tools, slot, template),
                         size: `${slot.widthMm} × ${slot.heightMm} mm (${
-                          template === 'number' ? 'numer' : 'zawartość'
+                          template === 'number' ? 'numer' : t('zawartość')
                         })`,
                       })),
                     )
                   }
                 >
-                  Uzupełnij brakujące
+                  {t('Uzupełnij brakujące')}
                   {gaps.length > 0 ? ` (${gaps.length})` : ''}
                 </Button>
                 <Button
@@ -485,7 +492,7 @@ export function OrganizerDetailPage() {
                   leftSection={<IconPlus size={16} />}
                   onClick={wizard.open}
                 >
-                  Nowa etykieta
+                  {t('Nowa etykieta')}
                 </Button>
               </Group>
             ) : null}
@@ -493,7 +500,7 @@ export function OrganizerDetailPage() {
 
           {organizer.labels.length === 0 ? (
             <Text c="dimmed" size="sm">
-              Nie ma jeszcze żadnej etykiety.
+              {t('Nie ma jeszcze żadnej etykiety.')}
             </Text>
           ) : (
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
@@ -523,7 +530,10 @@ export function OrganizerDetailPage() {
                         <Checkbox
                           size="xs"
                           mt={2}
-                          aria-label={`Zaznacz etykietę ${label.widthMm} × ${label.heightMm} mm`}
+                          aria-label={t('Zaznacz etykietę {width} × {height} mm', {
+                            height: label.heightMm,
+                            width: label.widthMm,
+                          })}
                           checked={selectedLabels.includes(label.id)}
                           onChange={(event) => {
                             // Read now, not inside the updater: React clears
@@ -539,7 +549,7 @@ export function OrganizerDetailPage() {
                       ) : null}
                       <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
                         <Anchor href={apiFileUrl(label.url)} target="_blank" size="xs" fw={600}>
-                          {label.template === 'number' ? 'Numer porządkowy' : 'Zawartość'}
+                          {label.template === 'number' ? t('Numer porządkowy') : t('Zawartość')}
                         </Anchor>
                         <Text size="xs" c="dimmed">
                           {label.widthMm} × {label.heightMm} mm ·{' '}
@@ -550,12 +560,12 @@ export function OrganizerDetailPage() {
                         </Text>
                       </Stack>
                       {canEdit ? (
-                        <Tooltip label="Usuń etykietę">
+                        <Tooltip label={t('Usuń etykietę')}>
                           <ActionIcon
                             size="sm"
                             variant="subtle"
                             color="red"
-                            aria-label="Usuń etykietę"
+                            aria-label={t('Usuń etykietę')}
                             loading={dropLabel.isPending && dropLabel.variables === label.id}
                             onClick={() => dropLabel.mutate(label.id)}
                           >
@@ -582,18 +592,22 @@ export function OrganizerDetailPage() {
         />
       ) : null}
 
-      <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć organizer?" centered>
+      <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć organizer?')} centered>
         <Stack gap="md">
           <Text size="sm">
-            Układ „{organizer.name}" zniknie. Narzędzia i skrzynka zostają — przestaną tylko być ze
-            sobą powiązane.
+            {t(
+              'Układ „{name}” zniknie. Narzędzia i skrzynka zostają — przestaną tylko być ze sobą powiązane.',
+              {
+                name: organizer.name,
+              },
+            )}
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button color="red" loading={remove.isPending} onClick={() => remove.mutate()}>
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         </Stack>
@@ -625,7 +639,7 @@ function OrganizerDetails({ organizer }: { organizer: Organizer }) {
 
         <Stack gap={2}>
           <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-            Skrzynka
+            {t('Skrzynka')}
           </Text>
           <Anchor component={Link} to={`/cases/${organizer.case.id}`} size="sm">
             {organizer.case.name}
@@ -639,7 +653,7 @@ function OrganizerDetails({ organizer }: { organizer: Organizer }) {
       {organizer.description ? (
         <Stack gap={2}>
           <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-            Opis
+            {t('Opis')}
           </Text>
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
             {organizer.description}

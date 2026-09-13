@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { fetchSystems } from '../../../api/cases'
 import type { CaseFields } from '../../../api/types'
+import { t } from '../../../i18n'
 
 const EMPTY: CaseFields = {
   capacityL: null,
@@ -51,8 +52,8 @@ function useCaseForm(initialValues?: CaseFields) {
     mode: 'uncontrolled',
     initialValues: initialValues ?? EMPTY,
     validate: {
-      manufacturer: (value) => (value.trim() ? null : 'Producent jest wymagany'),
-      name: (value) => (value.trim() ? null : 'Nazwa jest wymagana'),
+      manufacturer: (value) => (value.trim() ? null : t('Producent jest wymagany')),
+      name: (value) => (value.trim() ? null : t('Nazwa jest wymagana')),
     },
   })
 }
@@ -80,7 +81,7 @@ export function CaseForm({
     <form onSubmit={form.onSubmit((values) => onSubmit(normalise(values)))}>
       <Stack gap="md">
         <TextInput
-          label="Nazwa"
+          label={t('Nazwa')}
           placeholder="Qbrick System PRO Toolbox 2.0"
           required
           data-autofocus
@@ -90,7 +91,7 @@ export function CaseForm({
 
         <Group grow align="flex-start">
           <TextInput
-            label="Producent"
+            label={t('Producent')}
             placeholder="Qbrick"
             required
             key={form.key('manufacturer')}
@@ -99,33 +100,33 @@ export function CaseForm({
           <Autocomplete
             label="System"
             placeholder="PRO"
-            description="Z czym się składa"
+            description={t('Z czym się składa')}
             data={systems.data?.systems.map((entry) => entry.system) ?? []}
             key={form.key('system')}
             {...form.getInputProps('system')}
           />
         </Group>
 
-        <Fieldset legend="Wymiary zewnętrzne (mm)">
+        <Fieldset legend={`${t('Wymiary zewnętrzne')} (mm)`}>
           <Group grow align="flex-start">
-            <Millimetres form={form} field="outerLengthMm" label="Długość" />
-            <Millimetres form={form} field="outerWidthMm" label="Szerokość" />
-            <Millimetres form={form} field="outerHeightMm" label="Wysokość" />
+            <Millimetres form={form} field="outerLengthMm" label={t('Długość')} />
+            <Millimetres form={form} field="outerWidthMm" label={t('Szerokość')} />
+            <Millimetres form={form} field="outerHeightMm" label={t('Wysokość')} />
           </Group>
         </Fieldset>
 
-        <Fieldset legend="Wymiary wewnętrzne (mm)">
+        <Fieldset legend={`${t('Wymiary wewnętrzne')} (mm)`}>
           <Group grow align="flex-start">
-            <Millimetres form={form} field="innerLengthMm" label="Długość" />
-            <Millimetres form={form} field="innerWidthMm" label="Szerokość" />
-            <Millimetres form={form} field="innerHeightMm" label="Wysokość" />
+            <Millimetres form={form} field="innerLengthMm" label={t('Długość')} />
+            <Millimetres form={form} field="innerWidthMm" label={t('Szerokość')} />
+            <Millimetres form={form} field="innerHeightMm" label={t('Wysokość')} />
           </Group>
         </Fieldset>
 
         <Group grow align="flex-start">
-          <Millimetres form={form} field="diagonalMm" label="Przekątna" suffix=" mm" />
+          <Millimetres form={form} field="diagonalMm" label={t('Przekątna')} suffix=" mm" />
           <NumberInput
-            label="Pojemność"
+            label={t('Pojemność')}
             placeholder="19"
             suffix=" L"
             min={0}
@@ -137,7 +138,7 @@ export function CaseForm({
             {...form.getInputProps('capacityL')}
           />
           <NumberInput
-            label="Ładowność"
+            label={t('Ładowność')}
             placeholder="20"
             suffix=" kg"
             min={0}
@@ -152,7 +153,7 @@ export function CaseForm({
           <TextInput
             label="EAN"
             placeholder="5901238254249"
-            description="Kod produktu — dwie takie same skrzynki mają ten sam"
+            description={t('Kod produktu — dwie takie same skrzynki mają ten sam')}
             key={form.key('ean')}
             {...form.getInputProps('ean')}
           />
@@ -165,8 +166,8 @@ export function CaseForm({
         </Group>
 
         <Textarea
-          label="Notatki"
-          placeholder="Co jest w środku, gdzie stoi, co się w niej zepsuło…"
+          label={t('Notatki')}
+          placeholder={t('Co jest w środku, gdzie stoi, co się w niej zepsuło…')}
           autosize
           minRows={3}
           key={form.key('notes')}
@@ -175,7 +176,7 @@ export function CaseForm({
 
         <Group justify="flex-end" gap="sm">
           <Button variant="default" onClick={onCancel} disabled={pending}>
-            Anuluj
+            {t('Anuluj')}
           </Button>
           <Button type="submit" loading={pending}>
             {submitLabel}

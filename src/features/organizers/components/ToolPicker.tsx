@@ -18,6 +18,7 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchTools } from '../../../api/tools'
 import type { ToolListItem } from '../../../api/types'
+import { t } from '../../../i18n'
 
 // Picking tools for an organizer. Only those in no organizer are offered: a
 // tool lies in exactly one place, and the server refuses a second with a 409
@@ -59,8 +60,8 @@ export function ToolPicker({
   return (
     <Stack gap="sm">
       <TextInput
-        label="Szukaj narzędzia"
-        placeholder="Nazwa, marka, model…"
+        label={t('Szukaj narzędzia')}
+        placeholder={t('Nazwa, marka, model…')}
         leftSection={<IconSearch size={16} />}
         value={searchText}
         onChange={(event) => {
@@ -72,8 +73,8 @@ export function ToolPicker({
       {tools.data && items.length === 0 ? (
         <Alert color="gray" variant="light">
           {search
-            ? 'Nic nie pasuje — albo te narzędzia są już w innych organizerach.'
-            : 'Wszystkie narzędzia są już w organizerach.'}
+            ? t('Nic nie pasuje — albo te narzędzia są już w innych organizerach.')
+            : t('Wszystkie narzędzia są już w organizerach.')}
         </Alert>
       ) : null}
 

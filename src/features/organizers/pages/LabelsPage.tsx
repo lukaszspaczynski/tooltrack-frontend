@@ -29,6 +29,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { apiFileUrl } from '../../../api/client'
 import { fetchLabels, labelSheetUrl, refreshAllLabels } from '../../../api/labels'
 import type { LabelListItem } from '../../../api/types'
+import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { formatDateTime } from '../../tools/presentation'
 import {
@@ -124,15 +125,17 @@ export function LabelsPage() {
       // trusts and one they check by hand.
       notifications.show(
         failed.length === 0
-          ? { color: 'teal', message: `Narysowano od nowa: ${refreshed}` }
+          ? { color: 'teal', message: t('Narysowano od nowa: {done}', { done: refreshed }) }
           : {
               color: 'orange',
               // One line per reason rather than per label: a batch that timed
               // out fails fifty at once, and fifty copies of one sentence is
               // not a message anybody reads.
-              message: `Narysowano od nowa: ${refreshed}. Nie udało się (${failed.length}): ${[
-                ...new Set(failed.map((entry) => entry.error)),
-              ].join('; ')}`,
+              message: t('Narysowano od nowa: {done}. Nie udało się ({count}): {reasons}', {
+                count: failed.length,
+                done: refreshed,
+                reasons: [...new Set(failed.map((entry) => entry.error))].join('; '),
+              }),
             },
       )
     },
@@ -173,9 +176,9 @@ export function LabelsPage() {
     <Stack gap="md">
       <Group justify="space-between" align="flex-start">
         <Stack gap={0}>
-          <Title order={2}>Etykiety</Title>
+          <Title order={2}>{t('Etykiety')}</Title>
           <Text c="dimmed" size="sm">
-            Wszystkie wygenerowane etykiety, niezależnie od organizera.
+            {t('Wszystkie wygenerowane etykiety, niezależnie od organizera.')}
           </Text>
         </Stack>
 
@@ -193,7 +196,8 @@ export function LabelsPage() {
             leftSection={<IconPrinter size={18} />}
             disabled={selected.length === 0}
           >
-            Arkusz do druku{selected.length > 0 ? ` (${selected.length})` : ''}
+            {t('Arkusz do druku')}
+            {selected.length > 0 ? ` (${selected.length})` : ''}
           </Button>
 
           {canEdit ? (
@@ -211,9 +215,9 @@ export function LabelsPage() {
 
       <Group align="flex-end" gap="sm">
         <TextInput
-          label="Szukaj organizera"
-          description="Etykieta nie ma własnej nazwy — szukamy po organizerze i skrzynce"
-          placeholder="Nazwa organizera, opis, skrzynka…"
+          label={t('Szukaj organizera')}
+          description={t('Etykieta nie ma własnej nazwy — szukamy po organizerze i skrzynce')}
+          placeholder={t('Nazwa organizera, opis, skrzynka…')}
           leftSection={<IconSearch size={16} />}
           value={searchText}
           onChange={(event) => {
@@ -224,10 +228,10 @@ export function LabelsPage() {
           miw={220}
         />
         <Select
-          label="Wzór"
-          placeholder="Dowolny"
+          label={t('Wzór')}
+          placeholder={t('Dowolny')}
           clearable
-          data={TEMPLATE_OPTIONS.map((option) => ({ ...option }))}
+          data={TEMPLATE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           value={query.template}
           onChange={(value) => apply({ template: value })}
           miw={190}
@@ -235,7 +239,7 @@ export function LabelsPage() {
       </Group>
 
       {labels.isError ? (
-        <Alert color="red" variant="light" title="Nie udało się wczytać etykiet">
+        <Alert color="red" variant="light" title={t('Nie udało się wczytać etykiet')}>
           {(labels.error as Error).message}
         </Alert>
       ) : null}
@@ -251,10 +255,13 @@ export function LabelsPage() {
           <Group gap="xs">
             <Text size="sm" c="dimmed">
               {total === 0
-                ? 'Brak etykiet'
+                ? t('Brak etykiet')
                 : beyond > 0
-                  ? `${allShownCount(total)} z ${total} etykiet — resztę widać po stronach`
-                  : `${total} etykiet`}
+                  ? t('{shown} z {total} etykiet — resztę widać po stronach', {
+                      shown: allShownCount(total),
+                      total,
+                    })
+                  : tCount(COUNTS.label, total)}
             </Text>
             {/* Two hundred tiles and their previews take seconds to arrive, and
                 a screen that looks unchanged is one somebody clicks again. */}
@@ -262,7 +269,9 @@ export function LabelsPage() {
           </Group>
           {items.length > 0 ? (
             <Checkbox
-              label={all && beyond === 0 ? 'Zaznacz wszystkie' : 'Zaznacz wszystkie na tej stronie'}
+              label={
+                all && beyond === 0 ? t('Zaznacz wszystkie') : t('Zaznacz wszystkie na tej stronie')
+              }
               checked={allOnPageSelected}
               indeterminate={!allOnPageSelected && someOnPageSelected}
               // While the next page is on its way the rows below are the
@@ -277,8 +286,8 @@ export function LabelsPage() {
       {labels.data && items.length === 0 ? (
         <Text c="dimmed" size="sm">
           {query.search || query.template
-            ? 'Nic nie pasuje do tych filtrów.'
-            : 'Nie wygenerowano jeszcze żadnej etykiety. Robi się je na stronie organizera.'}
+            ? t('Nic nie pasuje do tych filtrów.')
+            : t('Nie wygenerowano jeszcze żadnej etykiety. Robi się je na stronie organizera.')}
         </Text>
       ) : null}
 
@@ -325,7 +334,7 @@ export function LabelsPage() {
               narrows to ten rows, or a request that failed and left none,
               would otherwise strand the screen in a view it cannot leave. */}
           <Button variant="subtle" size="sm" onClick={() => show(!all)}>
-            {all ? 'Po stronach' : `Wszystkie (${allShownCount(total)})`}
+            {all ? t('Po stronach') : `Wszystkie (${allShownCount(total)})`}
           </Button>
         </Group>
       ) : null}
@@ -383,7 +392,9 @@ function LabelTile({
           <Checkbox
             checked={checked}
             onChange={onToggle}
-            aria-label={`Zaznacz etykietę organizera ${label.organizer.number}`}
+            aria-label={t('Zaznacz etykietę organizera {number}', {
+              number: label.organizer.number,
+            })}
             style={{ left: 4, position: 'absolute', top: 4 }}
           />
         </div>
@@ -420,7 +431,7 @@ function LabelTile({
         <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
           <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
             <Anchor href={apiFileUrl(label.url)} target="_blank" size="xs" fw={600}>
-              {TEMPLATE_LABELS[label.template] ?? label.template}
+              {t(TEMPLATE_LABELS[label.template] ?? label.template)}
             </Anchor>
             <Text size="xs" c="dimmed">
               {label.widthMm} × {label.heightMm} mm ·{' '}
@@ -431,12 +442,12 @@ function LabelTile({
             </Text>
           </Stack>
           {canEdit ? (
-            <Tooltip label="Generuj tę etykietę ponownie">
+            <Tooltip label={t('Generuj tę etykietę ponownie')}>
               <ActionIcon
                 size="sm"
                 variant="subtle"
                 color="gray"
-                aria-label="Generuj ponownie"
+                aria-label={t('Generuj ponownie')}
                 disabled={working}
                 onClick={onRedraw}
               >

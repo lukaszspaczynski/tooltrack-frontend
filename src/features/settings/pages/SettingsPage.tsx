@@ -31,6 +31,7 @@ import type {
   SearchEnginesResponse,
   SearchProvider,
 } from '../../../api/types'
+import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutSection } from '../components/CutoutSection'
 
@@ -80,7 +81,7 @@ export function SettingsPage() {
 
   if (engines.isError) {
     return (
-      <Alert color="red" variant="light" title="Nie udało się wczytać ustawień">
+      <Alert color="red" variant="light" title={t('Nie udało się wczytać ustawień')}>
         {(engines.error as Error).message}
       </Alert>
     )
@@ -91,9 +92,9 @@ export function SettingsPage() {
   return (
     <Stack gap="lg" maw={760}>
       <Stack gap={0}>
-        <Title order={2}>Ustawienia</Title>
+        <Title order={2}>{t('Ustawienia')}</Title>
         <Text c="dimmed" size="sm">
-          Wyszukiwarki zdjęć używane przy „Znajdź w internecie”.
+          {t('Wyszukiwarki zdjęć używane przy „Znajdź w internecie”.')}
         </Text>
       </Stack>
 
@@ -102,24 +103,26 @@ export function SettingsPage() {
           color="orange"
           variant="light"
           icon={<IconAlertTriangle size={18} />}
-          title="Wyszukiwanie zdjęć jest wyłączone"
+          title={t('Wyszukiwanie zdjęć jest wyłączone')}
         >
-          Żadna wyszukiwarka nie jest dla Ciebie aktywna, więc przycisk „Znajdź w internecie” jest
-          nieaktywny.{' '}
+          {t(
+            'Żadna wyszukiwarka nie jest dla Ciebie aktywna, więc przycisk „Znajdź w internecie” jest nieaktywny.',
+          )}{' '}
           {isAdmin
-            ? 'Włącz którąś poniżej albo uzupełnij jej klucz.'
-            : 'Włącz którąś poniżej lub poproś administratora o skonfigurowanie kluczy.'}
+            ? t('Włącz którąś poniżej albo uzupełnij jej klucz.')
+            : t('Włącz którąś poniżej lub poproś administratora o skonfigurowanie kluczy.')}
         </Alert>
       ) : null}
 
       <Stack gap="xs">
         <Group gap="xs">
           <IconSearch size={18} />
-          <Text fw={600}>Moje wyszukiwarki</Text>
+          <Text fw={600}>{t('Moje wyszukiwarki')}</Text>
         </Group>
         <Text c="dimmed" size="sm">
-          Dotyczy tylko Twojego konta. Wyłączona wyszukiwarka nie jest odpytywana przy Twoich
-          wyszukiwaniach.
+          {t(
+            'Dotyczy tylko Twojego konta. Wyłączona wyszukiwarka nie jest odpytywana przy Twoich wyszukiwaniach.',
+          )}
         </Text>
 
         {list.map((engine) => (
@@ -140,14 +143,15 @@ export function SettingsPage() {
         <Stack gap="xs">
           <Group gap="xs">
             <IconKey size={18} />
-            <Text fw={600}>Klucze wyszukiwarek</Text>
+            <Text fw={600}>{t('Klucze wyszukiwarek')}</Text>
             <Badge size="xs" variant="light">
               tylko administrator
             </Badge>
           </Group>
           <Text c="dimmed" size="sm">
-            Konfiguracja wspólna dla całej instalacji. Klucze nie są nigdy odsyłane z serwera —
-            widać tylko cztery ostatnie znaki. Puste pole zapisane przyciskiem usuwa klucz.
+            {t(
+              'Konfiguracja wspólna dla całej instalacji. Klucze nie są nigdy odsyłane z serwera — widać tylko cztery ostatnie znaki. Puste pole zapisane przyciskiem usuwa klucz.',
+            )}
           </Text>
 
           {list.map((engine) => (
@@ -175,8 +179,8 @@ function MyEngineRow({
 }) {
   const blocked = !engine.configured || !engine.globallyEnabled
   const reason = !engine.globallyEnabled
-    ? 'Wyłączona globalnie przez administratora'
-    : 'Brak klucza — poproś administratora o konfigurację'
+    ? t('Wyłączona globalnie przez administratora')
+    : t('Brak klucza — poproś administratora o konfigurację')
 
   return (
     <Card withBorder padding="sm" radius="md">
@@ -186,7 +190,7 @@ function MyEngineRow({
             <Text fw={500}>{engine.label}</Text>
             {blocked ? (
               <Badge size="xs" color="gray" variant="light">
-                niedostępna
+                {t('niedostępna')}
               </Badge>
             ) : null}
           </Group>
@@ -201,7 +205,7 @@ function MyEngineRow({
               checked={engine.usedByMe && !blocked}
               disabled={blocked || pending}
               onChange={(event) => onToggle(event.currentTarget.checked)}
-              aria-label={`Używaj ${engine.label}`}
+              aria-label={t('Używaj {name}', { name: engine.label })}
             />
           </div>
         </Tooltip>
@@ -262,9 +266,13 @@ function GlobalEngineCard({
                 </Badge>
               ) : null}
               {engine.keySource === 'environment' ? (
-                <Tooltip label="Klucz pochodzi ze zmiennej środowiskowej serwera. Zapisanie go tutaj przykryje tamtą wartość.">
+                <Tooltip
+                  label={t(
+                    'Klucz pochodzi ze zmiennej środowiskowej serwera. Zapisanie go tutaj przykryje tamtą wartość.',
+                  )}
+                >
                   <Badge size="xs" color="blue" variant="light">
-                    ze środowiska
+                    {t('ze środowiska')}
                   </Badge>
                 </Tooltip>
               ) : null}
@@ -274,24 +282,31 @@ function GlobalEngineCard({
             </Text>
           </Stack>
 
-          <Tooltip label="Wyłącza tę wyszukiwarkę dla wszystkich kont">
+          <Tooltip label={t('Wyłącza tę wyszukiwarkę dla wszystkich kont')}>
             <div>
               <Switch
                 checked={engine.globallyEnabled}
                 disabled={pending}
                 onChange={(event) => onSave({ enabled: event.currentTarget.checked })}
-                aria-label={`Włącz ${engine.label} globalnie`}
+                aria-label={t('Włącz {name} globalnie', { name: engine.label })}
               />
             </div>
           </Tooltip>
         </Group>
 
         <NumberInput
-          label="Limit wyników"
+          label={t('Limit wyników')}
           description={
             engine.maxResults < 30
-              ? `Ile zdjęć ta wyszukiwarka dokłada do jednego wyszukiwania. Nie więcej niż ${engine.maxResults} — tyle oddaje jej API.`
-              : `Ile zdjęć ta wyszukiwarka dokłada do jednego wyszukiwania (1–${engine.maxResults})`
+              ? t(
+                  'Ile zdjęć ta wyszukiwarka dokłada do jednego wyszukiwania. Nie więcej niż {max} — tyle oddaje jej API.',
+                  {
+                    max: engine.maxResults,
+                  },
+                )
+              : t('Ile zdjęć ta wyszukiwarka dokłada do jednego wyszukiwania (1–{max})', {
+                  max: engine.maxResults,
+                })
           }
           min={1}
           max={engine.maxResults}
@@ -310,7 +325,7 @@ function GlobalEngineCard({
             <PasswordInput
               label={engine.keyLabel}
               placeholder={engine.keyHint || 'wklej klucz'}
-              description={engine.keyHint ? `Zapisany: ${engine.keyHint}` : 'Nie ustawiono'}
+              description={engine.keyHint ? `Zapisany: ${engine.keyHint}` : t('Nie ustawiono')}
               value={key}
               onChange={(event) => setKey(event.currentTarget.value)}
               size="sm"
@@ -319,7 +334,9 @@ function GlobalEngineCard({
               <PasswordInput
                 label={engine.secretLabel}
                 placeholder={engine.secretHint || 'wklej identyfikator'}
-                description={engine.secretHint ? `Zapisany: ${engine.secretHint}` : 'Nie ustawiono'}
+                description={
+                  engine.secretHint ? `Zapisany: ${engine.secretHint}` : t('Nie ustawiono')
+                }
                 value={secret}
                 onChange={(event) => setSecret(event.currentTarget.value)}
                 size="sm"
@@ -333,7 +350,7 @@ function GlobalEngineCard({
               onClick={save}
               style={{ flexGrow: 0 }}
             >
-              Zapisz
+              {t('Zapisz')}
             </Button>
           </Group>
         ) : null}

@@ -19,6 +19,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { login, register } from '../../../api/auth'
 import { ApiError } from '../../../api/client'
+import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 
 const MIN_PASSWORD_LENGTH = 8
@@ -40,11 +41,11 @@ export function LoginPage() {
     initialValues: { displayName: '', email: '', password: '' },
     validate: {
       email: (value) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : 'Podaj poprawny adres e-mail',
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : t('Podaj poprawny adres e-mail'),
       password: (value) =>
         value.length >= MIN_PASSWORD_LENGTH
           ? null
-          : `Hasło musi mieć co najmniej ${MIN_PASSWORD_LENGTH} znaków`,
+          : t('Hasło musi mieć co najmniej {n} znaków', { n: MIN_PASSWORD_LENGTH }),
     },
   })
 
@@ -78,7 +79,7 @@ export function LoginPage() {
             ToolTrack
           </Title>
           <Text c="dimmed" size="sm" ta="center">
-            Katalog narzędzi budowlanych. Wiesz, co masz i w jakim jest stanie.
+            {t('Katalog narzędzi budowlanych. Wiesz, co masz i w jakim jest stanie.')}
           </Text>
         </Stack>
 
@@ -92,8 +93,8 @@ export function LoginPage() {
             mb="md"
           >
             <Tabs.List grow>
-              <Tabs.Tab value="login">Logowanie</Tabs.Tab>
-              <Tabs.Tab value="register">Rejestracja</Tabs.Tab>
+              <Tabs.Tab value="login">{t('Logowanie')}</Tabs.Tab>
+              <Tabs.Tab value="register">{t('Rejestracja')}</Tabs.Tab>
             </Tabs.List>
           </Tabs>
 
@@ -107,16 +108,16 @@ export function LoginPage() {
 
               {tab === 'register' ? (
                 <TextInput
-                  label="Nazwa"
-                  placeholder="Jak mamy Cię podpisywać"
-                  description="Opcjonalne — domyślnie część adresu przed @"
+                  label={t('Nazwa')}
+                  placeholder={t('Jak mamy Cię podpisywać')}
+                  description={t('Opcjonalne — domyślnie część adresu przed @')}
                   key={form.key('displayName')}
                   {...form.getInputProps('displayName')}
                 />
               ) : null}
 
               <TextInput
-                label="E-mail"
+                label={t('E-mail')}
                 placeholder="ty@example.com"
                 autoComplete="email"
                 required
@@ -125,7 +126,7 @@ export function LoginPage() {
               />
 
               <PasswordInput
-                label="Hasło"
+                label={t('Hasło')}
                 autoComplete={tab === 'register' ? 'new-password' : 'current-password'}
                 required
                 key={form.key('password')}
@@ -133,24 +134,24 @@ export function LoginPage() {
               />
 
               <Button type="submit" loading={mutation.isPending} fullWidth>
-                {tab === 'register' ? 'Załóż konto' : 'Zaloguj'}
+                {tab === 'register' ? t('Załóż konto') : t('Zaloguj')}
               </Button>
 
               {tab === 'register' ? (
                 <Text c="dimmed" size="xs" ta="center">
-                  Nowe konta dostają rolę <strong>Podgląd</strong> — katalog widzisz od razu, o
-                  prawo do edycji poproś administratora.
+                  {t('Nowe konta dostają rolę')} <strong>{t('Podgląd')}</strong>{' '}
+                  {t('— katalog widzisz od razu, o prawo do edycji poproś administratora.')}
                 </Text>
               ) : (
                 <Text c="dimmed" size="xs" ta="center">
-                  Nie masz konta?{' '}
+                  {t('Nie masz konta?')}{' '}
                   <Anchor
                     component="button"
                     type="button"
                     size="xs"
                     onClick={() => setTab('register')}
                   >
-                    Zarejestruj się
+                    {t('Zarejestruj się')}
                   </Anchor>
                 </Text>
               )}

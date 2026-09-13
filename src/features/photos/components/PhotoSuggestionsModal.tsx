@@ -20,6 +20,7 @@ import { useState } from 'react'
 
 import { fetchPhotoSuggestions } from '../../../api/photos'
 import type { PhotoOwner, PhotoSuggestion } from '../../../api/types'
+import { t } from '../../../i18n'
 
 // The web search, on demand. It opens empty and searches when asked: the
 // request costs the server a call to a search provider, so it must never be a
@@ -95,12 +96,18 @@ export function PhotoSuggestionsModal({
   }
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Znajdź zdjęcia w internecie" size="xl" centered>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t('Znajdź zdjęcia w internecie')}
+      size="xl"
+      centered
+    >
       <Stack gap="md">
         <Group align="flex-end" gap="sm">
           <TextInput
-            label="Czego szukamy"
-            description="Domyślnie marka i model — to one identyfikują maszynę"
+            label={t('Czego szukamy')}
+            description={t('Domyślnie marka i model — to one identyfikują maszynę')}
             value={query}
             onChange={(event) => setQuery(event.currentTarget.value)}
             onKeyDown={(event) => event.key === 'Enter' && search.mutate(query)}
@@ -108,12 +115,12 @@ export function PhotoSuggestionsModal({
             leftSection={<IconSearch size={16} />}
           />
           <Button onClick={() => search.mutate(query)} loading={search.isPending}>
-            Szukaj
+            {t('Szukaj')}
           </Button>
         </Group>
 
         {search.isError ? (
-          <Alert color="orange" variant="light" title="Wyszukiwanie niedostępne">
+          <Alert color="orange" variant="light" title={t('Wyszukiwanie niedostępne')}>
             {(search.error as Error).message}
           </Alert>
         ) : null}
@@ -121,7 +128,7 @@ export function PhotoSuggestionsModal({
         {/* Several engines can be on at once, so a partial failure is normal:
             the results are still usable and the screen says what is missing. */}
         {search.data && search.data.failed.length > 0 ? (
-          <Alert color="yellow" variant="light" title="Część wyszukiwarek nie odpowiedziała">
+          <Alert color="yellow" variant="light" title={t('Część wyszukiwarek nie odpowiedziała')}>
             {search.data.failed.map((entry) => entry.message).join(' · ')}
           </Alert>
         ) : null}
@@ -135,8 +142,10 @@ export function PhotoSuggestionsModal({
         {search.isSuccess && suggestions.length === 0 ? (
           <Text c="dimmed" size="sm" ta="center" py="md">
             {found.length === 0
-              ? 'Nic nie znaleziono. Spróbuj innego zapytania — na przykład samej marki.'
-              : `Znaleziono ${found.length}, ale żaden podgląd się nie wczytał. Spróbuj innego zapytania.`}
+              ? t('Nic nie znaleziono. Spróbuj innego zapytania — na przykład samej marki.')
+              : t('Znaleziono {n}, ale żaden podgląd się nie wczytał. Spróbuj innego zapytania.', {
+                  n: found.length,
+                })}
           </Text>
         ) : null}
 
@@ -196,10 +205,10 @@ export function PhotoSuggestionsModal({
               </Text>
               <Group gap="sm">
                 <Button variant="default" onClick={onClose}>
-                  Anuluj
+                  {t('Anuluj')}
                 </Button>
                 <Button disabled={selected.length === 0} loading={saving} onClick={save}>
-                  Zapisz zaznaczone
+                  {t('Zapisz zaznaczone')}
                 </Button>
               </Group>
             </Group>
@@ -266,7 +275,7 @@ function SuggestionTile({
           </Badge>
         </div>
         <Text size="xs" lineClamp={1} title={suggestion.title}>
-          {suggestion.title || 'bez tytułu'}
+          {suggestion.title || t('bez tytułu')}
         </Text>
         {suggestion.attribution ? (
           <Text size="xs" c="dimmed" lineClamp={1}>

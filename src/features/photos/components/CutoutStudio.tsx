@@ -23,6 +23,7 @@ import { apiFileUrl } from '../../../api/client'
 import { commitCutout, previewCutout } from '../../../api/photos'
 import { CUTOUT_SETTINGS_KEY, fetchCutoutSettings } from '../../../api/settings'
 import type { CutoutMethod, CutoutPreview, CutoutSettings, PhotoOwner } from '../../../api/types'
+import { t } from '../../../i18n'
 
 // The cutout screen: original on the left, result on the right, and nothing is
 // written until somebody says so.
@@ -86,7 +87,7 @@ export function CutoutStudio({
   const keep = useMutation({
     mutationFn: (checksum: string) => commitCutout(owner, photo.id, checksum),
     onSuccess: () => {
-      notifications.show({ color: 'teal', message: 'Wycinka zapisana jako nowe zdjęcie' })
+      notifications.show({ color: 'teal', message: t('Wycinka zapisana jako nowe zdjęcie') })
       onSaved()
       onClose()
     },
@@ -96,19 +97,19 @@ export function CutoutStudio({
   const usesLocal = method === 'local'
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Wytnij samo narzędzie" size="xl" centered>
+    <Modal opened={opened} onClose={onClose} title={t('Wytnij samo narzędzie')} size="xl" centered>
       <Stack gap="md">
         {available.length === 0 ? (
           <Alert color="orange" variant="light" icon={<IconAlertTriangle size={18} />}>
-            Wycinanie jest wyłączone w Ustawieniach.
+            {t('Wycinanie jest wyłączone w Ustawieniach.')}
           </Alert>
         ) : (
           <>
             <Group align="flex-end" gap="sm" wrap="wrap">
               <Select
-                label="Metoda"
-                description={method ? METHOD_HINTS[method] : undefined}
-                data={available.map((value) => ({ label: METHOD_LABELS[value], value }))}
+                label={t('Metoda')}
+                description={method ? t(METHOD_HINTS[method]) : undefined}
+                data={available.map((value) => ({ label: t(METHOD_LABELS[value]), value }))}
                 value={method}
                 allowDeselect={false}
                 onChange={(value) => {
@@ -123,7 +124,7 @@ export function CutoutStudio({
               {usesLocal ? (
                 <>
                   <NumberInput
-                    label="Próg jasności tła"
+                    label={t('Próg jasności tła')}
                     description="1–765"
                     min={1}
                     max={765}
@@ -133,8 +134,8 @@ export function CutoutStudio({
                     w={160}
                   />
                   <NumberInput
-                    label="Margines"
-                    description="pikseli wokół"
+                    label={t('Margines')}
+                    description={t('pikseli wokół')}
                     min={0}
                     max={200}
                     value={padding}
@@ -147,11 +148,11 @@ export function CutoutStudio({
 
               {method === 'removebg' ? (
                 <Select
-                  label="Typ obiektu"
-                  description="podpowiedź dla usługi"
+                  label={t('Typ obiektu')}
+                  description={t('podpowiedź dla usługi')}
                   data={[
                     { label: 'Produkt', value: 'product' },
-                    { label: 'Wykryj sam', value: 'auto' },
+                    { label: t('Wykryj sam'), value: 'auto' },
                   ]}
                   value={removeBgType}
                   allowDeselect={false}
@@ -167,35 +168,42 @@ export function CutoutStudio({
                 onClick={() => run.mutate()}
                 size="sm"
               >
-                {preview ? 'Generuj ponownie' : 'Generuj podgląd'}
+                {preview ? t('Generuj ponownie') : t('Generuj podgląd')}
               </Button>
             </Group>
 
             {missing.length > 0 ? (
               <Text c="dimmed" size="xs">
-                Niedostępne bez klucza: {missing.join(', ')} — konfiguruje je administrator w
-                Ustawieniach.
+                {t(
+                  'Niedostępne bez klucza: {methods} — konfiguruje je administrator w Ustawieniach.',
+                  {
+                    methods: missing.join(', '),
+                  },
+                )}
               </Text>
             ) : null}
 
             {run.isError ? (
-              <Alert color="orange" variant="light" title="Nie udało się wyciąć">
+              <Alert color="orange" variant="light" title={t('Nie udało się wyciąć')}>
                 {(run.error as Error).message}
               </Alert>
             ) : null}
 
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-              <Pane caption={photo.width ? `${photo.width}×${photo.height}` : ''} title="Oryginał">
-                <Image src={apiFileUrl(photo.url)} alt="Oryginał" h={320} fit="contain" />
+              <Pane
+                caption={photo.width ? `${photo.width}×${photo.height}` : ''}
+                title={t('Oryginał')}
+              >
+                <Image src={apiFileUrl(photo.url)} alt={t('Oryginał')} h={320} fit="contain" />
               </Pane>
 
               <Pane
                 caption={
                   preview
-                    ? `${preview.image.width}×${preview.image.height} · ${METHOD_LABELS[preview.provider] ?? preview.provider}`
+                    ? `${preview.image.width}×${preview.image.height} · ${t(METHOD_LABELS[preview.provider] ?? preview.provider)}`
                     : ''
                 }
-                title="Po wycięciu"
+                title={t('Po wycięciu')}
               >
                 {run.isPending ? (
                   <Center h={320}>
@@ -204,7 +212,7 @@ export function CutoutStudio({
                 ) : preview ? (
                   <Image
                     src={apiFileUrl(preview.image.url)}
-                    alt="Wycinka"
+                    alt={t('Wycinka')}
                     h={320}
                     fit="contain"
                     // A checkerboard, so transparent background reads as
@@ -219,8 +227,9 @@ export function CutoutStudio({
                 ) : (
                   <Center h={320}>
                     <Text c="dimmed" size="sm" ta="center" px="md">
-                      Ustaw metodę i kliknij „Generuj podgląd”. Nic nie zostanie zapisane, dopóki
-                      nie potwierdzisz.
+                      {t(
+                        'Ustaw metodę i kliknij „Generuj podgląd”. Nic nie zostanie zapisane, dopóki nie potwierdzisz.',
+                      )}
                     </Text>
                   </Center>
                 )}
@@ -231,18 +240,18 @@ export function CutoutStudio({
 
         <Group justify="space-between">
           <Text c="dimmed" size="xs">
-            Zapis tworzy nowe zdjęcie. Oryginał zostaje nietknięty.
+            {t('Zapis tworzy nowe zdjęcie. Oryginał zostaje nietknięty.')}
           </Text>
           <Group gap="sm">
             <Button variant="default" onClick={onClose}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button
               disabled={!preview}
               loading={keep.isPending}
               onClick={() => preview && keep.mutate(preview.image.checksum)}
             >
-              Zapisz wycinkę
+              {t('Zapisz wycinkę')}
             </Button>
           </Group>
         </Group>
@@ -282,7 +291,7 @@ function missingMethods(settings: CutoutSettings | undefined): string[] {
 
   return settings.methods
     .filter((entry) => !entry.configured || !entry.enabled)
-    .map((entry) => `${entry.label} (${entry.configured ? 'wyłączona' : 'brak klucza'})`)
+    .map((entry) => `${entry.label} (${entry.configured ? t('wyłączona') : 'brak klucza'})`)
 }
 
 function Pane({

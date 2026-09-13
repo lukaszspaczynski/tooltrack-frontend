@@ -23,6 +23,7 @@ import {
   saveCutoutThreshold,
 } from '../../../api/settings'
 import type { CutoutMethod, CutoutMethodSettings, CutoutSettings } from '../../../api/types'
+import { t } from '../../../i18n'
 
 // The second half of the settings page, shaped like the first: a list of
 // methods, each either usable or not. There is no "default method" — the
@@ -59,14 +60,14 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
     mutationFn: saveCutoutThreshold,
     onSuccess: (response) => {
       applyResponse(response)
-      notifications.show({ color: 'teal', message: 'Zapisano próg' })
+      notifications.show({ color: 'teal', message: t('Zapisano próg') })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   if (settings.isError) {
     return (
-      <Alert color="red" variant="light" title="Nie udało się wczytać ustawień wycinania">
+      <Alert color="red" variant="light" title={t('Nie udało się wczytać ustawień wycinania')}>
         {(settings.error as Error).message}
       </Alert>
     )
@@ -82,7 +83,7 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
     <Stack gap="xs">
       <Group gap="xs">
         <IconWand size={18} />
-        <Text fw={600}>Metody wycinania</Text>
+        <Text fw={600}>{t('Metody wycinania')}</Text>
         {isAdmin ? (
           <Badge size="xs" variant="light">
             tylko administrator
@@ -90,15 +91,16 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
         ) : null}
       </Group>
       <Text c="dimmed" size="sm">
-        Różdżka przy zdjęciu otwiera ekran wycinania, gdzie metodę wybiera się dla każdego zdjęcia
-        osobno, widząc oryginał obok wyniku. Tutaj decyduje się,{' '}
-        <strong>które metody są tam do wyboru</strong>. Wycinka zawsze powstaje jako nowe zdjęcie —
-        oryginał zostaje.
+        {t(
+          'Różdżka przy zdjęciu otwiera ekran wycinania, gdzie metodę wybiera się dla każdego zdjęcia osobno, widząc oryginał obok wyniku. Tutaj decyduje się,',
+        )}{' '}
+        <strong>{t('które metody są tam do wyboru')}</strong>
+        {t('. Wycinka zawsze powstaje jako nowe zdjęcie — oryginał zostaje.')}
       </Text>
 
       {settings.data.usable === 0 ? (
         <Alert color="orange" variant="light" icon={<IconAlertTriangle size={18} />}>
-          Żadna metoda nie jest dostępna, więc różdżka przy zdjęciach nie zadziała.
+          {t('Żadna metoda nie jest dostępna, więc różdżka przy zdjęciach nie zadziała.')}
         </Alert>
       ) : null}
 
@@ -121,11 +123,13 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
             <Tooltip
               multiline
               w={280}
-              label="Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasne narzędzie gubi fragmenty."
+              label={t(
+                'Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasne narzędzie gubi fragmenty.',
+              )}
             >
               <NumberInput
-                label="Domyślny próg jasności tła"
-                description="Punkt wyjścia dla metody lokalnej na ekranie wycinania (1–765)"
+                label={t('Domyślny próg jasności tła')}
+                description={t('Punkt wyjścia dla metody lokalnej na ekranie wycinania (1–765)')}
                 min={1}
                 max={765}
                 defaultValue={settings.data.threshold}
@@ -143,7 +147,7 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
               onClick={() => threshold.mutate(pendingThreshold ?? settings.data.threshold)}
               disabled={pendingThreshold === null || pendingThreshold === settings.data.threshold}
             >
-              Zapisz próg
+              {t('Zapisz próg')}
             </Button>
           </Group>
         </Card>
@@ -168,7 +172,7 @@ function MethodRow({ method }: { method: CutoutMethodSettings }) {
           </Text>
         </Stack>
         <Badge size="xs" color={available ? 'teal' : 'gray'} variant="light">
-          {available ? 'dostępna' : method.configured ? 'wyłączona' : 'brak klucza'}
+          {available ? t('dostępna') : method.configured ? t('wyłączona') : 'brak klucza'}
         </Badge>
       </Group>
     </Card>
@@ -196,11 +200,11 @@ function MethodCard({
               {method.configured ? (
                 method.enabled ? (
                   <Badge size="xs" color="teal" variant="light">
-                    dostępna
+                    {t('dostępna')}
                   </Badge>
                 ) : (
                   <Badge size="xs" color="gray" variant="light">
-                    wyłączona
+                    {t('wyłączona')}
                   </Badge>
                 )
               ) : (
@@ -209,9 +213,13 @@ function MethodCard({
                 </Badge>
               )}
               {method.keySource === 'environment' ? (
-                <Tooltip label="Klucz pochodzi ze zmiennej środowiskowej serwera. Zapisanie go tutaj przykryje tamtą wartość.">
+                <Tooltip
+                  label={t(
+                    'Klucz pochodzi ze zmiennej środowiskowej serwera. Zapisanie go tutaj przykryje tamtą wartość.',
+                  )}
+                >
                   <Badge size="xs" color="blue" variant="light">
-                    ze środowiska
+                    {t('ze środowiska')}
                   </Badge>
                 </Tooltip>
               ) : null}
@@ -221,13 +229,13 @@ function MethodCard({
             </Text>
           </Stack>
 
-          <Tooltip label="Wyłączona metoda nie pojawia się na ekranie wycinania">
+          <Tooltip label={t('Wyłączona metoda nie pojawia się na ekranie wycinania')}>
             <div>
               <Switch
                 checked={method.enabled}
                 disabled={pending}
                 onChange={(event) => onSave({ enabled: event.currentTarget.checked })}
-                aria-label={`Włącz ${method.label}`}
+                aria-label={t('Włącz {name}', { name: method.label })}
               />
             </div>
           </Tooltip>
@@ -238,7 +246,7 @@ function MethodCard({
             <PasswordInput
               label={method.keyLabel}
               placeholder={method.keyHint || 'nie ustawiono'}
-              description={method.configured ? `Zapisany: ${method.keyHint}` : 'Nie ustawiono'}
+              description={method.configured ? `Zapisany: ${method.keyHint}` : t('Nie ustawiono')}
               value={key}
               onChange={(event) => setKey(event.currentTarget.value)}
               size="sm"
@@ -257,7 +265,7 @@ function MethodCard({
               }}
               style={{ flexGrow: 0 }}
             >
-              Zapisz klucz
+              {t('Zapisz klucz')}
             </Button>
           </Group>
         ) : null}

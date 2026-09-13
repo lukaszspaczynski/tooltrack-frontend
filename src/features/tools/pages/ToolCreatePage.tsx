@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../../api/client'
 import { createTool } from '../../../api/tools'
 import type { ToolFields } from '../../../api/types'
+import { t } from '../../../i18n'
 import { ToolForm } from '../components/ToolForm'
 
 export function ToolCreatePage() {
@@ -43,12 +44,12 @@ export function ToolCreatePage() {
         <Anchor component={Link} to="/" size="sm" c="dimmed">
           <Group gap={2} wrap="nowrap">
             <IconChevronLeft size={14} />
-            Katalog
+            {t('Katalog')}
           </Group>
         </Anchor>
       </Group>
 
-      <Title order={2}>Nowe narzędzie</Title>
+      <Title order={2}>{t('Nowe narzędzie')}</Title>
 
       <Paper withBorder p="lg" radius="md">
         <ToolForm

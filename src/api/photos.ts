@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { request } from './client'
 import type {
   CardPhoto,
@@ -43,7 +44,7 @@ export async function uploadPhoto(owner: PhotoOwner, file: File): Promise<{ phot
   const payload = (await response.json().catch(() => null)) as null | Record<string, unknown>
   if (!response.ok) {
     throw new Error(
-      typeof payload?.error === 'string' ? payload.error : 'Nie udało się wgrać zdjęcia',
+      typeof payload?.error === 'string' ? payload.error : t('Nie udało się wgrać zdjęcia'),
     )
   }
 
@@ -145,7 +146,7 @@ export async function uploadLibraryPhoto(file: File): Promise<{ photo: Photo }> 
   const payload = (await response.json().catch(() => null)) as null | Record<string, unknown>
   if (!response.ok) {
     throw new Error(
-      typeof payload?.error === 'string' ? payload.error : 'Nie udało się wgrać zdjęcia',
+      typeof payload?.error === 'string' ? payload.error : t('Nie udało się wgrać zdjęcia'),
     )
   }
 

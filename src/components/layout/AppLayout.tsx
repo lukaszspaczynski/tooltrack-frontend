@@ -28,6 +28,8 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { ROLE_LABELS } from '../../features/tools/presentation'
+import { t } from '../../i18n'
+import { LanguageMenu } from '../../i18n/LanguageMenu'
 import { useSession } from '../../session/SessionContext'
 
 export function AppLayout() {
@@ -70,6 +72,9 @@ export function AppLayout() {
           </Group>
 
           <Group gap="xs" wrap="nowrap">
+            {/* Outside the session, beside the theme: the login screen is the
+                first thing somebody who does not read Polish sees. */}
+            <LanguageMenu />
             <ColorSchemeToggle />
             {session ? <AccountMenu onSignOut={handleSignOut} /> : null}
           </Group>
@@ -82,7 +87,7 @@ export function AppLayout() {
             of the two is showing, so the current screen is never hidden behind
             a collapsed parent. */}
         <NavLink
-          label="Narzędzia"
+          label={t('Narzędzia')}
           leftSection={<IconTool size={18} />}
           defaultOpened={toolsSection}
           active={location.pathname === '/' || location.pathname.startsWith('/tools')}
@@ -91,14 +96,14 @@ export function AppLayout() {
           <NavLink
             component={Link}
             to="/"
-            label="Katalog"
+            label={t('Katalog')}
             active={location.pathname === '/' || location.pathname.startsWith('/tools')}
             onClick={close}
           />
           <NavLink
             component={Link}
             to="/brands"
-            label="Producenci"
+            label={t('Producenci')}
             active={location.pathname.startsWith('/brands')}
             onClick={close}
           />
@@ -106,7 +111,7 @@ export function AppLayout() {
         <NavLink
           component={Link}
           to="/cases"
-          label="Skrzynki"
+          label={t('Skrzynki')}
           leftSection={<IconBox size={18} />}
           active={location.pathname.startsWith('/cases')}
           onClick={close}
@@ -115,7 +120,7 @@ export function AppLayout() {
             under the tools: a label is something an arrangement produces, and
             the submenu says so. Open whenever either of the two is showing. */}
         <NavLink
-          label="Organizer"
+          label={t('Organizer')}
           leftSection={<IconLayoutGrid size={18} />}
           defaultOpened={organizerSection}
           active={organizerSection && !labelsShowing}
@@ -124,14 +129,14 @@ export function AppLayout() {
           <NavLink
             component={Link}
             to="/organizers"
-            label="Układy"
+            label={t('Układy')}
             active={organizerSection && !labelsShowing}
             onClick={close}
           />
           <NavLink
             component={Link}
             to="/organizers/labels"
-            label="Etykiety"
+            label={t('Etykiety')}
             leftSection={<IconTag size={16} />}
             active={labelsShowing}
             onClick={close}
@@ -140,7 +145,7 @@ export function AppLayout() {
         <NavLink
           component={Link}
           to="/photos"
-          label="Zdjęcia"
+          label={t('Zdjęcia')}
           leftSection={<IconPhoto size={18} />}
           active={location.pathname.startsWith('/photos')}
           onClick={close}
@@ -148,7 +153,7 @@ export function AppLayout() {
         <NavLink
           component={Link}
           to="/settings"
-          label="Ustawienia"
+          label={t('Ustawienia')}
           leftSection={<IconSettings size={18} />}
           active={location.pathname.startsWith('/settings')}
           onClick={close}
@@ -159,7 +164,7 @@ export function AppLayout() {
           <NavLink
             component={Link}
             to="/users"
-            label="Użytkownicy"
+            label={t('Użytkownicy')}
             leftSection={<IconUsers size={18} />}
             active={location.pathname.startsWith('/users')}
             onClick={close}
@@ -192,12 +197,12 @@ function AccountMenu({ onSignOut }: { onSignOut: () => void }) {
             {session.user.displayName || session.user.email}
           </Text>
           <Badge size="xs" variant="light" mt={4}>
-            {ROLE_LABELS[session.effectiveRole]}
+            {t(ROLE_LABELS[session.effectiveRole])}
           </Badge>
         </Menu.Label>
         <Menu.Divider />
         <Menu.Item leftSection={<IconLogout size={16} />} onClick={onSignOut}>
-          Wyloguj
+          {t('Wyloguj')}
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>
@@ -209,11 +214,11 @@ function ColorSchemeToggle() {
   const scheme = useComputedColorScheme('light')
 
   return (
-    <Tooltip label={scheme === 'dark' ? 'Jasny motyw' : 'Ciemny motyw'}>
+    <Tooltip label={scheme === 'dark' ? t('Jasny motyw') : t('Ciemny motyw')}>
       <ActionIcon
         variant="subtle"
         size="lg"
-        aria-label="Przełącz motyw"
+        aria-label={t('Przełącz motyw')}
         onClick={() => setColorScheme(scheme === 'dark' ? 'light' : 'dark')}
       >
         {scheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}

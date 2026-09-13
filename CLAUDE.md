@@ -15,6 +15,11 @@ src/
 │   ├── client.ts            request(), ApiError, the base URL
 │   ├── types.ts             The contract, mirroring Backend/docs/api.md
 │   └── auth.ts cases.ts photos.ts settings.ts tools.ts users.ts
+├── i18n/                What the interface says, in Polish and English
+│   ├── lang.ts              Plural rules, dates, the language itself. Pure.
+│   ├── catalog.ts           The English side, keyed by the Polish phrase
+│   ├── index.ts             t(), tCount(), tDate() — plain functions
+│   └── I18nProvider.tsx     Holds the choice; LanguageMenu.tsx switches it
 ├── session/             Who is signed in and what they may do
 │   ├── SessionContext.ts    The context, the hook, the query key
 │   ├── SessionProvider.tsx  Resolves /auth/me once for the whole app
@@ -230,13 +235,56 @@ The `['search-engines']` query is also what decides whether the _Znajdź w
 internecie_ button is enabled: `usable === 0` means no engine would answer, and
 a button that only ever fails is worse than a disabled one.
 
+## Two languages
+
+The interface speaks Polish and English, chosen from the menu in the header —
+next to the theme, and outside the session, because the login screen is the
+first thing somebody who does not read Polish sees. The choice is kept in
+`localStorage` and guessed from the browser the first time; the server knows
+nothing about it, so it does not follow an account onto another device yet.
+
+**The Polish phrase is the key.** `t('Zapisz zmiany')`, not `t('form.save')`.
+There is no key namespace to invent or keep in step, the code reads the way the
+screen reads, and a phrase nobody has translated yet shows in Polish — right for
+the crew, honest for everybody else — where a raw key would be neither. The
+English side is `i18n/catalog.ts` and nothing else.
+
+**`t` is a function, not a hook.** Every screen says something, so a hook would
+be a line of ceremony in forty files, and phrases are needed where hooks cannot
+go: lookup tables, helpers, event handlers. What makes that safe is that
+`I18nProvider` remounts the tree when the language changes. Which leads to the
+one rule worth remembering:
+
+> **Never call `t()` at module scope.** A phrase read while the module is
+> evaluated is frozen at import: the tree remounts, the module does not run
+> twice, and that screen keeps the old language. A lookup table holds the
+> Polish phrase and the screen translates it by key —
+> `t(CONDITION_LABELS[tool.condition])`.
+
+**Numbers, names and counts.** A phrase carrying a value takes it as a
+placeholder: `t('Usunięto {n} z {asked}', { n, asked })`. Word order is not the
+same in both languages, and a sentence glued together from fragments can only
+be right in one of them. A counted noun goes through `tCount(COUNTS.tool, n)`:
+Polish picks one of three forms by the last two digits, English one of two.
+Dates are `tDate()`, which formats in the current locale.
+
+`i18n/catalog.test.ts` is what keeps this honest. It reads every `t('…')` in
+the source, and every value of every `*_LABELS`/`*_OPTIONS` table, and fails
+when one has no English translation — or when the catalog still holds a phrase
+no screen says any more. Reword a phrase and the test names what to do.
+
+What is **not** translated: the API's error messages, which arrive in Polish
+and are shown as they come, and the labels the server draws onto PDFs. Both
+live in `Backend/` and would need the language sent with the request.
+
 ## Conventions
 
 - Prettier: single quotes, no semicolons, width 100. `npm run format`.
 - Mantine components and props first; a CSS file only when a component cannot
   express it. No second styling system, no utility CSS framework.
 - Polish in the interface, English in the code. Users are a Polish building
-  crew; identifiers, types and comments stay in the language of the API.
+  crew; identifiers, types and comments stay in the language of the API. Every
+  phrase a person reads goes through `t()` — see **Two languages** below.
 - `verbatimModuleSyntax` is on: a type-only import must say `import type`.
 - Comments explain why. The wording of a label is not worth a comment; the
   reason a field is dropped when empty is.

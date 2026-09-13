@@ -4,6 +4,7 @@
 
 import type { Role, Tool, ToolCondition } from '../../api/types'
 import { ROLES, TOOL_CONDITIONS } from '../../api/types'
+import { COUNTS, t, tCount, tDate } from '../../i18n'
 
 export const CONDITION_LABELS: Record<ToolCondition, string> = {
   good: 'Dobry',
@@ -38,13 +39,13 @@ export const ROLE_DESCRIPTIONS: Record<Role, string> = {
 
 export function conditionOptions(): { label: string; value: string }[] {
   return TOOL_CONDITIONS.map((condition) => ({
-    label: CONDITION_LABELS[condition],
+    label: t(CONDITION_LABELS[condition]),
     value: condition,
   }))
 }
 
 export function roleOptions(): { label: string; value: string }[] {
-  return ROLES.map((role) => ({ label: ROLE_LABELS[role], value: role }))
+  return ROLES.map((role) => ({ label: t(ROLE_LABELS[role]), value: role }))
 }
 
 // The line under a tool's name. Blank fields are dropped rather than shown as
@@ -56,22 +57,14 @@ export function toolSubtitle(tool: Pick<Tool, 'brand' | 'model' | 'serialNumber'
   return parts.filter((part) => Boolean(part)).join(' · ')
 }
 
+// The date reads in the language the screen is in; the dash for an unusable
+// timestamp is the same in both.
 export function formatDateTime(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return '—'
-
-  return new Intl.DateTimeFormat('pl-PL', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+  return tDate(iso)
 }
 
-// "3 narzędzia" is not "3 narzędzi". Polish picks a form by the last digits,
-// and getting it wrong is the kind of small wrongness people notice on every
-// screen.
+// "3 narzędzia" is not "3 narzędzi", and neither is "3 tools": the forms
+// live in the catalog and the rules in i18n/lang.ts.
 export function toolCountLabel(count: number): string {
-  const lastTwo = count % 100
-  const last = count % 10
-
-  if (count === 1) return '1 narzędzie'
-  if (lastTwo >= 12 && lastTwo <= 14) return `${count} narzędzi`
-  if (last >= 2 && last <= 4) return `${count} narzędzia`
-  return `${count} narzędzi`
+  return tCount(COUNTS.tool, count)
 }

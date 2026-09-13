@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchPhotoLibrary } from '../../../api/photos'
 import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
+import { t } from '../../../i18n'
 
 const PAGE_SIZE = 24
 
@@ -88,7 +89,13 @@ export function ExistingPhotoPicker({
   const pages = Math.max(Math.ceil((library.data?.total ?? 0) / PAGE_SIZE), 1)
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Wybierz istniejące zdjęcie" size="xl" centered>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t('Wybierz istniejące zdjęcie')}
+      size="xl"
+      centered
+    >
       <Stack gap="md">
         <Group align="flex-end" gap="sm">
           <SegmentedControl
@@ -105,8 +112,8 @@ export function ExistingPhotoPicker({
             size="sm"
           />
           <TextInput
-            label="Szukaj narzędzia"
-            placeholder="Nazwa, marka, model…"
+            label={t('Szukaj narzędzia')}
+            placeholder={t('Nazwa, marka, model…')}
             leftSection={<IconSearch size={16} />}
             value={searchText}
             onChange={(event) => {
@@ -116,7 +123,7 @@ export function ExistingPhotoPicker({
             disabled={assigned === 'unassigned'}
             description={
               assigned === 'unassigned'
-                ? 'Nieprzypisane zdjęcia nie należą do narzędzia, więc nie ma czego szukać'
+                ? t('Nieprzypisane zdjęcia nie należą do narzędzia, więc nie ma czego szukać')
                 : undefined
             }
             style={{ flexGrow: 1 }}
@@ -139,8 +146,10 @@ export function ExistingPhotoPicker({
         {library.data && items.length === 0 ? (
           <Text c="dimmed" size="sm" ta="center" py="md">
             {assigned === 'unassigned'
-              ? 'Nie ma nieprzypisanych zdjęć. Wgraj je na ekranie Zdjęcia albo przełącz na „Wszystkie”.'
-              : 'Brak zdjęć do wyboru.'}
+              ? t(
+                  'Nie ma nieprzypisanych zdjęć. Wgraj je na ekranie Zdjęcia albo przełącz na „Wszystkie”.',
+                )
+              : t('Brak zdjęć do wyboru.')}
           </Text>
         ) : null}
 
@@ -172,12 +181,13 @@ export function ExistingPhotoPicker({
 
         <Group justify="space-between">
           <Text c="dimmed" size="xs">
-            Nieprzypisane zdjęcie przenosi się na kartę. Zdjęcie innego narzędzia zostaje tam, gdzie
-            jest — tutaj pojawia się jego kopia.
+            {t(
+              'Nieprzypisane zdjęcie przenosi się na kartę. Zdjęcie innego narzędzia zostaje tam, gdzie jest — tutaj pojawia się jego kopia.',
+            )}
           </Text>
           <Group gap="sm">
             <Button variant="default" onClick={onClose}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button
               disabled={selected.length === 0}
@@ -220,7 +230,7 @@ function PickerTile({
             checked={checked}
             onChange={onToggle}
             onClick={(event) => event.stopPropagation()}
-            aria-label={`Zaznacz zdjęcie ${photo.id}`}
+            aria-label={t('Zaznacz zdjęcie {id}', { id: String(photo.id) })}
             style={{ left: 4, position: 'absolute', top: 4 }}
           />
         </div>

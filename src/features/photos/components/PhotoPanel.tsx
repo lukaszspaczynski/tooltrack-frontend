@@ -40,6 +40,7 @@ import {
   type PhotoImportItem,
 } from '../../../api/photos'
 import type { Photo, PhotoOwner } from '../../../api/types'
+import { t } from '../../../i18n'
 import { CutoutStudio } from './CutoutStudio'
 import { ExistingPhotoPicker } from './ExistingPhotoPicker'
 import { PhotoSuggestionsModal } from './PhotoSuggestionsModal'
@@ -104,7 +105,7 @@ export function PhotoPanel({
     mutationFn: (file: File) => uploadPhoto(owner, file),
     onSuccess: async () => {
       await refresh()
-      notifications.show({ color: 'teal', message: 'Zdjęcie dodane' })
+      notifications.show({ color: 'teal', message: t('Zdjęcie dodane') })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -119,8 +120,11 @@ export function PhotoPanel({
         color: result.photos.length > 0 ? 'teal' : 'orange',
         message:
           result.failed.length === 0
-            ? `Zapisano ${result.photos.length}`
-            : `Zapisano ${result.photos.length}, nie udało się ${result.failed.length}`,
+            ? t('Zapisano {n}', { n: result.photos.length })
+            : t('Zapisano {n}, nie udało się {failed}', {
+                failed: result.failed.length,
+                n: result.photos.length,
+              }),
       })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -145,8 +149,11 @@ export function PhotoPanel({
         color: 'teal',
         message:
           result.failed.length === 0
-            ? `Przypisano ${result.photos.length}`
-            : `Przypisano ${result.photos.length}, pominięto ${result.failed.length}`,
+            ? t('Przypisano {n}', { n: result.photos.length })
+            : t('Przypisano {n}, pominięto {skipped}', {
+                n: result.photos.length,
+                skipped: result.failed.length,
+              }),
       })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -170,7 +177,9 @@ export function PhotoPanel({
   return (
     <Stack gap="md">
       <Group justify="space-between" align="center">
-        <Text fw={600}>Zdjęcia {items.length > 0 ? `(${items.length})` : ''}</Text>
+        <Text fw={600}>
+          {t('Zdjęcia')} {items.length > 0 ? `(${items.length})` : ''}
+        </Text>
         {canEdit ? (
           <Group gap="xs">
             <FileButton onChange={(file) => file && upload.mutate(file)} accept="image/*">
@@ -182,7 +191,7 @@ export function PhotoPanel({
                   leftSection={<IconPhotoPlus size={16} />}
                   loading={upload.isPending}
                 >
-                  Wgraj
+                  {t('Wgraj')}
                 </Button>
               )}
             </FileButton>
@@ -192,10 +201,10 @@ export function PhotoPanel({
               leftSection={<IconLibraryPhoto size={16} />}
               onClick={picker.open}
             >
-              Wybierz istniejące
+              {t('Wybierz istniejące')}
             </Button>
             <Tooltip
-              label="Żadna wyszukiwarka nie jest włączona — sprawdź Ustawienia"
+              label={t('Żadna wyszukiwarka nie jest włączona — sprawdź Ustawienia')}
               disabled={(engines.data?.usable ?? 1) > 0}
             >
               <div>
@@ -206,7 +215,7 @@ export function PhotoPanel({
                   disabled={engines.data?.usable === 0}
                   onClick={suggestions.open}
                 >
-                  Znajdź w internecie
+                  {t('Znajdź w internecie')}
                 </Button>
               </div>
             </Tooltip>
@@ -217,7 +226,7 @@ export function PhotoPanel({
       {canEdit ? (
         <Group align="flex-end" gap="sm">
           <TextInput
-            label="Albo wklej adres zdjęcia"
+            label={t('Albo wklej adres zdjęcia')}
             placeholder="https://…"
             value={url}
             onChange={(event) => setUrl(event.currentTarget.value)}
@@ -235,7 +244,7 @@ export function PhotoPanel({
             loading={importFromWeb.isPending}
             onClick={() => importFromWeb.mutate([{ url: url.trim() }])}
           >
-            Pobierz
+            {t('Pobierz')}
           </Button>
         </Group>
       ) : null}
@@ -249,8 +258,8 @@ export function PhotoPanel({
       {items.length === 0 && !photos.isPending ? (
         <Text c="dimmed" size="sm">
           {canEdit
-            ? 'Brak zdjęć. Wgraj z telefonu, wklej adres albo poszukaj w internecie.'
-            : 'Brak zdjęć.'}
+            ? t('Brak zdjęć. Wgraj z telefonu, wklej adres albo poszukaj w internecie.')
+            : t('Brak zdjęć.')}
         </Text>
       ) : null}
 
@@ -262,7 +271,7 @@ export function PhotoPanel({
 
               <Group justify="space-between" gap={4} wrap="nowrap">
                 <Badge size="xs" variant="light" color={photo.isPrimary ? 'amber' : 'gray'}>
-                  {photo.isPrimary ? 'główne' : SOURCE_LABELS[photo.source]}
+                  {photo.isPrimary ? t('główne') : t(SOURCE_LABELS[photo.source])}
                 </Badge>
 
                 {canEdit ? (
@@ -270,14 +279,14 @@ export function PhotoPanel({
                     <Tooltip
                       label={
                         photo.source === 'edit'
-                          ? 'To zdjęcie już jest wycięte'
-                          : `Wytnij ${owner.kind === 'case' ? 'samą skrzynkę' : 'samo narzędzie'}`
+                          ? t('To zdjęcie już jest wycięte')
+                          : `Wytnij ${owner.kind === 'case' ? t('samą skrzynkę') : t('samo narzędzie')}`
                       }
                     >
                       <ActionIcon
                         variant="subtle"
                         color="grape"
-                        aria-label="Wytnij sam przedmiot"
+                        aria-label={t('Wytnij sam przedmiot')}
                         disabled={photo.source === 'edit'}
                         onClick={() => setCutoutPhoto(photo)}
                       >
@@ -285,24 +294,24 @@ export function PhotoPanel({
                       </ActionIcon>
                     </Tooltip>
                     <Tooltip
-                      label={photo.isPrimary ? 'To jest zdjęcie główne' : 'Ustaw jako główne'}
+                      label={photo.isPrimary ? t('To jest zdjęcie główne') : t('Ustaw jako główne')}
                     >
                       <ActionIcon
                         variant="subtle"
                         color={photo.isPrimary ? 'amber' : 'gray'}
                         disabled={photo.isPrimary || promote.isPending}
-                        aria-label="Ustaw jako główne"
+                        aria-label={t('Ustaw jako główne')}
                         onClick={() => promote.mutate(photo.id)}
                       >
                         {photo.isPrimary ? <IconStarFilled size={16} /> : <IconStar size={16} />}
                       </ActionIcon>
                     </Tooltip>
-                    <Tooltip label="Usuń zdjęcie">
+                    <Tooltip label={t('Usuń zdjęcie')}>
                       <ActionIcon
                         variant="subtle"
                         color="red"
                         loading={remove.isPending && remove.variables === photo.id}
-                        aria-label="Usuń zdjęcie"
+                        aria-label={t('Usuń zdjęcie')}
                         onClick={() => remove.mutate(photo.id)}
                       >
                         <IconTrash size={16} />

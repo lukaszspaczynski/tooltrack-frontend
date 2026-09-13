@@ -8,6 +8,8 @@
 
 // Same-origin by default. In development Vite proxies /api to the Node server
 // (see vite.config.ts), so the cookie is first-party and no CORS is involved.
+import { t } from '../i18n'
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
 export class ApiError extends Error {
@@ -55,7 +57,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   } catch (cause) {
     // A network failure has no status. On a phone in the field this is the
     // common one, so it says so rather than "Unexpected error".
-    throw new ApiError(0, 'Brak połączenia z serwerem', { cause })
+    throw new ApiError(0, t('Brak połączenia z serwerem'), { cause })
   }
 
   const payload = await readJson(response)
@@ -83,14 +85,14 @@ async function readJson(response: Response): Promise<null | Record<string, unkno
 function defaultMessage(status: number): string {
   switch (status) {
     case 401:
-      return 'Sesja wygasła. Zaloguj się ponownie.'
+      return t('Sesja wygasła. Zaloguj się ponownie.')
     case 403:
-      return 'Brak uprawnień do tej operacji.'
+      return t('Brak uprawnień do tej operacji.')
     case 404:
-      return 'Nie znaleziono.'
+      return t('Nie znaleziono.')
     case 503:
-      return 'Baza danych jest chwilowo niedostępna. Spróbuj ponownie.'
+      return t('Baza danych jest chwilowo niedostępna. Spróbuj ponownie.')
     default:
-      return 'Coś poszło nie tak.'
+      return t('Coś poszło nie tak.')
   }
 }

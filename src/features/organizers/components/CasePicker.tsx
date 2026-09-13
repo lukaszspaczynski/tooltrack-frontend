@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { apiFileUrl } from '../../../api/client'
 import { fetchCases } from '../../../api/cases'
 import type { CaseListItem } from '../../../api/types'
+import { t } from '../../../i18n'
 import { formatNumber, outerDimensions } from '../../cases/presentation'
 
 const PAGE_SIZE = 24
@@ -47,8 +48,8 @@ export function CasePicker({
   return (
     <Stack gap="sm">
       <TextInput
-        label="Szukaj skrzynki"
-        placeholder="Nazwa, producent…"
+        label={t('Szukaj skrzynki')}
+        placeholder={t('Nazwa, producent…')}
         leftSection={<IconSearch size={16} />}
         value={searchText}
         onChange={(event) => {
@@ -94,7 +95,7 @@ export function CasePicker({
                     {formatNumber(item.capacityL, 'L') || '— L'}
                   </Text>
                   <Text size="xs" c="dimmed" lineClamp={1} title={outerDimensions(item)}>
-                    {outerDimensions(item) || 'bez wymiarów'}
+                    {outerDimensions(item) || t('bez wymiarów')}
                   </Text>
                 </Group>
               </Stack>

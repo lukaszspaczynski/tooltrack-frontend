@@ -24,6 +24,7 @@ import { useState } from 'react'
 
 import { deleteUser, fetchUsers, updateUser } from '../../../api/users'
 import type { ManagedUser, Role } from '../../../api/types'
+import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { ROLE_DESCRIPTIONS, roleOptions } from '../../tools/presentation'
 
@@ -52,7 +53,7 @@ export function UsersPage() {
     mutationFn: (id: number) => deleteUser(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['users'] })
-      notifications.show({ color: 'teal', message: 'Konto usunięte' })
+      notifications.show({ color: 'teal', message: t('Konto usunięte') })
       confirm.close()
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
@@ -68,7 +69,7 @@ export function UsersPage() {
 
   if (users.isError) {
     return (
-      <Alert color="red" variant="light" title="Nie udało się wczytać użytkowników">
+      <Alert color="red" variant="light" title={t('Nie udało się wczytać użytkowników')}>
         {(users.error as Error).message}
       </Alert>
     )
@@ -77,9 +78,9 @@ export function UsersPage() {
   return (
     <Stack gap="md">
       <Stack gap={0}>
-        <Title order={2}>Użytkownicy</Title>
+        <Title order={2}>{t('Użytkownicy')}</Title>
         <Text c="dimmed" size="sm">
-          Nowe konta dostają rolę Podgląd. Rolę i dostęp zmieniasz tutaj.
+          {t('Nowe konta dostają rolę Podgląd. Rolę i dostęp zmieniasz tutaj.')}
         </Text>
       </Stack>
 
@@ -88,9 +89,9 @@ export function UsersPage() {
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Konto</Table.Th>
-                <Table.Th w={200}>Rola</Table.Th>
-                <Table.Th w={130}>Aktywne</Table.Th>
+                <Table.Th>{t('Konto')}</Table.Th>
+                <Table.Th w={200}>{t('Rola')}</Table.Th>
+                <Table.Th w={130}>{t('Aktywne')}</Table.Th>
                 <Table.Th w={60} />
               </Table.Tr>
             </Table.Thead>
@@ -122,8 +123,8 @@ export function UsersPage() {
                       <Tooltip
                         label={
                           self
-                            ? 'Własnej roli nie zmienisz — poproś innego administratora'
-                            : ROLE_DESCRIPTIONS[user.role]
+                            ? t('Własnej roli nie zmienisz — poproś innego administratora')
+                            : t(ROLE_DESCRIPTIONS[user.role])
                         }
                         multiline
                         w={240}
@@ -159,7 +160,7 @@ export function UsersPage() {
                       <ActionIcon
                         variant="subtle"
                         color="red"
-                        aria-label={`Usuń konto ${user.email}`}
+                        aria-label={t('Usuń konto {email}', { email: user.email })}
                         disabled={self}
                         onClick={() => {
                           setPendingDelete(user)
@@ -177,22 +178,23 @@ export function UsersPage() {
         </Table.ScrollContainer>
       </Paper>
 
-      <Modal opened={confirmOpen} onClose={confirm.close} title="Usunąć konto?" centered>
+      <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć konto?')} centered>
         <Stack gap="md">
           <Text size="sm">
-            Konto {pendingDelete?.email} straci dostęp. Karty narzędzi, które dodało, zostają w
-            katalogu.
+            {t('Konto {email} straci dostęp. Karty narzędzi, które dodało, zostają w katalogu.', {
+              email: pendingDelete?.email ?? '',
+            })}
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button
               color="red"
               loading={remove.isPending}
               onClick={() => pendingDelete && remove.mutate(pendingDelete.id)}
             >
-              Usuń konto
+              {t('Usuń konto')}
             </Button>
           </Group>
         </Stack>

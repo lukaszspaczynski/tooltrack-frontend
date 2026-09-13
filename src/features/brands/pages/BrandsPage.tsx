@@ -42,6 +42,7 @@ import {
 } from '../../../api/brands'
 import { apiFileUrl } from '../../../api/client'
 import type { Brand, BrandFields } from '../../../api/types'
+import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { LogoPicker } from '../components/LogoPicker'
 
@@ -90,7 +91,7 @@ export function BrandsPage() {
     onSuccess: async () => {
       await refresh()
       setPendingDelete(null)
-      notifications.show({ color: 'teal', message: 'Marka usunięta' })
+      notifications.show({ color: 'teal', message: t('Marka usunięta') })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -111,22 +112,22 @@ export function BrandsPage() {
     <Stack gap="lg">
       <Group justify="space-between" align="flex-end">
         <Stack gap={0}>
-          <Title order={2}>Producenci</Title>
+          <Title order={2}>{t('Producenci')}</Title>
           <Text c="dimmed" size="sm">
-            Marki, które robią to, co mamy
+            {t('Marki, które robią to, co mamy')}
           </Text>
         </Stack>
 
         {canEdit ? (
           <Button leftSection={<IconPlus size={18} />} onClick={create.open}>
-            Dodaj markę
+            {t('Dodaj markę')}
           </Button>
         ) : null}
       </Group>
 
       <TextInput
-        label="Szukaj"
-        placeholder="Nazwa marki…"
+        label={t('Szukaj')}
+        placeholder={t('Nazwa marki…')}
         leftSection={<IconSearch size={16} />}
         value={searchText}
         onChange={(event) => {
@@ -137,7 +138,7 @@ export function BrandsPage() {
       />
 
       {brands.isError ? (
-        <Alert color="red" variant="light" title="Nie udało się wczytać producentów">
+        <Alert color="red" variant="light" title={t('Nie udało się wczytać producentów')}>
           {(brands.error as Error).message}
         </Alert>
       ) : null}
@@ -150,7 +151,7 @@ export function BrandsPage() {
 
       {brands.data && items.length === 0 ? (
         <Alert color="gray" variant="light">
-          {search ? 'Nic nie pasuje.' : 'Nie ma jeszcze żadnej marki.'}
+          {search ? t('Nic nie pasuje.') : t('Nie ma jeszcze żadnej marki.')}
         </Alert>
       ) : null}
 
@@ -193,30 +194,30 @@ export function BrandsPage() {
                   </Text>
                   {canEdit ? (
                     <Group gap={2} wrap="nowrap">
-                      <Tooltip label={brand.logoUrl ? 'Zmień logo' : 'Ustaw logo'}>
+                      <Tooltip label={brand.logoUrl ? t('Zmień logo') : t('Ustaw logo')}>
                         <ActionIcon
                           variant="subtle"
                           color="gray"
-                          aria-label="Logo"
+                          aria-label={t('Logo')}
                           onClick={() => setLogoFor(brand)}
                         >
                           <IconPhoto size={16} />
                         </ActionIcon>
                       </Tooltip>
-                      <Tooltip label="Edytuj">
+                      <Tooltip label={t('Edytuj')}>
                         <ActionIcon
                           variant="subtle"
-                          aria-label="Edytuj markę"
+                          aria-label={t('Edytuj markę')}
                           onClick={() => setEditing(brand)}
                         >
                           <IconPencil size={16} />
                         </ActionIcon>
                       </Tooltip>
-                      <Tooltip label="Usuń">
+                      <Tooltip label={t('Usuń')}>
                         <ActionIcon
                           variant="subtle"
                           color="red"
-                          aria-label="Usuń markę"
+                          aria-label={t('Usuń markę')}
                           onClick={() => setPendingDelete(brand)}
                         >
                           <IconTrash size={16} />
@@ -273,26 +274,29 @@ export function BrandsPage() {
       <Modal
         opened={pendingDelete !== null}
         onClose={() => setPendingDelete(null)}
-        title="Usunąć markę?"
+        title={t('Usunąć markę?')}
         centered
       >
         <Stack gap="md">
           <Text size="sm">
             Marka „{pendingDelete?.name}" zniknie z listy.{' '}
             {pendingDelete && pendingDelete.toolCount > 0
-              ? `${toolCountLabel(pendingDelete.toolCount)} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.`
-              : 'Żadne narzędzie jej nie używa.'}
+              ? t(
+                  '{tools} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.',
+                  { tools: toolCountLabel(pendingDelete.toolCount) },
+                )
+              : t('Żadne narzędzie jej nie używa.')}
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setPendingDelete(null)}>
-              Anuluj
+              {t('Anuluj')}
             </Button>
             <Button
               color="red"
               loading={remove.isPending}
               onClick={() => pendingDelete && remove.mutate(pendingDelete.id)}
             >
-              Usuń
+              {t('Usuń')}
             </Button>
           </Group>
         </Stack>
@@ -319,10 +323,10 @@ function BrandForm({
   const [color, setColor] = useState(brand?.color ?? '')
 
   return (
-    <Modal opened onClose={onClose} title={brand ? 'Edytuj markę' : 'Nowa marka'} centered>
+    <Modal opened onClose={onClose} title={brand ? t('Edytuj markę') : t('Nowa marka')} centered>
       <Stack gap="md">
         <TextInput
-          label="Nazwa"
+          label={t('Nazwa')}
           placeholder="Makita"
           required
           data-autofocus
@@ -333,7 +337,7 @@ function BrandForm({
             server takes either, so the picker and a pasted "18 36 71" both
             work. */}
         <ColorInput
-          label="Wiodący kolor"
+          label={t('Wiodący kolor')}
           placeholder="#122447 albo 18 36 71"
           format="hex"
           value={color}
@@ -342,8 +346,8 @@ function BrandForm({
         />
 
         <Textarea
-          label="Notatki"
-          placeholder="Serwis, przedstawiciel, cokolwiek warto pamiętać"
+          label={t('Notatki')}
+          placeholder={t('Serwis, przedstawiciel, cokolwiek warto pamiętać')}
           autosize
           minRows={2}
           value={notes}
@@ -352,20 +356,22 @@ function BrandForm({
 
         {brand && brand.toolCount > 0 ? (
           <Text size="xs" c="dimmed">
-            Zmiana nazwy poprawi ją też na {toolCountLabel(brand.toolCount)}.
+            {t('Zmiana nazwy poprawi ją też na {tools}.', {
+              tools: toolCountLabel(brand.toolCount),
+            })}
           </Text>
         ) : null}
 
         <Group justify="flex-end" gap="sm">
           <Button variant="default" onClick={onClose} disabled={saving}>
-            Anuluj
+            {t('Anuluj')}
           </Button>
           <Button
             loading={saving}
             disabled={!name.trim()}
             onClick={() => onSave({ color: color.trim(), name: name.trim(), notes: notes.trim() })}
           >
-            Zapisz
+            {t('Zapisz')}
           </Button>
         </Group>
       </Stack>
@@ -373,14 +379,7 @@ function BrandForm({
   )
 }
 
-// "3 narzędzia" is not "3 narzędzi". Polish picks a form by the last digits.
+// Nothing at all reads better as a word than as "0 narzędzi".
 function toolCountLabel(count: number): string {
-  const lastTwo = count % 100
-  const last = count % 10
-
-  if (count === 0) return 'brak narzędzi'
-  if (count === 1) return '1 narzędzie'
-  if (lastTwo >= 12 && lastTwo <= 14) return `${count} narzędzi`
-  if (last >= 2 && last <= 4) return `${count} narzędzia`
-  return `${count} narzędzi`
+  return count === 0 ? t('brak narzędzi') : tCount(COUNTS.tool, count)
 }

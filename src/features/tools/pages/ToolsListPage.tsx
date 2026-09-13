@@ -30,6 +30,7 @@ import {
   withFilter,
   writeToolParams,
 } from '../listParams'
+import { t } from '../../../i18n'
 import { conditionOptions, toolCountLabel } from '../presentation'
 
 export function ToolsListPage() {
@@ -72,7 +73,7 @@ export function ToolsListPage() {
     <Stack gap="md">
       <Group justify="space-between" align="center">
         <Stack gap={0}>
-          <Title order={2}>Narzędzia</Title>
+          <Title order={2}>{t('Narzędzia')}</Title>
           {tools.data ? (
             <Text c="dimmed" size="sm">
               {toolCountLabel(total)}
@@ -82,15 +83,15 @@ export function ToolsListPage() {
 
         {can('catalog.write') ? (
           <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />}>
-            Dodaj
+            {t('Dodaj')}
           </Button>
         ) : null}
       </Group>
 
       <Group align="flex-end" gap="sm" grow preventGrowOverflow={false} wrap="wrap">
         <TextInput
-          label="Szukaj"
-          placeholder="Nazwa, marka, model, numer seryjny…"
+          label={t('Szukaj')}
+          placeholder={t('Nazwa, marka, model, numer seryjny…')}
           leftSection={<IconSearch size={16} />}
           value={searchText}
           onChange={(event) => {
@@ -101,8 +102,8 @@ export function ToolsListPage() {
           style={{ flexGrow: 2 }}
         />
         <Select
-          label="Kategoria"
-          placeholder="Wszystkie"
+          label={t('Kategoria')}
+          placeholder={t('Wszystkie')}
           clearable
           data={categories.data?.categories.map((entry) => ({
             label: `${entry.category} (${entry.count})`,
@@ -113,8 +114,8 @@ export function ToolsListPage() {
           miw={160}
         />
         <Select
-          label="Stan"
-          placeholder="Dowolny"
+          label={t('Stan')}
+          placeholder={t('Dowolny')}
           clearable
           data={conditionOptions()}
           value={query.condition}
@@ -122,8 +123,8 @@ export function ToolsListPage() {
           miw={150}
         />
         <Select
-          label="Sortowanie"
-          data={SORT_OPTIONS.map((option) => ({ ...option }))}
+          label={t('Sortowanie')}
+          data={SORT_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           allowDeselect={false}
           value={query.sort}
           onChange={(value) => apply({ sort: value ?? 'updatedAt' })}
@@ -132,7 +133,7 @@ export function ToolsListPage() {
       </Group>
 
       {tools.isError ? (
-        <Alert color="red" variant="light" title="Nie udało się wczytać katalogu">
+        <Alert color="red" variant="light" title={t('Nie udało się wczytać katalogu')}>
           {(tools.error as Error).message}
         </Alert>
       ) : null}
@@ -178,17 +179,17 @@ function EmptyState({ filtered }: { filtered: boolean }) {
 
   return (
     <Stack align="center" gap="xs" py="xl">
-      <Text fw={600}>{filtered ? 'Nic nie pasuje do filtrów' : 'Katalog jest pusty'}</Text>
+      <Text fw={600}>{filtered ? t('Nic nie pasuje do filtrów') : t('Katalog jest pusty')}</Text>
       <Text c="dimmed" size="sm" ta="center">
         {filtered
-          ? 'Zmień wyszukiwanie albo wyczyść filtry.'
+          ? t('Zmień wyszukiwanie albo wyczyść filtry.')
           : can('catalog.write')
-            ? 'Dodaj pierwsze narzędzie, żeby zacząć ewidencję.'
-            : 'Nikt jeszcze nie dodał żadnego narzędzia.'}
+            ? t('Dodaj pierwsze narzędzie, żeby zacząć ewidencję.')
+            : t('Nikt jeszcze nie dodał żadnego narzędzia.')}
       </Text>
       {!filtered && can('catalog.write') ? (
         <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />} mt="sm">
-          Dodaj narzędzie
+          {t('Dodaj narzędzie')}
         </Button>
       ) : null}
     </Stack>
