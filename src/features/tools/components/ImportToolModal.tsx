@@ -1,0 +1,135 @@
+import { Alert, Button, Group, List, Modal, Stack, Text, TextInput } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import { IconAlertTriangle, IconDownload } from '@tabler/icons-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { ApiError } from '../../../api/client'
+import { fetchImportSources, importTool } from '../../../api/tools'
+import { t } from '../../../i18n'
+
+// Making a card out of a shop's product page: paste the address, and the card
+// arrives with its parameters and its photographs already on it.
+//
+// The dialog says which shops it can read before asking for anything, because
+// the answer to "why was my link refused" should be on the screen that refused
+// it. An address from anywhere else is stopped here as well as on the server —
+// here so nobody waits for a round trip to be told, there because that is
+// where it is true.
+export function ImportToolModal({ onClose, opened }: { onClose: () => void; opened: boolean }) {
+  const [url, setUrl] = useState('')
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const sources = useQuery({
+    queryKey: ['tool-import-sources'],
+    queryFn: fetchImportSources,
+    enabled: opened,
+    staleTime: 60 * 60 * 1000,
+  })
+
+  const known = sources.data?.sources ?? []
+  const unsupported = url.trim().length > 0 && known.length > 0 && !isKnown(url, known)
+
+  const run = useMutation({
+    mutationFn: importTool,
+    onSuccess: async ({ imported, tool }) => {
+      queryClient.setQueryData(['tool', tool.id], { tool })
+      await queryClient.invalidateQueries({ queryKey: ['tools'] })
+      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
+      await queryClient.invalidateQueries({ queryKey: ['tool-attribute-names'] })
+
+      notifications.show({
+        color: 'teal',
+        message: t('Zaimportowano: {photos} zdjęć, {attributes} parametrów', {
+          attributes: imported.attributes,
+          photos: imported.photos,
+        }),
+      })
+
+      // Straight to the card: the point of importing is to look at what came
+      // in and correct the one field the shop had wrong.
+      setUrl('')
+      onClose()
+      navigate(`/tools/${tool.id}`)
+    },
+    onError: (error) =>
+      notifications.show({
+        color: 'red',
+        message:
+          error instanceof ApiError ? error.message : t('Nie udało się zaimportować narzędzia'),
+      }),
+  })
+
+  return (
+    <Modal opened={opened} onClose={onClose} title={t('Importuj ze strony sklepu')} centered>
+      <Stack gap="md">
+        <Stack gap={4}>
+          <Text size="sm" c="dimmed">
+            {t('Wklej adres strony produktu. Obsługiwane źródła:')}
+          </Text>
+          <List size="sm" withPadding>
+            {known.map((source) => (
+              <List.Item key={source.host}>{source.label}</List.Item>
+            ))}
+          </List>
+        </Stack>
+
+        <TextInput
+          label={t('Adres strony produktu')}
+          placeholder="https://mistama.com/…"
+          value={url}
+          error={unsupported ? t('Ten sklep nie jest obsługiwany') : null}
+          onChange={(event) => setUrl(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !unsupported && url.trim()) run.mutate(url.trim())
+          }}
+          data-autofocus
+        />
+
+        {/* Sixteen photographs are sixteen files fetched, converted and
+            stored. Saying so beats a spinner somebody thinks has hung. */}
+        <Alert color="gray" variant="light" icon={<IconAlertTriangle size={18} />}>
+          <Text size="xs">
+            {t(
+              'Import pobiera wszystkie zdjęcia i parametry, więc może potrwać kilkanaście sekund.',
+            )}
+          </Text>
+        </Alert>
+
+        <Group justify="flex-end">
+          <Button variant="default" onClick={onClose} disabled={run.isPending}>
+            {t('Anuluj')}
+          </Button>
+          <Button
+            leftSection={<IconDownload size={18} />}
+            loading={run.isPending}
+            disabled={url.trim().length === 0 || unsupported}
+            onClick={() => run.mutate(url.trim())}
+          >
+            {t('Importuj')}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  )
+}
+
+// The same rule the server applies, so the refusal happens where the address
+// was typed rather than after a round trip: the host has to be one of the
+// shops, not merely contain its name.
+function isKnown(url: string, sources: { host: string }[]): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(url.trim())
+  } catch {
+    return false
+  }
+
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false
+
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, '')
+
+  return sources.some((source) => host === source.host.toLowerCase().replace(/^www\./, ''))
+}

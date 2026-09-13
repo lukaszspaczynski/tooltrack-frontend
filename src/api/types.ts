@@ -41,6 +41,26 @@ export type ToolDetail = Tool & {
   attributes: ToolAttribute[]
 }
 
+// A shop this server knows how to read. The import dialog lists these before
+// asking for an address, and an address from anywhere else is refused.
+export type ImportSource = {
+  host: string
+  label: string
+}
+
+export type ToolImportResult = {
+  imported: {
+    attributes: number
+    // Parameters the page listed that the card would not take. Named rather
+    // than counted: the person can add the one that matters by hand.
+    attributesFailed: string[]
+    photos: number
+    photosFailed: number
+    sourceUrl: string
+  }
+  tool: ToolDetail
+}
+
 export type AttributeNameCount = {
   count: number
   name: string

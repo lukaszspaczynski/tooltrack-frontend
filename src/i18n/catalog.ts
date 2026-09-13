@@ -199,6 +199,19 @@ export const EN: Record<string, string> = {
   'Katalog narzędzi budowlanych. Wiesz, co masz i w jakim jest stanie.':
     'A catalog of construction tools. You know what you have and what state it is in.',
 
+  // Importing a card from a shop's page
+  Importuj: 'Import',
+  'Importuj ze strony sklepu': 'Import from a shop page',
+  'Adres strony produktu': 'Product page address',
+  'Wklej adres strony produktu. Obsługiwane źródła:':
+    'Paste the address of a product page. Supported sources:',
+  'Ten sklep nie jest obsługiwany': 'That shop is not supported',
+  'Import pobiera wszystkie zdjęcia i parametry, więc może potrwać kilkanaście sekund.':
+    'The import fetches every photo and parameter, so it can take a good few seconds.',
+  'Zaimportowano: {photos} zdjęć, {attributes} parametrów':
+    'Imported: {photos} photos, {attributes} parameters',
+  'Nie udało się zaimportować narzędzia': 'The tool could not be imported',
+
   // What a tool is: the parameters off its rating plate
   Parametry: 'Parameters',
   'Nazwa parametru': 'Parameter name',

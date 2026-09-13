@@ -59,6 +59,27 @@ query]`, `['tool', id]`, `['tool-categories']`, `['users']`, `['session']`.
   (`['card-photos', 'case', 4]`): tool 4 and case 4 are different cards that
   happen to share a number.
 
+## Importing from a shop
+
+`features/tools/components/ImportToolModal.tsx` is the other way a card starts:
+paste the address of a product page and it arrives with its parameters and its
+photographs already on it. The button sits beside **Dodaj** on the catalog
+screen, because typing from the plate and reading off the page the tool was
+bought from are the same errand.
+
+The dialog names the shops it can read before asking for anything —
+`GET /api/tools/import/sources` — so the answer to "why was my link refused" is
+on the screen that refused it. The same check runs here and on the server: here
+so nobody waits for a round trip to be told, there because that is where it is
+true.
+
+It says out loud that the import takes a while. Sixteen photographs are sixteen
+files fetched, converted and stored, which is around a dozen seconds — a
+spinner with nothing beside it is a spinner somebody thinks has hung.
+
+On success the screen goes straight to the new card. The point of importing is
+to look at what came in and correct the one field the shop had wrong.
+
 ## Tool parameters
 
 `components/AttributePanel.tsx` is what a particular machine is: mains voltage,

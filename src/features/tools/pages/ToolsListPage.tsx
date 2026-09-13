@@ -12,14 +12,15 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import { useDebouncedCallback } from '@mantine/hooks'
-import { IconPlus, IconSearch } from '@tabler/icons-react'
+import { useDebouncedCallback, useDisclosure } from '@mantine/hooks'
+import { IconDownload, IconPlus, IconSearch } from '@tabler/icons-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { fetchCategories, fetchTools } from '../../../api/tools'
 import { useSession } from '../../../session/SessionContext'
+import { ImportToolModal } from '../components/ImportToolModal'
 import { ToolCard } from '../components/ToolCard'
 import {
   offsetFromPage,
@@ -36,6 +37,7 @@ import { conditionOptions, toolCountLabel } from '../presentation'
 export function ToolsListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { can } = useSession()
+  const [importingOpen, importing] = useDisclosure(false)
 
   const query = readToolParams(searchParams)
 
@@ -82,9 +84,20 @@ export function ToolsListPage() {
         </Stack>
 
         {can('catalog.write') ? (
-          <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />}>
-            {t('Dodaj')}
-          </Button>
+          <Group gap="xs" wrap="nowrap">
+            {/* Beside Add, because it is the other way a card starts: typed
+                from the plate, or read off the page it was bought from. */}
+            <Button
+              variant="light"
+              leftSection={<IconDownload size={18} />}
+              onClick={importing.open}
+            >
+              {t('Importuj')}
+            </Button>
+            <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />}>
+              {t('Dodaj')}
+            </Button>
+          </Group>
         ) : null}
       </Group>
 
@@ -170,6 +183,7 @@ export function ToolsListPage() {
           ) : null}
         </>
       ) : null}
+      <ImportToolModal opened={importingOpen} onClose={importing.close} />
     </Stack>
   )
 }

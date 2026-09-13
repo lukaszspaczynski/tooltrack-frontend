@@ -1,5 +1,13 @@
 import { request } from './client'
-import type { AttributeNameCount, CategoryCount, ToolDetail, ToolFields, ToolPage } from './types'
+import type {
+  AttributeNameCount,
+  CategoryCount,
+  ImportSource,
+  ToolDetail,
+  ToolFields,
+  ToolImportResult,
+  ToolPage,
+} from './types'
 
 export type ToolQuery = {
   category: null | string
@@ -89,6 +97,20 @@ export function deleteAttribute(
 // "napięcie sieciowe" rather than four.
 export function fetchAttributeNames(): Promise<{ names: AttributeNameCount[] }> {
   return request('/tools/attributes')
+}
+
+// Making a card out of a shop's product page. The answer carries the card and
+// a tally of what came with it, because "imported" is a thing worth saying out
+// loud: sixteen photographs and twelve parameters is the difference between
+// this and typing the card by hand.
+export function importTool(url: string): Promise<ToolImportResult> {
+  return request('/tools/import', { body: { url }, method: 'POST' })
+}
+
+// Which shops the server can read. Asked before the dialog offers to read one,
+// so the screen never names a source this installation does not have.
+export function fetchImportSources(): Promise<{ sources: ImportSource[] }> {
+  return request('/tools/import/sources')
 }
 
 export function deleteTool(id: number): Promise<{ ok: true }> {
