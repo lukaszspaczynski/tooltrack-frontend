@@ -17,6 +17,7 @@ import {
   IconLogout,
   IconMoon,
   IconBox,
+  IconFileTypePdf,
   IconLayoutGrid,
   IconPhoto,
   IconSettings,
@@ -40,6 +41,9 @@ export function AppLayout() {
     location.pathname === '/' ||
     location.pathname.startsWith('/tools') ||
     location.pathname.startsWith('/brands')
+  // The documents have their own path under the tools, so the catalog must not
+  // light up while they are showing — the same rule the labels screen needs.
+  const manualsShowing = location.pathname.startsWith('/tools/manuals')
   const organizerSection = location.pathname.startsWith('/organizers')
   // The labels screen has its own path under the organizers, so the list of
   // arrangements must not light up while it is showing.
@@ -97,7 +101,20 @@ export function AppLayout() {
             component={Link}
             to="/"
             label={t('Katalog')}
-            active={location.pathname === '/' || location.pathname.startsWith('/tools')}
+            active={
+              location.pathname === '/' ||
+              (location.pathname.startsWith('/tools') && !manualsShowing)
+            }
+            onClick={close}
+          />
+          {/* The documents, under the tools: a manual is something a tool comes
+              with, the same way a maker is something it has. */}
+          <NavLink
+            component={Link}
+            to="/tools/manuals"
+            label={t('Instrukcje')}
+            leftSection={<IconFileTypePdf size={16} />}
+            active={manualsShowing}
             onClick={close}
           />
           <NavLink

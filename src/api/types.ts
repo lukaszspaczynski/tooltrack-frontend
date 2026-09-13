@@ -39,6 +39,22 @@ export type Manual = {
   url: string
 }
 
+// A manual as the library shows it: with the cards that keep it, because
+// "which tools is this the manual for" is the question that screen answers.
+export type LibraryManual = Manual & {
+  // The model as well as the name: a shelf of documents called "Instrukcja
+  // obsługi" on cards called "Sekator akumulatorowy" is told apart by the
+  // model and by nothing else.
+  tools: { id: number; model: string; name: string }[]
+}
+
+export type ManualLibraryPage = {
+  items: LibraryManual[]
+  limit: number
+  offset: number
+  total: number
+}
+
 // One parameter of one tool: mains voltage, speed, chuck size. The value
 // carries its unit — "230 V" rather than 230 — because half of these have no
 // unit anybody agrees on.
@@ -60,6 +76,10 @@ export type ToolDetail = Tool & {
 export type ImportSource = {
   host: string
   label: string
+  // Whether the page publishes documents at all. A shop that sells a tool is
+  // not obliged to host its manual, and most do not — so a screen asking for
+  // one offers only the sources that have any.
+  manuals: boolean
 }
 
 export type ToolImportResult = {

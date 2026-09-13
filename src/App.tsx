@@ -9,6 +9,7 @@ import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
 import { BrandsPage } from './features/brands/pages/BrandsPage'
 import { CasesListPage } from './features/cases/pages/CasesListPage'
 import { LabelsPage } from './features/organizers/pages/LabelsPage'
+import { ManualLibraryPage } from './features/manuals/pages/ManualLibraryPage'
 import { OrganizerDetailPage } from './features/organizers/pages/OrganizerDetailPage'
 import { OrganizersPage } from './features/organizers/pages/OrganizersPage'
 import { PhotoLibraryPage } from './features/media/pages/PhotoLibraryPage'
@@ -47,6 +48,17 @@ export function App() {
             element={
               <RequireCapability capability="catalog.write">
                 <ToolCreatePage />
+              </RequireCapability>
+            }
+          />
+          {/* Before the :id route, as on the server and as the labels screen
+            sits under the organizers: "manuals" must not be read as the id of
+            a tool. */}
+          <Route
+            path="tools/manuals"
+            element={
+              <RequireCapability capability="catalog.read">
+                <ManualLibraryPage />
               </RequireCapability>
             }
           />

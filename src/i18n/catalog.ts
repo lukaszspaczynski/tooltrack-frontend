@@ -215,6 +215,38 @@ export const EN: Record<string, string> = {
     'Imported: {photos} photos, {attributes} parameters',
   'Nie udało się zaimportować narzędzia': 'The tool could not be imported',
 
+  // The library of documents
+  'Dodaj instrukcję': 'Add a manual',
+  'Plik z dysku': 'A file on this device',
+  'Adres PDF': 'A PDF address',
+  'Adres pliku PDF': 'Address of the PDF',
+  'Karta produktu': 'A product page',
+  'Adres karty produktu': 'Address of the product page',
+  'Pobierze wszystkie instrukcje, które ta strona udostępnia':
+    'Fetches every manual that page publishes',
+  'Obsługiwane źródła:': 'Supported sources:',
+  'Pobrano {manuals}, nie udało się: {failed}': 'Fetched {manuals}, {failed} failed',
+  Narzędzie: 'Tool',
+  'Do którego narzędzia należy ten plik': 'Which tool this file belongs to',
+  'Wybierz plik PDF': 'Choose a PDF',
+  'Wszystkie pliki w systemie, niezależnie od narzędzia.':
+    'Every file in the system, whichever tool it belongs to.',
+  'Brak instrukcji': 'No manuals',
+  'Nie udało się wczytać instrukcji': 'The manuals could not be loaded',
+  'Nazwa instrukcji, narzędzie, model…': 'Manual title, tool, model…',
+  'Po nazwie pliku albo po narzędziu, do którego należy':
+    'By the file’s name, or by the tool it belongs to',
+  'Nie dodano jeszcze żadnej instrukcji. Robi się to na karcie narzędzia.':
+    'No manual has been added yet. They are added on a tool’s card.',
+  'Bez narzędzia': 'On no tool',
+  'Zaznacz instrukcję {title}': 'Select the manual {title}',
+  'Usunąć instrukcje?': 'Delete the manuals?',
+  '{manuals} zniknie z katalogu i z dysku. Tej operacji nie da się cofnąć.':
+    '{manuals} will disappear from the catalog and from the disk. This cannot be undone.',
+  'Zniknie też z kart narzędzi': 'It goes off these tool cards too',
+  'Usunięto {manuals}': 'Deleted {manuals}',
+  'Usunięto {manuals} z {n} kart': 'Deleted {manuals} from {n} cards',
+
   // The manuals kept beside a tool
   Instrukcje: 'Manuals',
   'Instrukcja dodana': 'Manual added',

@@ -33,6 +33,7 @@ import {
   uploadManual,
 } from '../../../api/manuals'
 import { apiFileUrl } from '../../../api/client'
+import { fetchImportSources } from '../../../api/tools'
 import type { Manual } from '../../../api/types'
 import { COUNTS, t, tCount, tDate } from '../../../i18n'
 
@@ -63,6 +64,21 @@ export function ManualPanel({
     queryKey: ['tool-manuals', toolId],
     queryFn: () => fetchManuals(toolId),
   })
+
+  // Whether the page this card came from publishes documents at all. Most
+  // shops do not: the tool is theirs to sell and the manual is the maker's to
+  // publish, and a button promising a file that cannot arrive is worse than no
+  // button.
+  const sources = useQuery({
+    queryKey: ['tool-import-sources'],
+    queryFn: fetchImportSources,
+    enabled: canEdit && reference.length > 0,
+    staleTime: 60 * 60 * 1000,
+  })
+
+  const pageHasManuals = (sources.data?.sources ?? []).some(
+    (source) => source.manuals && hostOf(reference).endsWith(source.host),
+  )
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['tool-manuals', toolId] })
   const failed = (error: unknown) =>
@@ -218,7 +234,7 @@ export function ManualPanel({
 
             {/* One press when the card was imported: the address it came from
                 is already written on it. */}
-            {reference ? (
+            {reference && pageHasManuals ? (
               <Button
                 variant="light"
                 color="gray"
@@ -309,4 +325,14 @@ function megabytes(bytes: number): string {
   return bytes >= 1024 * 1024
     ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
     : `${Math.max(Math.round(bytes / 1024), 1)} kB`
+}
+
+// The host of the address a card was read from, with the www. off: the sources
+// are listed under their bare name.
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return ''
+  }
 }

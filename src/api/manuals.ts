@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { Manual } from './types'
+import type { Manual, ManualLibraryPage } from './types'
 
 // The manuals of one tool. Three ways in, because that is how a PDF actually
 // reaches somebody: the file is on this laptop, it is one link away on the
@@ -54,4 +54,40 @@ export function renameManual(
 
 export function deleteManual(toolId: number, manualId: number): Promise<{ ok: true }> {
   return request(`/tools/${toolId}/manuals/${manualId}`, { method: 'DELETE' })
+}
+
+// Every manual there is, whichever tool keeps it. The shelf rather than the
+// drawer, the same split the photo library makes.
+export function fetchManualLibrary(query: {
+  limit: number
+  offset: number
+  search: null | string
+}): Promise<ManualLibraryPage> {
+  const search = new URLSearchParams()
+  if (query.search) search.set('q', query.search)
+  search.set('limit', String(query.limit))
+  if (query.offset > 0) search.set('offset', String(query.offset))
+
+  return request('/manuals', { search })
+}
+
+// Renaming from the library, where the document is not being looked at through
+// any one card.
+export function retitleManual(manualId: number, title: string): Promise<{ manual: Manual }> {
+  return request(`/manuals/${manualId}`, { body: { title }, method: 'PATCH' })
+}
+
+// Off every card at once and off the disk — a different decision from taking
+// one off a card, which is what the panel's bin does.
+export function deleteManuals(
+  ids: number[],
+): Promise<{ deleted: number; tools: { id: number; name: string }[] }> {
+  return request('/manuals/delete', { body: { ids }, method: 'POST' })
+}
+
+export function attachManuals(
+  toolId: number,
+  ids: number[],
+): Promise<{ attached: number; manuals: Manual[] }> {
+  return request(`/tools/${toolId}/manuals/attach`, { body: { ids }, method: 'POST' })
 }

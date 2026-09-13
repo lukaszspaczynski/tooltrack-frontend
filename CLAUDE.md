@@ -80,6 +80,23 @@ spinner with nothing beside it is a spinner somebody thinks has hung.
 On success the screen goes straight to the new card. The point of importing is
 to look at what came in and correct the one field the shop had wrong.
 
+The library screen, `features/manuals/`, is to that panel what the photo
+library is to a gallery: every document the catalog holds, with the cards that
+keep each one, searchable by the tool as well as by the title — a file called
+"Instrukcja obsługi" is findable only by the machine it is for. It hangs under
+**Narzędzia** in the menu, because a manual is something a tool comes with, the
+same way a maker is something it has.
+
+Deleting there is deliberately not the bin on a card. The panel's bin means
+"not on this tool"; the library's means "not in the catalog", so it takes the
+file off every card at once and the confirmation names them.
+
+Adding works from either place. On the library screen it asks **which tool**
+first and will not send anything without one: a document with no tool is one
+nobody will ever look for, and the rule that clears unused files would treat it
+as an orphan. The picker shows the model beside the name, because a shelf of
+cards called "Sekator akumulatorowy" is told apart by that and nothing else.
+
 ## Tool parameters
 
 `components/AttributePanel.tsx` is what a particular machine is: mains voltage,
