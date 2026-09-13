@@ -39,6 +39,7 @@ import {
   updateCase,
 } from '../../../api/cases'
 import { fetchOrganizersOfCase } from '../../../api/organizers'
+import { fetchExclusivePhotos } from '../../../api/photos'
 import type { CaseFields, ToolCase } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
@@ -82,6 +83,16 @@ export function CaseDetailPage() {
     queryKey: ['organizers', 'of-case', caseId],
     queryFn: () => fetchOrganizersOfCase(caseId),
     enabled: confirmOpen && Number.isInteger(caseId),
+  })
+
+  // And the other thing that goes with it. The pictures this box is the only
+  // home of are deleted with it; one that a tool card shows, or that a maker
+  // uses as its logo, stays. Same question the tool card asks.
+  const doomedPhotos = useQuery({
+    queryKey: ['case-photos-exclusive', caseId],
+    queryFn: () => fetchExclusivePhotos({ id: caseId, kind: 'case' }),
+    enabled: confirmOpen && Number.isInteger(caseId),
+    staleTime: 0,
   })
 
   // Label slots go in and out one at a time, immediately, unlike the fields
@@ -305,13 +316,20 @@ export function CaseDetailPage() {
       <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć skrzynkę?')} centered>
         <Stack gap="md">
           <Text size="sm">
-            {t(
-              'Skrzynka „{name}” zniknie z listy razem ze swoimi zdjęciami. Tej operacji nie da się cofnąć.',
-              {
-                name: item.name,
-              },
-            )}
+            {t('Skrzynka „{name}” zniknie z listy. Tej operacji nie da się cofnąć.', {
+              name: item.name,
+            })}
           </Text>
+
+          {/* "Razem ze swoimi zdjęciami" used to be the whole of it, and it was
+              not true of all of them: what goes is what nothing else holds. */}
+          {doomedPhotos.data && doomedPhotos.data.photos.length > 0 ? (
+            <Text size="sm">
+              {t('Zniknie z nią {photos} — te, których nie pokazuje żadna inna karta.', {
+                photos: tCount(COUNTS.photo, doomedPhotos.data.photos.length),
+              })}
+            </Text>
+          ) : null}
 
           {organizers.data && organizers.data.total > 0 ? (
             <Alert

@@ -31,8 +31,8 @@ export const EN: Record<string, string> = {
   'Utworzono kopię „{name}”': 'Copy made: “{name}”',
   'Karta „{name}” zniknie z katalogu. Tej operacji nie da się cofnąć.':
     'The card “{name}” will disappear from the catalog. This cannot be undone.',
-  'Skrzynka „{name}” zniknie z listy razem ze swoimi zdjęciami. Tej operacji nie da się cofnąć.':
-    'The case “{name}” will disappear from the list along with its photos. This cannot be undone.',
+  'Skrzynka „{name}” zniknie z listy. Tej operacji nie da się cofnąć.':
+    'The case “{name}” will disappear from the list. This cannot be undone.',
   'Zniknie też {n} organizerów tej skrzynki': '{n} arrangements of this case go with it',
   'Usuń miejsce {width} na {height}': 'Delete the {width} by {height} place',
   'Zmiana nazwy poprawi ją też na {tools}.': 'Renaming corrects it on {tools} as well.',
