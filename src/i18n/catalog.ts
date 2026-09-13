@@ -200,6 +200,22 @@ export const EN: Record<string, string> = {
   'Katalog narzędzi budowlanych. Wiesz, co masz i w jakim jest stanie.':
     'A catalog of construction tools. You know what you have and what state it is in.',
 
+  // Reading the page again into a card that exists
+  Aktualizuj: 'Update',
+  'Aktualizuj z karty produktu': 'Update from the product page',
+  'Zostanie nadpisane': 'Will be overwritten',
+  'Marka, model, kategoria i opis': 'Make, model, category and description',
+  'Parametry — wszystkie, łącznie z dopisanymi ręcznie':
+    'Parameters — all of them, including the ones typed by hand',
+  'Instrukcje — stare znikają, przychodzą te ze strony':
+    'Manuals — the old ones go, the page’s come in',
+  'Zostaje bez zmian': 'Left alone',
+  'Nazwa, numer seryjny i stan': 'The name, the serial number and the condition',
+  'Zdjęcia — także te wgrane ręcznie': 'Photos — including the ones uploaded by hand',
+  'Zaktualizowano: {attributes} parametrów, {manuals}':
+    'Updated: {attributes} parameters, {manuals}',
+  'Nie udało się zaktualizować narzędzia': 'The tool could not be updated',
+
   // Importing a card from a shop's page
   Importuj: 'Import',
   'Importuj ze strony sklepu': 'Import from a shop page',

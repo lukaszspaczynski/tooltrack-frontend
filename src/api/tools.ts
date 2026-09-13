@@ -107,6 +107,13 @@ export function importTool(url: string): Promise<ToolImportResult> {
   return request('/tools/import', { body: { url }, method: 'POST' })
 }
 
+// Reading the page again into a card that exists: the maker, the model, the
+// category, the description, the spec sheet and the documents are overwritten;
+// the name, the serial number, the condition and the photographs are not.
+export function refreshToolFromPage(toolId: number, url: string): Promise<ToolImportResult> {
+  return request(`/tools/${toolId}/import`, { body: { url }, method: 'POST' })
+}
+
 // Which shops the server can read. Asked before the dialog offers to read one,
 // so the screen never names a source this installation does not have.
 export function fetchImportSources(): Promise<{ sources: ImportSource[] }> {

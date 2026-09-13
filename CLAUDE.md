@@ -97,6 +97,14 @@ nobody will ever look for, and the rule that clears unused files would treat it
 as an orphan. The picker shows the model beside the name, because a shelf of
 cards called "Sekator akumulatorowy" is told apart by that and nothing else.
 
+`RefreshFromPageModal` is the same errand done by somebody else: the maker
+corrected a spec, added a manual, renamed the model. It starts from the card's
+own **Referencja** and says what it will overwrite before it does — two of
+those lines are destructive, since the parameters and the documents are cleared
+and written again rather than merged, a hand-typed parameter included. What it
+will not touch is listed beside it: the name, the serial number, the condition
+and the photographs.
+
 ## Tool parameters
 
 `components/AttributePanel.tsx` is what a particular machine is: mains voltage,

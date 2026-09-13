@@ -15,7 +15,7 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconChevronLeft, IconCopy, IconPencil, IconTrash } from '@tabler/icons-react'
+import { IconChevronLeft, IconCopy, IconPencil, IconRefresh, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -27,6 +27,7 @@ import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import { useSession } from '../../../session/SessionContext'
 import { AttributePanel } from '../components/AttributePanel'
+import { RefreshFromPageModal } from '../components/RefreshFromPageModal'
 import { ManualPanel } from '../components/ManualPanel'
 import { ToolForm } from '../components/ToolForm'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
@@ -41,6 +42,7 @@ export function ToolDetailPage() {
 
   const [editing, setEditing] = useState(false)
   const [confirmOpen, confirm] = useDisclosure(false)
+  const [refreshingOpen, refreshing] = useDisclosure(false)
 
   const query = useQuery({
     queryKey: ['tool', toolId],
@@ -127,6 +129,11 @@ export function ToolDetailPage() {
   }
 
   const tool = query.data.tool
+  // Where this card was read from, when it was read from anywhere: what the
+  // update starts with, and what tells the manuals panel whether the maker
+  // publishes documents.
+  const reference =
+    tool.attributes.find((attribute) => attribute.name === 'Referencja')?.value ?? ''
   const serialConflict =
     save.error instanceof ApiError && save.error.status === 409 ? save.error.message : null
 
@@ -158,6 +165,17 @@ export function ToolDetailPage() {
               onClick={() => setEditing(true)}
             >
               {t('Edytuj')}
+            </Button>
+            {/* Reading the page this card came from again. Beside Edit,
+                because it is the same errand done by somebody else: the maker
+                corrected a spec, added a manual, renamed the model. */}
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<IconRefresh size={18} />}
+              onClick={refreshing.open}
+            >
+              {t('Aktualizuj')}
             </Button>
             <Button
               variant="light"
@@ -212,13 +230,7 @@ export function ToolDetailPage() {
           imported from is one of its parameters, so fetching the maker's PDFs
           is one press rather than a hunt. */}
       <Paper withBorder p="lg" radius="md">
-        <ManualPanel
-          canEdit={can('catalog.write')}
-          reference={
-            tool.attributes.find((attribute) => attribute.name === 'Referencja')?.value ?? ''
-          }
-          toolId={tool.id}
-        />
+        <ManualPanel canEdit={can('catalog.write')} reference={reference} toolId={tool.id} />
       </Paper>
 
       {/* Outside the editing form on purpose: photos are added and removed one
@@ -233,6 +245,13 @@ export function ToolDetailPage() {
           searchQuery={[tool.brand, tool.model].filter(Boolean).join(' ') || tool.name}
         />
       </Paper>
+
+      <RefreshFromPageModal
+        opened={refreshingOpen}
+        onClose={refreshing.close}
+        reference={reference}
+        toolId={tool.id}
+      />
 
       <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć kartę?')} centered>
         <Stack gap="md">
