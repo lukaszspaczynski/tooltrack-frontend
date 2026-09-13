@@ -32,8 +32,11 @@ import type { LabelListItem } from '../../../api/types'
 import { useSession } from '../../../session/SessionContext'
 import { formatDateTime } from '../../tools/presentation'
 import {
+  allShownCount,
+  keepVisibleSelection,
   LABEL_PAGE_SIZE,
   labelListPage,
+  labelsBeyondAll,
   readLabelListParams,
   refreshBatches,
   showingAll,
@@ -65,12 +68,12 @@ export function LabelsPage() {
   const query = readLabelListParams(searchParams)
   const [searchText, setSearchText] = useState(query.search ?? '')
   // Ids rather than the labels themselves, so a list that changed underneath
-  // cannot leave stale copies in state.
-  const [selected, setSelected] = useState<number[]>([])
+  // cannot leave stale copies in state. What is ticked and what counts as
+  // selected are not the same thing — see `selected` below.
+  const [ticked, setTicked] = useState<number[]>([])
 
   const apply = (changes: Parameters<typeof withLabelFilter>[1]) => {
     setSearchParams(writeLabelListParams(withLabelFilter(query, changes)), { replace: true })
-    setSelected([])
   }
 
   const applySearch = useDebouncedCallback((value: string) => {
@@ -93,15 +96,23 @@ export function LabelsPage() {
       let refreshed = 0
 
       for (const batch of refreshBatches(labelIds)) {
-        const result = await refreshAllLabels(batch)
-        failed.push(...result.failed)
-        refreshed += result.refreshed
+        try {
+          const result = await refreshAllLabels(batch)
+          failed.push(...result.failed)
+          refreshed += result.refreshed
+        } catch (error) {
+          // A batch that never answered must not throw away the ones before
+          // it: those labels were drawn again on the server, and a mutation
+          // that rejects here would leave their tiles showing the old picture
+          // and say nothing about which half succeeded.
+          failed.push(...batch.map((id) => ({ error: (error as Error).message, id })))
+        }
       }
 
       return { failed, refreshed }
     },
     onSuccess: async ({ failed, refreshed }) => {
-      setSelected([])
+      setTicked([])
       await queryClient.invalidateQueries({ queryKey: ['labels'] })
       // The organizer screens show the same rows, and a redrawn label is a new
       // file behind the same id.
@@ -116,9 +127,12 @@ export function LabelsPage() {
           ? { color: 'teal', message: `Narysowano od nowa: ${refreshed}` }
           : {
               color: 'orange',
-              message: `Narysowano od nowa: ${refreshed}. Nie udało się: ${failed
-                .map((entry) => entry.error)
-                .join('; ')}`,
+              // One line per reason rather than per label: a batch that timed
+              // out fails fifty at once, and fifty copies of one sentence is
+              // not a message anybody reads.
+              message: `Narysowano od nowa: ${refreshed}. Nie udało się (${failed.length}): ${[
+                ...new Set(failed.map((entry) => entry.error)),
+              ].join('; ')}`,
             },
       )
     },
@@ -129,16 +143,31 @@ export function LabelsPage() {
   const total = labels.data?.total ?? 0
   const all = showingAll(query)
   const pages = Math.max(Math.ceil(total / LABEL_PAGE_SIZE), 1)
+  // Everything past the server's ceiling: shown nowhere on this view, so the
+  // screen says so rather than counting to three hundred and drawing two.
+  const beyond = all ? labelsBeyondAll(total) : 0
+  // The rows on the screen belong to the query that answered, not the one in
+  // the address bar: `keepPreviousData` leaves the previous page up while the
+  // next is fetched, and a checkbox promising two hundred while twenty-four are
+  // displayed would tick twenty-four.
+  const settled = !labels.isPending && !labels.isPlaceholderData
+  const visibleIds = items.map((item) => item.id)
+  // Narrowed to the rows on the screen while rendering rather than cleared by
+  // whoever changed the address bar: a tick on a label nobody can see would
+  // print on a sheet the screen never showed, and history's back button writes
+  // the URL without asking this page first. Widening the view is the case it
+  // gets right for free — those rows are still there, so they stay ticked.
+  const selected = keepVisibleSelection(ticked, visibleIds)
 
   const show = (everything: boolean) => {
     setSearchParams(writeLabelListParams(withAllShown(query, everything)))
-    setSelected([])
     window.scrollTo({ top: 0 })
   }
   // Asked of the labels rather than by counting: the selection can still hold
   // the id of one deleted in another tab, and two lists of the same length
   // would then look like the same list.
   const allOnPageSelected = items.length > 0 && items.every((item) => selected.includes(item.id))
+  const someOnPageSelected = items.some((item) => selected.includes(item.id))
 
   return (
     <Stack gap="md">
@@ -219,17 +248,27 @@ export function LabelsPage() {
 
       {labels.data ? (
         <Group justify="space-between">
-          <Text size="sm" c="dimmed">
-            {total === 0 ? 'Brak etykiet' : `${total} etykiet`}
-          </Text>
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">
+              {total === 0
+                ? 'Brak etykiet'
+                : beyond > 0
+                  ? `${allShownCount(total)} z ${total} etykiet — resztę widać po stronach`
+                  : `${total} etykiet`}
+            </Text>
+            {/* Two hundred tiles and their previews take seconds to arrive, and
+                a screen that looks unchanged is one somebody clicks again. */}
+            {labels.isFetching ? <Loader size="xs" /> : null}
+          </Group>
           {items.length > 0 ? (
             <Checkbox
-              label={all ? 'Zaznacz wszystkie' : 'Zaznacz wszystkie na tej stronie'}
+              label={all && beyond === 0 ? 'Zaznacz wszystkie' : 'Zaznacz wszystkie na tej stronie'}
               checked={allOnPageSelected}
-              indeterminate={!allOnPageSelected && items.some((item) => selected.includes(item.id))}
-              onChange={(event) =>
-                setSelected(event.currentTarget.checked ? items.map((item) => item.id) : [])
-              }
+              indeterminate={!allOnPageSelected && someOnPageSelected}
+              // While the next page is on its way the rows below are the
+              // previous one's, and ticking them is not what the box says.
+              disabled={!settled}
+              onChange={(event) => setTicked(event.currentTarget.checked ? visibleIds : [])}
             />
           ) : null}
         </Group>
@@ -252,7 +291,7 @@ export function LabelsPage() {
             label={label}
             onRedraw={() => redraw.mutate([label.id])}
             onToggle={() =>
-              setSelected((current) =>
+              setTicked((current) =>
                 current.includes(label.id)
                   ? current.filter((id) => id !== label.id)
                   : [...current, label.id],
@@ -267,7 +306,7 @@ export function LabelsPage() {
           is on the screen — it is cleared on every turn of the page — so
           gathering thirty labels for one print sheet means seeing thirty at
           once. */}
-      {total > LABEL_PAGE_SIZE ? (
+      {all || total > LABEL_PAGE_SIZE ? (
         <Group justify="center" mt="sm" gap="sm">
           {all ? null : (
             <Pagination
@@ -277,13 +316,16 @@ export function LabelsPage() {
                 setSearchParams(
                   writeLabelListParams({ ...query, offset: (page - 1) * LABEL_PAGE_SIZE }),
                 )
-                setSelected([])
                 window.scrollTo({ top: 0 })
               }}
             />
           )}
+          {/* The way back is drawn whenever the list is showing everything,
+              not only when the count says it is worth paging: a filter that
+              narrows to ten rows, or a request that failed and left none,
+              would otherwise strand the screen in a view it cannot leave. */}
           <Button variant="subtle" size="sm" onClick={() => show(!all)}>
-            {all ? 'Po stronach' : `Wszystkie (${total})`}
+            {all ? 'Po stronach' : `Wszystkie (${allShownCount(total)})`}
           </Button>
         </Group>
       ) : null}
@@ -325,6 +367,10 @@ function LabelTile({
                 alt={`Etykieta ${label.widthMm} × ${label.heightMm} mm`}
                 h={110}
                 fit="contain"
+                // Two hundred tiles on one screen is two hundred preview files:
+                // asked for eagerly, that is the whole shelf downloaded to show
+                // the first row of it.
+                loading="lazy"
               />
             ) : (
               <Group h={110} justify="center">

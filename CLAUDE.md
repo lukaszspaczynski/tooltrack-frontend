@@ -178,10 +178,19 @@ defaults" would be two sets of rules that agree until one of them is edited.
 
 Next to the pager sits **Wszystkie (n)**, which drops the paging and puts the
 whole result on one page. It is there because a selection is about what is on
-the screen — it is cleared on every turn of the page — so gathering thirty
-labels for one print sheet means seeing thirty at once. The state is `all=1` in
-the URL like every other list setting, and the API's own ceiling of 200 is what
-"all" asks for, which is also the most labels one sheet will draw.
+the screen — a tick on a row nobody can see would print on the sheet — so
+gathering thirty labels for one print sheet means seeing thirty at once. The
+state is `all=1` in the URL like every other list setting, and the API's own
+ceiling of 200 is what "all" asks for, which is also the most labels one sheet
+will draw. `n` is therefore what the screen can show and not what exists: past
+the ceiling the count line says so and the way back to the pages stays put,
+since that is where the rest is read.
+
+That rule is kept by narrowing rather than clearing: `keepVisibleSelection`
+runs while rendering and drops whatever is not on the screen, so turning the
+page, filtering, and the back button all behave without anybody remembering to
+call a reset — and widening the view, the one case where the ticked rows are
+still there, keeps them.
 
 The selection is also what **Arkusz do druku** prints: one A4 with all of them
 ganged onto it, which is what a batch is printed from — the per-label PDF has a

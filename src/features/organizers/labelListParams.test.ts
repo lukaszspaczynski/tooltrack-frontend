@@ -2,9 +2,12 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  allShownCount,
+  keepVisibleSelection,
   LABEL_ALL_LIMIT,
   LABEL_PAGE_SIZE,
   labelListPage,
+  labelsBeyondAll,
   readLabelListParams,
   refreshBatches,
   REFRESH_BATCH_SIZE,
@@ -110,4 +113,34 @@ test('a selection larger than the server takes is sent in batches', () => {
 
 test('nothing selected is nothing to send', () => {
   assert.deepEqual(refreshBatches([]), [])
+})
+
+test('the button promises what it can show, not what exists', () => {
+  // The server refuses more than its ceiling, so "Wszystkie (300)" followed by
+  // two hundred tiles would be the screen lying about what it is about to do.
+  assert.equal(allShownCount(12), 12)
+  assert.equal(allShownCount(LABEL_ALL_LIMIT), LABEL_ALL_LIMIT)
+  assert.equal(allShownCount(LABEL_ALL_LIMIT + 51), LABEL_ALL_LIMIT)
+
+  assert.equal(labelsBeyondAll(12), 0)
+  assert.equal(labelsBeyondAll(LABEL_ALL_LIMIT + 51), 51)
+})
+
+test('ticks survive the view widening and die with the rows', () => {
+  // Pressing "Wszystkie" to finish gathering a sheet must not throw away what
+  // was already ticked: those labels are still on the screen. Turning the page
+  // is the other case, and there the ticks have to go.
+  const selected = [4, 7, 9]
+
+  assert.deepEqual(keepVisibleSelection(selected, [1, 4, 7, 9, 12]), selected)
+  assert.deepEqual(keepVisibleSelection(selected, [7, 12]), [7])
+  assert.deepEqual(keepVisibleSelection(selected, []), [])
+})
+
+test('a page that did not change leaves the selection alone', () => {
+  // Re-reading the same rows after a redraw must not count as a change: a new
+  // array here would restart every effect watching the selection.
+  const selected = [4, 7]
+
+  assert.equal(keepVisibleSelection(selected, [4, 7]), selected)
 })

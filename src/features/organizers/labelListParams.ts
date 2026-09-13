@@ -9,7 +9,7 @@ export const LABEL_PAGE_SIZE = 24
 // What "wszystkie" asks for: the server's own ceiling on this list. A shelf of
 // labels is hundreds at most, so one page of them is a page and not a denial
 // of service — and the button that turns it on says how many it is about to
-// show.
+// show, which is this and not the total when a shelf runs past it.
 export const LABEL_ALL_LIMIT = 200
 
 // The server takes at most fifty ids per redraw. The screen may hold more than
@@ -65,6 +65,35 @@ export function showingAll(query: LabelQuery): boolean {
 // of a paged list is nowhere in particular once the list stops being paged.
 export function withAllShown(query: LabelQuery, all: boolean): LabelQuery {
   return { ...query, limit: all ? LABEL_ALL_LIMIT : LABEL_PAGE_SIZE, offset: 0 }
+}
+
+// How many rows "wszystkie" will really put on the screen. The server refuses
+// more than its own ceiling, so a button promising every one of three hundred
+// labels and then showing two hundred would be the screen lying about what it
+// is about to do.
+export function allShownCount(total: number): number {
+  return Math.min(total, LABEL_ALL_LIMIT)
+}
+
+// The rows one screenful cannot reach. Not nothing: they are still there, and
+// the paged view is where they are read — which is why the way back to it stays
+// on the screen while this is above zero.
+export function labelsBeyondAll(total: number): number {
+  return Math.max(total - LABEL_ALL_LIMIT, 0)
+}
+
+// A selection is about what is on the screen. Turning the page, changing a
+// filter or coming back through history changes the rows underneath it, and a
+// tick left on a row nobody can see would put a label on the print sheet the
+// screen never showed. Widening the view is the case this gets right for free:
+// the ticked rows are still there, so they stay ticked.
+export function keepVisibleSelection(selected: number[], visibleIds: number[]): number[] {
+  const onScreen = new Set(visibleIds)
+  const kept = selected.filter((id) => onScreen.has(id))
+
+  // The same array when nothing left the screen, so re-reading the same page
+  // does not count as a change in state.
+  return kept.length === selected.length ? selected : kept
 }
 
 export function labelListPage(query: LabelQuery): number {
