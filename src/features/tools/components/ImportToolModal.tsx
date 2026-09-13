@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { ApiError } from '../../../api/client'
 import { fetchImportSources, importTool } from '../../../api/tools'
-import { t } from '../../../i18n'
+import { COUNTS, t, tCount } from '../../../i18n'
 
 // Making a card out of a shop's product page: paste the address, and the card
 // arrives with its parameters and its photographs already on it.
@@ -42,10 +42,16 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
 
       notifications.show({
         color: 'teal',
-        message: t('Zaimportowano: {photos} zdjęć, {attributes} parametrów', {
-          attributes: imported.attributes,
-          photos: imported.photos,
-        }),
+        message: imported.manuals
+          ? t('Zaimportowano: {photos} zdjęć, {attributes} parametrów, {manuals}', {
+              attributes: imported.attributes,
+              manuals: tCount(COUNTS.manual, imported.manuals),
+              photos: imported.photos,
+            })
+          : t('Zaimportowano: {photos} zdjęć, {attributes} parametrów', {
+              attributes: imported.attributes,
+              photos: imported.photos,
+            }),
       })
 
       // Straight to the card: the point of importing is to look at what came

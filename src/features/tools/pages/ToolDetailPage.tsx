@@ -27,6 +27,7 @@ import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import { useSession } from '../../../session/SessionContext'
 import { AttributePanel } from '../components/AttributePanel'
+import { ManualPanel } from '../components/ManualPanel'
 import { ToolForm } from '../components/ToolForm'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime } from '../presentation'
@@ -203,6 +204,19 @@ export function ToolDetailPage() {
         <AttributePanel
           attributes={tool.attributes}
           canEdit={can('catalog.write')}
+          toolId={tool.id}
+        />
+      </Paper>
+
+      {/* The documents that belong beside the tool. The address the card was
+          imported from is one of its parameters, so fetching the maker's PDFs
+          is one press rather than a hunt. */}
+      <Paper withBorder p="lg" radius="md">
+        <ManualPanel
+          canEdit={can('catalog.write')}
+          reference={
+            tool.attributes.find((attribute) => attribute.name === 'Referencja')?.value ?? ''
+          }
           toolId={tool.id}
         />
       </Paper>

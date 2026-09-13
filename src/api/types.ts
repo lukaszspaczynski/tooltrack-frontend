@@ -25,6 +25,20 @@ export type Tool = {
   updatedBy: null | number
 }
 
+// A PDF kept beside a tool: the manual from the box, a parts diagram, a safety
+// sheet. It belongs to the model rather than to one machine, so the same file
+// can hang on several cards.
+export type Manual = {
+  byteSize: number
+  createdAt: string
+  createdBy: null | number
+  id: number
+  source: 'import' | 'upload' | 'url'
+  sourceUrl: string
+  title: string
+  url: string
+}
+
 // One parameter of one tool: mains voltage, speed, chuck size. The value
 // carries its unit — "230 V" rather than 230 — because half of these have no
 // unit anybody agrees on.
@@ -54,6 +68,9 @@ export type ToolImportResult = {
     // Parameters the page listed that the card would not take. Named rather
     // than counted: the person can add the one that matters by hand.
     attributesFailed: string[]
+    // The PDFs the page published, when it published any. Most shops do not.
+    manuals: number
+    manualsFailed: number
     photos: number
     photosFailed: number
     sourceUrl: string

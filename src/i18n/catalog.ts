@@ -14,6 +14,7 @@ import type { CountForms } from './lang'
 export const COUNTS = {
   case: { en: ['case', 'cases', 'cases'], pl: ['skrzynka', 'skrzynki', 'skrzynek'] },
   label: { en: ['label', 'labels', 'labels'], pl: ['etykieta', 'etykiety', 'etykiet'] },
+  manual: { en: ['manual', 'manuals', 'manuals'], pl: ['instrukcję', 'instrukcje', 'instrukcji'] },
   photo: { en: ['photo', 'photos', 'photos'], pl: ['zdjęcie', 'zdjęcia', 'zdjęć'] },
   place: { en: ['place', 'places', 'places'], pl: ['miejsce', 'miejsca', 'miejsc'] },
   tool: { en: ['tool', 'tools', 'tools'], pl: ['narzędzie', 'narzędzia', 'narzędzi'] },
@@ -208,9 +209,28 @@ export const EN: Record<string, string> = {
   'Ten sklep nie jest obsługiwany': 'That shop is not supported',
   'Import pobiera wszystkie zdjęcia i parametry, więc może potrwać kilkanaście sekund.':
     'The import fetches every photo and parameter, so it can take a good few seconds.',
+  'Zaimportowano: {photos} zdjęć, {attributes} parametrów, {manuals}':
+    'Imported: {photos} photos, {attributes} parameters, {manuals}',
   'Zaimportowano: {photos} zdjęć, {attributes} parametrów':
     'Imported: {photos} photos, {attributes} parameters',
   'Nie udało się zaimportować narzędzia': 'The tool could not be imported',
+
+  // The manuals kept beside a tool
+  Instrukcje: 'Manuals',
+  'Instrukcja dodana': 'Manual added',
+  'Nazwa instrukcji': 'Manual title',
+  'Zmień nazwę': 'Rename',
+  'Zmień nazwę instrukcji {title}': 'Rename the manual {title}',
+  'Usuń instrukcję': 'Delete manual',
+  'Usuń instrukcję {title}': 'Delete the manual {title}',
+  'Wgraj PDF': 'Upload a PDF',
+  'Albo wklej adres pliku PDF': 'Or paste the address of a PDF',
+  'Pobierz ze strony producenta': 'Fetch from the maker’s page',
+  'Pobrano {manuals}': 'Fetched {manuals}',
+  'Brak instrukcji. Wgraj plik PDF, wklej adres albo pobierz ze strony producenta.':
+    'No manuals. Upload a PDF, paste an address, or fetch them from the maker’s page.',
+  'Nikt nie dodał jeszcze instrukcji do tego narzędzia.':
+    'Nobody has added a manual to this tool yet.',
 
   // What a tool is: the parameters off its rating plate
   Parametry: 'Parameters',
