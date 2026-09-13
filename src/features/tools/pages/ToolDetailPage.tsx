@@ -25,6 +25,7 @@ import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/t
 import type { Tool, ToolFields } from '../../../api/types'
 import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
+import { AttributePanel } from '../components/AttributePanel'
 import { ToolForm } from '../components/ToolForm'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime } from '../presentation'
@@ -184,6 +185,16 @@ export function ToolDetailPage() {
         ) : (
           <ToolDetails tool={tool} />
         )}
+      </Paper>
+
+      {/* What this particular machine is. Outside the editing form for the same
+          reason the photos are: one parameter at a time, immediately. */}
+      <Paper withBorder p="lg" radius="md">
+        <AttributePanel
+          attributes={tool.attributes}
+          canEdit={can('catalog.write')}
+          toolId={tool.id}
+        />
       </Paper>
 
       {/* Outside the editing form on purpose: photos are added and removed one

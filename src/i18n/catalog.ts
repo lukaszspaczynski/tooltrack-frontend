@@ -199,6 +199,23 @@ export const EN: Record<string, string> = {
   'Katalog narzędzi budowlanych. Wiesz, co masz i w jakim jest stanie.':
     'A catalog of construction tools. You know what you have and what state it is in.',
 
+  // What a tool is: the parameters off its rating plate
+  Parametry: 'Parameters',
+  'Nazwa parametru': 'Parameter name',
+  Wartość: 'Value',
+  'Razem z jednostką': 'With its unit',
+  'np. Napięcie sieciowe': 'e.g. Mains voltage',
+  'np. 230 V': 'e.g. 230 V',
+  'Parametr dodany': 'Parameter added',
+  'Edytuj parametr': 'Edit parameter',
+  'Edytuj parametr {name}': 'Edit the parameter {name}',
+  'Usuń parametr': 'Delete parameter',
+  'Usuń parametr {name}': 'Delete the parameter {name}',
+  'Nic tu jeszcze nie zapisano. Wpisz to, co stoi na tabliczce znamionowej.':
+    'Nothing written down yet. Put in what the rating plate says.',
+  'Nikt nie zapisał jeszcze parametrów tego narzędzia.':
+    'Nobody has written down this tool’s parameters yet.',
+
   // Tools
   'Nowe narzędzie': 'New tool',
   'Dodaj narzędzie': 'Add a tool',

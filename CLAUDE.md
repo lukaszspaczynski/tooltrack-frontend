@@ -59,6 +59,28 @@ query]`, `['tool', id]`, `['tool-categories']`, `['users']`, `['session']`.
   (`['card-photos', 'case', 4]`): tool 4 and case 4 are different cards that
   happen to share a number.
 
+## Tool parameters
+
+`components/AttributePanel.tsx` is what a particular machine is: mains voltage,
+speed, chuck, weight — a name and a value per row, `n` rows per card. It sits
+outside the editing form for the same reason `PhotoPanel` does: a parameter is
+added, corrected and removed one at a time and immediately, while the fields of
+the card are edited and then saved together.
+
+Every call answers with the whole tool, so the panel replaces `['tool', id]`
+rather than merging a row into what it holds — there is no local list to drift
+from the server's. The name input is an `Autocomplete` over
+`GET /api/tools/attributes`, the names other cards already use, because a
+catalog with four spellings of "napięcie sieciowe" cannot be read across.
+
+The value is typed with its unit. "230 V", not 230 with a unit picker: half
+these parameters have no unit anybody agrees on — "SDS-plus", "3 tryby" — and
+the plate on the machine already says it the right way.
+
+The catalog grid does not show parameters, and `GET /api/tools` does not send
+them. A card in a grid says a name, a maker and a condition; the spec sheet is
+what somebody reads one tool at a time.
+
 ## Cases
 
 `features/cases/` is the second half of the catalog: the boxes the tools live

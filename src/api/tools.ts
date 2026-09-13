@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { CategoryCount, Tool, ToolFields, ToolPage } from './types'
+import type { AttributeNameCount, CategoryCount, ToolDetail, ToolFields, ToolPage } from './types'
 
 export type ToolQuery = {
   category: null | string
@@ -36,7 +36,7 @@ export function fetchTools(query: ToolQuery): Promise<ToolPage> {
   return request('/tools', { search: toolSearchParams(query) })
 }
 
-export function fetchTool(id: number): Promise<{ tool: Tool }> {
+export function fetchTool(id: number): Promise<{ tool: ToolDetail }> {
   return request(`/tools/${id}`)
 }
 
@@ -44,19 +44,51 @@ export function fetchCategories(): Promise<{ categories: CategoryCount[] }> {
   return request('/tools/categories')
 }
 
-export function createTool(fields: ToolFields): Promise<{ tool: Tool }> {
+export function createTool(fields: ToolFields): Promise<{ tool: ToolDetail }> {
   return request('/tools', { body: fields, method: 'POST' })
 }
 
-export function updateTool(id: number, patch: Partial<ToolFields>): Promise<{ tool: Tool }> {
+export function updateTool(id: number, patch: Partial<ToolFields>): Promise<{ tool: ToolDetail }> {
   return request(`/tools/${id}`, { body: patch, method: 'PATCH' })
 }
 
 // Another card just like this one. The server copies the fields and the
 // photo links; the serial number starts blank, because it identifies one
 // physical machine.
-export function duplicateTool(id: number): Promise<{ tool: Tool }> {
+export function duplicateTool(id: number): Promise<{ tool: ToolDetail }> {
   return request(`/tools/${id}/duplicate`, { method: 'POST' })
+}
+
+// The parameters of one tool. Each call answers with the whole card rather
+// than the row that changed, so the screen replaces what it holds instead of
+// merging one row into it.
+export function addAttribute(
+  toolId: number,
+  attribute: { name: string; value: string },
+): Promise<{ tool: ToolDetail }> {
+  return request(`/tools/${toolId}/attributes`, { body: attribute, method: 'POST' })
+}
+
+export function updateAttribute(
+  toolId: number,
+  attributeId: number,
+  patch: { name?: string; value?: string },
+): Promise<{ tool: ToolDetail }> {
+  return request(`/tools/${toolId}/attributes/${attributeId}`, { body: patch, method: 'PATCH' })
+}
+
+export function deleteAttribute(
+  toolId: number,
+  attributeId: number,
+): Promise<{ tool: ToolDetail }> {
+  return request(`/tools/${toolId}/attributes/${attributeId}`, { method: 'DELETE' })
+}
+
+// What other cards already call the same thing, most used first. Offered while
+// somebody types a parameter name, so the catalog ends up with one spelling of
+// "napięcie sieciowe" rather than four.
+export function fetchAttributeNames(): Promise<{ names: AttributeNameCount[] }> {
+  return request('/tools/attributes')
 }
 
 export function deleteTool(id: number): Promise<{ ok: true }> {

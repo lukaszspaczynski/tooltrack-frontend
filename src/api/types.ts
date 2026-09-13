@@ -25,6 +25,27 @@ export type Tool = {
   updatedBy: null | number
 }
 
+// One parameter of one tool: mains voltage, speed, chuck size. The value
+// carries its unit — "230 V" rather than 230 — because half of these have no
+// unit anybody agrees on.
+export type ToolAttribute = {
+  id: number
+  name: string
+  value: string
+}
+
+// A tool with what is only worth reading one card at a time. The list answers
+// with `Tool`: a grid shows a name, a maker and a condition, and every card's
+// spec sheet would be paying for what nobody reads there.
+export type ToolDetail = Tool & {
+  attributes: ToolAttribute[]
+}
+
+export type AttributeNameCount = {
+  count: number
+  name: string
+}
+
 // Where a tool lies, as the catalog grid receives it: the organizer's number
 // and the case it is in, with that case's main photo. Null for a tool nobody
 // has put anywhere.
