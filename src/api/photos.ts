@@ -1,4 +1,4 @@
-import { t } from '../i18n'
+import { getLang, t } from '../i18n'
 import { request } from './client'
 import type {
   CardPhoto,
@@ -37,7 +37,10 @@ export async function uploadPhoto(owner: PhotoOwner, file: File): Promise<{ phot
   const response = await fetch(`/api${ownerPath(owner)}/photos`, {
     body: file,
     credentials: 'include',
-    headers: { 'content-type': file.type || 'application/octet-stream' },
+    headers: {
+      'accept-language': getLang(),
+      'content-type': file.type || 'application/octet-stream',
+    },
     method: 'POST',
   })
 
@@ -139,7 +142,10 @@ export async function uploadLibraryPhoto(file: File): Promise<{ photo: Photo }> 
   const response = await fetch('/api/photos', {
     body: file,
     credentials: 'include',
-    headers: { 'content-type': file.type || 'application/octet-stream' },
+    headers: {
+      'accept-language': getLang(),
+      'content-type': file.type || 'application/octet-stream',
+    },
     method: 'POST',
   })
 

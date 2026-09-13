@@ -8,7 +8,7 @@
 
 // Same-origin by default. In development Vite proxies /api to the Node server
 // (see vite.config.ts), so the cookie is first-party and no CORS is involved.
-import { t } from '../i18n'
+import { getLang, t } from '../i18n'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
@@ -51,7 +51,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       // Without this the browser sends no cookie and every call is anonymous.
       credentials: 'include',
-      headers: options.body === undefined ? undefined : { 'content-type': 'application/json' },
+      headers: {
+        // What language the answer should be written in. The API's messages
+        // are shown as they come, so this is what keeps an error on an English
+        // screen from arriving in Polish.
+        'accept-language': getLang(),
+        ...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
+      },
       method: options.method ?? 'GET',
     })
   } catch (cause) {

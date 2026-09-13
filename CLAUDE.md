@@ -273,9 +273,12 @@ the source, and every value of every `*_LABELS`/`*_OPTIONS` table, and fails
 when one has no English translation — or when the catalog still holds a phrase
 no screen says any more. Reword a phrase and the test names what to do.
 
-What is **not** translated: the API's error messages, which arrive in Polish
-and are shown as they come, and the labels the server draws onto PDFs. Both
-live in `Backend/` and would need the language sent with the request.
+The API answers in the same language: `api/client.ts` sends the chosen one as
+`Accept-Language` on every call, so an error shown as it comes is in the
+language of the screen it lands on. What stays Polish is the text the server
+draws onto the label PDFs — stickers cut out and stuck on boxes in one
+workshop — and the refusals a client acts on rather than displays
+(`Unauthorized`, `Not found`), which were always English.
 
 ## Conventions
 
