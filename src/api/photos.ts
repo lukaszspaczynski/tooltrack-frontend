@@ -30,6 +30,16 @@ export function fetchPhotos(owner: PhotoOwner): Promise<{ photos: CardPhoto[] }>
   return request(`${ownerPath(owner)}/photos`)
 }
 
+// Only the pictures this card is the only home of — what deleting it would
+// take with it. Asked by a delete confirmation, which cannot weigh "and its
+// photographs" without a number, and the number is not the length of the
+// gallery when another card shows half of it.
+export function fetchExclusivePhotos(owner: PhotoOwner): Promise<{ photos: CardPhoto[] }> {
+  const search = new URLSearchParams({ exclusive: '1' })
+
+  return request(`${ownerPath(owner)}/photos`, { search })
+}
+
 // The file goes up as the body of the request with its own content type — no
 // FormData, no multipart. The API takes the bytes and decides for itself what
 // they are; the browser's idea of the type is only a hint.

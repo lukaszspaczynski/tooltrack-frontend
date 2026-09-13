@@ -248,6 +248,8 @@ export const EN: Record<string, string> = {
   'Nie ma takiej karty': 'There is no such card',
   'Karta usunięta': 'Card deleted',
   'Usunąć kartę?': 'Delete the card?',
+  'Zniknie z nią {photos} — te, których nie pokazuje żadna inna karta.':
+    '{photos} go with it — the ones no other card shows.',
   'Ostatnio dodane': 'Recently added',
   'Ostatnio zmienione': 'Recently changed',
 

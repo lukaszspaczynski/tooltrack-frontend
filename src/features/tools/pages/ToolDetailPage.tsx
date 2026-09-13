@@ -23,7 +23,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../../../api/client'
 import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
-import { t } from '../../../i18n'
+import { COUNTS, t, tCount } from '../../../i18n'
+import { fetchExclusivePhotos } from '../../../api/photos'
 import { useSession } from '../../../session/SessionContext'
 import { AttributePanel } from '../components/AttributePanel'
 import { ToolForm } from '../components/ToolForm'
@@ -44,6 +45,15 @@ export function ToolDetailPage() {
     queryKey: ['tool', toolId],
     queryFn: () => fetchTool(toolId),
     enabled: Number.isInteger(toolId),
+  })
+
+  // Only while the confirmation is open: it is a question about a delete
+  // nobody has agreed to yet.
+  const doomedPhotos = useQuery({
+    queryKey: ['tool-photos-exclusive', toolId],
+    queryFn: () => fetchExclusivePhotos({ id: toolId, kind: 'tool' }),
+    enabled: confirmOpen,
+    staleTime: 0,
   })
 
   const save = useMutation({
@@ -217,6 +227,18 @@ export function ToolDetailPage() {
               name: tool.name,
             })}
           </Text>
+          {/* Asked while the modal is open, the way the case screen asks what
+              would go with a box: the pictures this card is the only home of
+              are deleted with it, and a person cannot weigh that without the
+              number. One that another card shows, or that is a maker's logo,
+              stays — which is why this is not simply the size of the gallery. */}
+          {doomedPhotos.data && doomedPhotos.data.photos.length > 0 ? (
+            <Text size="sm">
+              {t('Zniknie z nią {photos} — te, których nie pokazuje żadna inna karta.', {
+                photos: tCount(COUNTS.photo, doomedPhotos.data.photos.length),
+              })}
+            </Text>
+          ) : null}
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
               {t('Anuluj')}
