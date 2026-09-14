@@ -12,14 +12,15 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
-import { useDebouncedCallback } from '@mantine/hooks'
-import { IconPlus, IconSearch } from '@tabler/icons-react'
+import { useDebouncedCallback, useDisclosure } from '@mantine/hooks'
+import { IconDownload, IconPlus, IconSearch } from '@tabler/icons-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { fetchCases } from '../../../api/cases'
 import { useSession } from '../../../session/SessionContext'
+import { ImportCaseModal } from '../components/ImportCaseModal'
 import { CaseCard } from '../components/CaseCard'
 import {
   PAGE_SIZE,
@@ -33,6 +34,7 @@ import { t } from '../../../i18n'
 import { caseCountLabel } from '../presentation'
 
 export function CasesListPage() {
+  const [importingOpen, importing] = useDisclosure(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const { can } = useSession()
 
@@ -75,9 +77,20 @@ export function CasesListPage() {
         </Stack>
 
         {can('catalog.write') ? (
-          <Button component={Link} to="/cases/new" leftSection={<IconPlus size={18} />}>
-            {t('Dodaj')}
-          </Button>
+          <Group gap="xs" wrap="nowrap">
+            {/* Beside Add, because it is the other way a case starts: measured
+                with a tape, or read off the page it was bought from. */}
+            <Button
+              variant="light"
+              leftSection={<IconDownload size={18} />}
+              onClick={importing.open}
+            >
+              {t('Importuj')}
+            </Button>
+            <Button component={Link} to="/cases/new" leftSection={<IconPlus size={18} />}>
+              {t('Dodaj')}
+            </Button>
+          </Group>
         ) : null}
       </Group>
 
@@ -146,6 +159,8 @@ export function CasesListPage() {
           ) : null}
         </>
       ) : null}
+
+      <ImportCaseModal opened={importingOpen} onClose={importing.close} />
     </Stack>
   )
 }

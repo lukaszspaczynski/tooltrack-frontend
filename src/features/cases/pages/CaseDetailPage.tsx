@@ -26,6 +26,7 @@ import {
   IconTag,
   IconTrash,
   IconX,
+  IconRefresh,
 } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -44,6 +45,7 @@ import type { CaseFields, ToolCase } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { useSession } from '../../../session/SessionContext'
+import { RefreshCaseModal } from '../components/RefreshCaseModal'
 import { CaseForm } from '../components/CaseForm'
 import { formatDateTime } from '../../tools/presentation'
 import { formatNumber, innerDimensions, outerDimensions } from '../presentation'
@@ -57,6 +59,7 @@ export function CaseDetailPage() {
 
   const [editing, setEditing] = useState(false)
   const [confirmOpen, confirm] = useDisclosure(false)
+  const [refreshingOpen, refreshing] = useDisclosure(false)
 
   const query = useQuery({
     queryKey: ['case', caseId],
@@ -156,6 +159,10 @@ export function CaseDetailPage() {
   }
 
   const item = query.data.case
+  // Where this case was read from, when it was read from anywhere. The importer
+  // writes it into the note, because a case has no field for an address the way
+  // a tool card has its Referencja parameter.
+  const reference = /https?:\/\/\S+/.exec(item.notes)?.[0] ?? ''
 
   return (
     <Stack gap="md" maw={720}>
@@ -188,6 +195,17 @@ export function CaseDetailPage() {
             >
               {t('Edytuj')}
             </Button>
+            {/* Only where there is a page to read again. A case somebody
+                measured with a tape has no address to offer. */}
+            {reference ? (
+              <Button
+                variant="light"
+                leftSection={<IconRefresh size={18} />}
+                onClick={refreshing.open}
+              >
+                {t('Aktualizuj ze strony')}
+              </Button>
+            ) : null}
             <Button
               color="red"
               variant="subtle"
@@ -312,6 +330,13 @@ export function CaseDetailPage() {
           searchQuery={searchQueryFor(item)}
         />
       </Paper>
+
+      <RefreshCaseModal
+        caseId={item.id}
+        opened={refreshingOpen}
+        onClose={refreshing.close}
+        reference={reference}
+      />
 
       <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć skrzynkę?')} centered>
         <Stack gap="md">

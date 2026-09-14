@@ -400,6 +400,25 @@ export type CaseFields = {
   system: string
 }
 
+// Where a case can be read from. Shorter than the tool list and a different
+// one: a page that sells drills has nothing to say about a box.
+export type CaseImportSource = {
+  host: string
+  label: string
+}
+
+// What came with an imported case: the photographs and nothing else. A case has
+// no parameters and no documents, which is most of why it has its own importer.
+export type CaseImportResult = {
+  case: ToolCase
+  imported: {
+    // Always 0 on a refresh, whose photographs are deliberately left alone.
+    photos: number
+    photosFailed: number
+    sourceUrl: string
+  }
+}
+
 export type SystemCount = {
   count: number
   system: string

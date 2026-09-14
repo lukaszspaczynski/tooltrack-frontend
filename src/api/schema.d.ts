@@ -256,6 +256,28 @@ export interface paths {
         patch: operations["updateCase"];
         trace?: never;
     };
+    "/api/cases/{id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read the page again into an existing case
+         * @description Reads the page again into a case that already exists. What the page knows it overwrites: the maker, the name, the system, every measurement and the note.
+         *
+         *     What it cannot know it leaves alone — the **label slots**, which are where a sticker goes on this particular box in this particular van and about which no product page has an opinion, and the photographs, which somebody may well have taken themselves. That is why this is a refresh rather than a delete and a re-import, and why `imported.photos` is always 0 here.
+         */
+        post: operations["refreshCaseFromPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cases/{id}/label-slots": {
         parameters: {
             query?: never;
@@ -498,6 +520,48 @@ export interface paths {
          *     Nothing attached at all is a 409 — some of them failing is normal and reported per photograph.
          */
         post: operations["attachCasePhotos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import a case from a product page
+         * @description Reads a maker’s product page into a case. Everything worth knowing about a box is a measurement, and a measurement the page states outside what a case can be is dropped rather than stored — a number nobody can have measured looks like a fact.
+         *
+         *     What comes with it is the photographs and nothing else: a case has no parameters and no documents. The weight goes in the note, because the catalog stores what a box measures and what it carries rather than what it weighs empty.
+         */
+        post: operations["importCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/import/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The sources a case can be imported from
+         * @description What the import dialog lists before asking for an address. A shorter list than the tools one, and a different one: a page that sells drills has nothing to say about a box.
+         */
+        get: operations["listCaseImportSources"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3292,6 +3356,59 @@ export interface operations {
             503: components["responses"]["503"];
         };
     };
+    refreshCaseFromPage: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path: {
+                /** @description The case to read the page into. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description The address of the page to read. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportUrlBody"];
+            };
+        };
+        responses: {
+            /** @description The case as it now stands. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        case: components["schemas"]["ToolCase"];
+                        imported: {
+                            /** @description Photographs fetched and stored. Always 0 on a refresh, whose photographs are deliberately left alone. */
+                            photos: number;
+                            /** @description Photographs that would not download or decode. */
+                            photosFailed: number;
+                            /**
+                             * Format: uri
+                             * @description The address the case was read from.
+                             */
+                            sourceUrl: string;
+                        };
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            503: components["responses"]["503"];
+        };
+    };
     addCaseLabelSlot: {
         parameters: {
             query?: never;
@@ -3934,6 +4051,96 @@ export interface operations {
                 };
             };
             503: components["responses"]["503"];
+        };
+    };
+    importCase: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The address of the page to read. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportUrlBody"];
+            };
+        };
+        responses: {
+            /** @description The case, and what came with it. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        case: components["schemas"]["ToolCase"];
+                        imported: {
+                            /** @description Photographs fetched and stored. Always 0 on a refresh, whose photographs are deliberately left alone. */
+                            photos: number;
+                            /** @description Photographs that would not download or decode. */
+                            photosFailed: number;
+                            /**
+                             * Format: uri
+                             * @description The address the case was read from.
+                             */
+                            sourceUrl: string;
+                        };
+                    };
+                };
+            };
+            /** @description The body did not parse, or the address is from a site this server cannot read. The message names the ones it can. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            422: components["responses"]["422"];
+            503: components["responses"]["503"];
+        };
+    };
+    listCaseImportSources: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pages this server can read a case from. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        sources: {
+                            host: string;
+                            label: string;
+                        }[];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
         };
     };
     listCaseSystems: {

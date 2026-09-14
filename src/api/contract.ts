@@ -12,8 +12,9 @@
 // either side is a failure. There is no runtime here: `npm run typecheck` is
 // the test.
 
-import type { components } from './schema'
+import type { components, paths } from './schema'
 import type {
+  CaseImportSource,
   AccountStatus,
   AttributeNameCount,
   Brand,
@@ -126,3 +127,16 @@ export type _ToolListItem = Assert<Same<ToolListItem, Schemas['ToolListItem']>>
 export type _ToolPage = Assert<Same<ToolPage, Schemas['ToolListPage']>>
 export type _ToolPlacement = Assert<Same<ToolPlacement, Schemas['ToolPlacement']>>
 export type _User = Assert<Same<User, Schemas['User']>>
+
+// The case import, whose shapes the contract states inline on the operations
+// rather than as named schemas, so these are checked field by field.
+export type _CaseImportSource = Assert<
+  Same<
+    CaseImportSource,
+    NonNullable<
+      NonNullable<
+        paths['/api/cases/import/sources']['get']['responses'][200]['content']['application/json']
+      >['sources']
+    >[number]
+  >
+>

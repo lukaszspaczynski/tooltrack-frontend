@@ -181,6 +181,22 @@ export const EN: Record<string, string> = {
   'Brak uprawnień': 'No access',
   'Brak uprawnień do tej operacji.': 'You do not have access to this.',
   'Brak połączenia z serwerem': 'No connection to the server',
+  'Aktualizuj ze strony': 'Update from the page',
+  'Aktualizuj ze strony producenta': "Update from the maker's page",
+  'EAN, SKU i notatka': 'EAN, SKU and the note',
+  'Importuj ze strony producenta': "Import from the maker's page",
+  'Miejsca na etykiety i zdjęcia zostają bez zmian.':
+    'Label slots and photographs are left as they are.',
+  'Miejsca na etykiety trzeba dodać samodzielnie — strona producenta ich nie zna.':
+    "Label slots have to be added by hand — the maker's page does not know about them.",
+  'Nie udało się zaimportować skrzynki': 'The case could not be imported',
+  'Nie udało się zaktualizować skrzynki': 'The case could not be updated',
+  'To źródło nie jest obsługiwane': 'That source is not supported',
+  'Zaimportowano skrzynkę: {photos}': 'Case imported: {photos}',
+  'Zaktualizowano skrzynkę ze strony': 'Case updated from the page',
+  'Ze strony zostaną nadpisane:': 'The page will overwrite:',
+  'producent, nazwa i system': 'maker, name and system',
+  'wszystkie wymiary, pojemność i ładowność': 'every dimension, capacity and load',
   'Konto wyłączone': 'Account disabled',
   'Nie udało się odczytać zaimportowanej karty': 'The imported card could not be read back',
   'Baza danych jest chwilowo niedostępna. Spróbuj ponownie.':
