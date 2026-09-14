@@ -181,6 +181,8 @@ export const EN: Record<string, string> = {
   'Brak uprawnień': 'No access',
   'Brak uprawnień do tej operacji.': 'You do not have access to this.',
   'Brak połączenia z serwerem': 'No connection to the server',
+  'Konto wyłączone': 'Account disabled',
+  'Nie udało się odczytać zaimportowanej karty': 'The imported card could not be read back',
   'Baza danych jest chwilowo niedostępna. Spróbuj ponownie.':
     'The database is briefly unavailable. Try again.',
   'Sesja wygasła. Zaloguj się ponownie.': 'Your session has expired. Sign in again.',

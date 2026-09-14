@@ -214,7 +214,10 @@ function AccountMenu({ onSignOut }: { onSignOut: () => void }) {
             {session.user.displayName || session.user.email}
           </Text>
           <Badge size="xs" variant="light" mt={4}>
-            {t(ROLE_LABELS[session.effectiveRole])}
+            {/* Null for an account that has been switched off. It can still be
+                signed in — the guard refuses every call, and saying so beats a
+                badge that is blank or a screen that throws. */}
+            {t(session.effectiveRole ? ROLE_LABELS[session.effectiveRole] : 'Konto wyłączone')}
           </Badge>
         </Menu.Label>
         <Menu.Divider />

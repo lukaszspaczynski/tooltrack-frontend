@@ -20,7 +20,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { ApiError } from '../../../api/client'
+import { ApiError, hasCode } from '../../../api/client'
 import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
@@ -69,7 +69,11 @@ export function ToolDetailPage() {
       setEditing(false)
     },
     onError: (error) => {
-      if (error instanceof ApiError && error.status === 409) return
+      // Shown on the serial number field instead. Narrowed by code rather than
+      // by status because this page has a second kind of 409 in it: a parameter
+      // whose name is already on the card, which belongs nowhere near this
+      // field.
+      if (hasCode(error, 'SERIAL_NUMBER_TAKEN')) return
       notifications.show({ color: 'red', message: (error as Error).message })
     },
   })
@@ -134,8 +138,7 @@ export function ToolDetailPage() {
   // publishes documents.
   const reference =
     tool.attributes.find((attribute) => attribute.name === 'Referencja')?.value ?? ''
-  const serialConflict =
-    save.error instanceof ApiError && save.error.status === 409 ? save.error.message : null
+  const serialConflict = hasCode(save.error, 'SERIAL_NUMBER_TAKEN') ? save.error.message : null
 
   return (
     <Stack gap="md" maw={720}>

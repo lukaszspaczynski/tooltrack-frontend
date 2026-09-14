@@ -95,7 +95,10 @@ export type ToolImportResult = {
     photosFailed: number
     sourceUrl: string
   }
-  tool: ToolDetail
+  // Null only if the card vanished between being written and being read
+  // back, which is a server fault rather than an outcome — but the
+  // contract says it can be, so this says so too.
+  tool: null | ToolDetail
 }
 
 export type AttributeNameCount = {
@@ -196,7 +199,10 @@ export type PhotoLibraryPage = {
 export type PhotoSuggestion = {
   attribution: string
   height: null | number
-  provider: 'brave' | 'google' | 'mistama' | 'openverse'
+  // `page` as well as the engines: the pictures a product page publishes come
+  // back in the same shape, and the card imported from it is the one source
+  // that cannot return somebody else's machine.
+  provider: SuggestionProvider
   sourceUrl: string
   thumbnailUrl: string
   title: string
@@ -277,9 +283,12 @@ export type CutoutPreview = {
   byteSize: number
   checksum: string
   contentType: string
-  height: number
+  // Null when the bytes carried no dimensions this server could read. The
+  // server has always said so; this said otherwise until the contract check
+  // was written.
+  height: null | number
   url: string
-  width: number
+  width: null | number
 }
 
 export type CutoutPreviewResponse = {
@@ -546,6 +555,8 @@ export type ManagedUser = User & {
 // policy cannot disagree about what this account may do.
 export type Session = {
   capabilities: Capability[]
-  effectiveRole: Role
+  // Null for an account that is switched off: it has a role in the row and no
+  // capabilities in practice, and the menu is drawn from the capabilities.
+  effectiveRole: null | Role
   user: User
 }

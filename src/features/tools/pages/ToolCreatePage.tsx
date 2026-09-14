@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { IconChevronLeft } from '@tabler/icons-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { ApiError } from '../../../api/client'
+import { hasCode } from '../../../api/client'
 import { createTool } from '../../../api/tools'
 import type { ToolFields } from '../../../api/types'
 import { t } from '../../../i18n'
@@ -24,19 +24,18 @@ export function ToolCreatePage() {
       navigate(`/tools/${tool.id}`, { replace: true })
     },
     onError: (error) => {
-      // 409 is shown on the serial number field instead; anything else is a
+      // A taken serial number is shown on the field instead; anything else is a
       // toast, because there is no field to attach it to.
-      if (error instanceof ApiError && error.status === 409) return
+      if (hasCode(error, 'SERIAL_NUMBER_TAKEN')) return
       notifications.show({ color: 'red', message: (error as Error).message })
     },
   })
 
   // Narrowed into a string here rather than at the call site: the check and
   // the message have to come from the same read of the error.
-  const serialConflict =
-    mutation.error instanceof ApiError && mutation.error.status === 409
-      ? mutation.error.message
-      : null
+  const serialConflict = hasCode(mutation.error, 'SERIAL_NUMBER_TAKEN')
+    ? mutation.error.message
+    : null
 
   return (
     <Stack gap="md" maw={720}>

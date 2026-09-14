@@ -29,6 +29,17 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
   const run = useMutation({
     mutationFn: importTool,
     onSuccess: async ({ imported, tool }) => {
+      // The contract allows a null card: the server reads it back after writing
+      // it, and says so rather than pretending it cannot fail. Nothing useful
+      // to show without one, so this is the same refusal as any other.
+      if (!tool) {
+        notifications.show({
+          color: 'red',
+          message: t('Nie udało się odczytać zaimportowanej karty'),
+        })
+        return
+      }
+
       queryClient.setQueryData(['tool', tool.id], { tool })
       await queryClient.invalidateQueries({ queryKey: ['tools'] })
       await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })

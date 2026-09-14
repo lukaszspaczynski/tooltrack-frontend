@@ -34,7 +34,10 @@ export function RequireCapability({
             {t(
               'Twoja rola to {role}. Poproś administratora o wyższe uprawnienia, jeśli potrzebujesz tej sekcji.',
               {
-                role: session.effectiveRole === 'viewer' ? t('Podgląd') : session.effectiveRole,
+                role:
+                  session.effectiveRole === 'viewer'
+                    ? t('Podgląd')
+                    : (session.effectiveRole ?? t('Konto wyłączone')),
               },
             )}
           </Text>

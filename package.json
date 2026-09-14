@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "api:types": "npx openapi-typescript ../Backend/docs/openapi.json -o src/api/schema.d.ts",
+    "api:types:check": "npx openapi-typescript ../Backend/docs/openapi.json -o /tmp/tooltrack-schema.d.ts && diff -q src/api/schema.d.ts /tmp/tooltrack-schema.d.ts",
     "build": "tsc -b && vite build",
     "dev": "vite",
     "format": "prettier --write .",
