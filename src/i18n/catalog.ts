@@ -181,6 +181,9 @@ export const EN: Record<string, string> = {
   'Brak uprawnień': 'No access',
   'Brak uprawnień do tej operacji.': 'You do not have access to this.',
   'Brak połączenia z serwerem': 'No connection to the server',
+  'Nic tu jeszcze nie zapisano.': 'Nothing has been recorded here yet.',
+  'Nikt nie zapisał jeszcze parametrów tej skrzynki.':
+    'Nobody has recorded any parameters for this case yet.',
   'Aktualizuj ze strony': 'Update from the page',
   'Aktualizuj ze strony producenta': "Update from the maker's page",
   'EAN, SKU i notatka': 'EAN, SKU and the note',
@@ -310,8 +313,6 @@ export const EN: Record<string, string> = {
   'Edytuj parametr {name}': 'Edit the parameter {name}',
   'Usuń parametr': 'Delete parameter',
   'Usuń parametr {name}': 'Delete the parameter {name}',
-  'Nic tu jeszcze nie zapisano. Wpisz to, co stoi na tabliczce znamionowej.':
-    'Nothing written down yet. Put in what the rating plate says.',
   'Nikt nie zapisał jeszcze parametrów tego narzędzia.':
     'Nobody has written down this tool’s parameters yet.',
 

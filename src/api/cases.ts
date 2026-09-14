@@ -1,5 +1,6 @@
 import { request } from './client'
 import type {
+  AttributeNameCount,
   CaseFields,
   CaseImportResult,
   CaseImportSource,
@@ -82,4 +83,35 @@ export function refreshCaseFromPage(caseId: number, url: string): Promise<CaseIm
 // to read one, so the screen never names a source this installation lacks.
 export function fetchCaseImportSources(): Promise<{ sources: CaseImportSource[] }> {
   return request('/cases/import/sources')
+}
+
+// The parameters under a case, on the same terms as a tool's. Each answers with
+// the whole case rather than the row that changed, so the screen never shows a
+// sheet assembled from two different moments.
+export function addCaseAttribute(
+  caseId: number,
+  attribute: { name: string; value: string },
+): Promise<{ case: ToolCase }> {
+  return request(`/cases/${caseId}/attributes`, { body: attribute, method: 'POST' })
+}
+
+export function updateCaseAttribute(
+  caseId: number,
+  attributeId: number,
+  patch: { name?: string; value?: string },
+): Promise<{ case: ToolCase }> {
+  return request(`/cases/${caseId}/attributes/${attributeId}`, { body: patch, method: 'PATCH' })
+}
+
+export function deleteCaseAttribute(
+  caseId: number,
+  attributeId: number,
+): Promise<{ case: ToolCase }> {
+  return request(`/cases/${caseId}/attributes/${attributeId}`, { method: 'DELETE' })
+}
+
+// The vocabulary other cases already use, so a shelf ends up with one spelling
+// of "System" rather than four.
+export function fetchCaseAttributeNames(): Promise<{ names: AttributeNameCount[] }> {
+  return request('/cases/attributes')
 }

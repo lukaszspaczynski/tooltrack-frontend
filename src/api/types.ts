@@ -345,6 +345,10 @@ export type LabelSlot = {
 }
 
 export type ToolCase = {
+  // Beside the columns, not instead of them: a length is a length and every box
+  // has one, and this is for what the columns do not cover — a stacking system,
+  // a lid type, whatever the next kind of box states.
+  attributes: ToolAttribute[]
   capacityL: null | number
   createdAt: string
   createdBy: null | number

@@ -11,16 +11,10 @@ import {
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconCheck, IconPencil, IconPlus, IconTrash, IconX } from '@tabler/icons-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
-import {
-  addAttribute,
-  deleteAttribute,
-  fetchAttributeNames,
-  updateAttribute,
-} from '../../../api/tools'
-import type { ToolAttribute, ToolDetail } from '../../../api/types'
+import type { AttributeNameCount, ToolAttribute } from '../../../api/types'
 import { t } from '../../../i18n'
 
 // What this particular machine is: mains voltage, speed, chuck, weight.
@@ -29,14 +23,40 @@ import { t } from '../../../i18n'
 // added and removed one at a time and immediately, while the fields of the
 // card are edited and then saved. Every call answers with the whole tool, so
 // the screen replaces what it holds rather than merging a row into it.
-export function AttributePanel({
+// What one kind of thing has to supply to get this panel: the four calls and
+// the two cache keys. A tool and a case keep identical spec sheets — both
+// halves free text, one name each, edited a row at a time — so the form, the
+// suggestions and the refusals are written once and the wiring is passed in.
+export type AttributeApi<T> = {
+  add: (referenceId: number, attribute: { name: string; value: string }) => Promise<T>
+  // Where the answer goes, and what it invalidates. The answer is the whole
+  // thing rather than the row, so the screen never shows a sheet assembled from
+  // two different moments.
+  cache: (queryClient: QueryClient, referenceId: number, answer: T) => Promise<void>
+  names: () => Promise<{ names: AttributeNameCount[] }>
+  namesKey: string
+  remove: (referenceId: number, attributeId: number) => Promise<T>
+  update: (
+    referenceId: number,
+    attributeId: number,
+    patch: { name?: string; value?: string },
+  ) => Promise<T>
+}
+
+export function AttributePanel<T>({
+  api,
   attributes,
   canEdit,
-  toolId,
+  emptyText,
+  referenceId,
 }: {
+  api: AttributeApi<T>
   attributes: ToolAttribute[]
   canEdit: boolean
-  toolId: number
+  // What a sheet with nothing on it says. A tool points at the rating plate; a
+  // case has no plate to point at.
+  emptyText: string
+  referenceId: number
 }) {
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<null | number>(null)
@@ -45,23 +65,20 @@ export function AttributePanel({
   // spelling of "napięcie sieciowe" rather than four. Only worth asking for
   // when there is a form to offer it in.
   const names = useQuery({
-    queryKey: ['tool-attribute-names'],
-    queryFn: fetchAttributeNames,
+    queryKey: [api.namesKey],
+    queryFn: api.names,
     enabled: canEdit,
   })
 
-  const replaceTool = async ({ tool }: { tool: ToolDetail }) => {
-    queryClient.setQueryData(['tool', toolId], { tool })
-    await queryClient.invalidateQueries({ queryKey: ['tool-attribute-names'] })
-  }
+  const replace = (answer: T) => api.cache(queryClient, referenceId, answer)
 
   const failed = (error: unknown) =>
     notifications.show({ color: 'red', message: (error as Error).message })
 
   const add = useMutation({
-    mutationFn: (attribute: { name: string; value: string }) => addAttribute(toolId, attribute),
+    mutationFn: (attribute: { name: string; value: string }) => api.add(referenceId, attribute),
     onSuccess: async (answer) => {
-      await replaceTool(answer)
+      await replace(answer)
       notifications.show({ color: 'teal', message: t('Parametr dodany') })
     },
     onError: failed,
@@ -69,17 +86,17 @@ export function AttributePanel({
 
   const edit = useMutation({
     mutationFn: ({ id, ...patch }: { id: number; name: string; value: string }) =>
-      updateAttribute(toolId, id, patch),
+      api.update(referenceId, id, patch),
     onSuccess: async (answer) => {
-      await replaceTool(answer)
+      await replace(answer)
       setEditing(null)
     },
     onError: failed,
   })
 
   const drop = useMutation({
-    mutationFn: (id: number) => deleteAttribute(toolId, id),
-    onSuccess: replaceTool,
+    mutationFn: (id: number) => api.remove(referenceId, id),
+    onSuccess: replace,
     onError: failed,
   })
 
@@ -95,9 +112,7 @@ export function AttributePanel({
 
       {attributes.length === 0 ? (
         <Text c="dimmed" size="sm">
-          {canEdit
-            ? t('Nic tu jeszcze nie zapisano. Wpisz to, co stoi na tabliczce znamionowej.')
-            : t('Nikt nie zapisał jeszcze parametrów tego narzędzia.')}
+          {canEdit ? t('Nic tu jeszcze nie zapisano.') : emptyText}
         </Text>
       ) : (
         <Table verticalSpacing="xs" horizontalSpacing={0} withRowBorders={false}>

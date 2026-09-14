@@ -256,6 +256,52 @@ export interface paths {
         patch: operations["updateCase"];
         trace?: never;
     };
+    "/api/cases/{id}/attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a parameter to a case
+         * @description One line off the spec sheet of a box, on exactly the terms a tool's parameters are: both halves required, whitespace collapsed, one name per case.
+         *
+         *     The columns hold what every box has — a length is a length — and this holds what they do not: a stacking system, a lid type, whatever the next kind of box turns out to state. Answers with the whole case rather than the row that changed.
+         */
+        post: operations["addCaseAttribute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{id}/attributes/{attributeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a parameter from a case
+         * @description Answers with the case, so the screen holding the sheet can redraw it whole.
+         */
+        delete: operations["deleteCaseAttribute"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a parameter on a case
+         * @description A typo in the name, or a value read off the box again. A parameter that is not this case's reads the same as one that never existed.
+         */
+        patch: operations["updateCaseAttribute"];
+        trace?: never;
+    };
     "/api/cases/{id}/import": {
         parameters: {
             query?: never;
@@ -520,6 +566,26 @@ export interface paths {
          *     Nothing attached at all is a 409 — some of them failing is normal and reported per photograph.
          */
         post: operations["attachCasePhotos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The parameter names in use on cases
+         * @description What the form offers while somebody types a parameter name on a case, most used first. Asked per kind rather than across the catalog: a box and a drill have nothing in common on a spec sheet, and suggesting "pojemność zbiornika" to somebody labelling a case would be noise where the point of the list is a vocabulary people converge on.
+         */
+        get: operations["listCaseAttributeNames"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1913,7 +1979,7 @@ export interface components {
             status: components["schemas"]["AccountStatus"];
         };
         ToolDetail: {
-            attributes: components["schemas"]["ToolAttribute"][];
+            attributes: components["schemas"]["Attribute"][];
             brand: string;
             category: string;
             condition: components["schemas"]["ToolCondition"];
@@ -1927,7 +1993,7 @@ export interface components {
             updatedAt: string;
             updatedBy: null | number;
         };
-        ToolAttribute: {
+        Attribute: {
             id: number;
             name: string;
             value: string;
@@ -2091,6 +2157,7 @@ export interface components {
             total: number;
         };
         ToolCase: {
+            attributes: components["schemas"]["Attribute"][];
             capacityL: null | number;
             createdAt: string;
             createdBy: null | number;
@@ -2120,6 +2187,7 @@ export interface components {
         };
         CaseListItem: {
             primaryPhotoUrl: null | string;
+            attributes: components["schemas"]["Attribute"][];
             capacityL: null | number;
             createdAt: string;
             createdBy: null | number;
@@ -3356,6 +3424,143 @@ export interface operations {
             503: components["responses"]["503"];
         };
     };
+    addCaseAttribute: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path: {
+                /** @description The case to add the parameter to. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributeCreateBody"];
+            };
+        };
+        responses: {
+            /** @description The case, with its label slots. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        case: components["schemas"]["ToolCase"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description This case already carries a parameter with that name. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            503: components["responses"]["503"];
+        };
+    };
+    deleteCaseAttribute: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path: {
+                /** @description The case the parameter is on. */
+                id: number;
+                /** @description The parameter, which must belong to this case. */
+                attributeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The case, with its label slots. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        case: components["schemas"]["ToolCase"];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            503: components["responses"]["503"];
+        };
+    };
+    updateCaseAttribute: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path: {
+                /** @description The case the parameter is on. */
+                id: number;
+                /** @description The parameter, which must belong to this case. */
+                attributeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttributePatchBody"];
+            };
+        };
+        responses: {
+            /** @description The case, with its label slots. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        case: components["schemas"]["ToolCase"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description This case already carries a parameter with that name. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            503: components["responses"]["503"];
+        };
+    };
     refreshCaseFromPage: {
         parameters: {
             query?: never;
@@ -4050,6 +4255,37 @@ export interface operations {
                     };
                 };
             };
+            503: components["responses"]["503"];
+        };
+    };
+    listCaseAttributeNames: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every parameter name in use on a case, with how many carry it. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        names: components["schemas"]["AttributeNameCount"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
             503: components["responses"]["503"];
         };
     };

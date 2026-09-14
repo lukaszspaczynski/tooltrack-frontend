@@ -43,7 +43,9 @@ import { fetchOrganizersOfCase } from '../../../api/organizers'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import type { CaseFields, ToolCase } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
+import { AttributePanel } from '../../tools/components/AttributePanel'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
+import { CASE_ATTRIBUTE_API } from '../caseAttributeApi'
 import { useSession } from '../../../session/SessionContext'
 import { RefreshCaseModal } from '../components/RefreshCaseModal'
 import { CaseForm } from '../components/CaseForm'
@@ -316,6 +318,19 @@ export function CaseDetailPage() {
             </Group>
           ) : null}
         </Stack>
+      </Paper>
+
+      {/* Outside the editing form for the same reason the photos are: one
+          parameter at a time, immediately. The columns above hold what every box
+          has; this holds what they do not. */}
+      <Paper withBorder p="lg" radius="md">
+        <AttributePanel
+          api={CASE_ATTRIBUTE_API}
+          attributes={item.attributes}
+          canEdit={can('catalog.write')}
+          emptyText={t('Nikt nie zapisał jeszcze parametrów tej skrzynki.')}
+          referenceId={item.id}
+        />
       </Paper>
 
       {/* Outside the editing form on purpose: photos are added and removed one

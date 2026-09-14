@@ -27,6 +27,7 @@ import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import { useSession } from '../../../session/SessionContext'
 import { AttributePanel } from '../components/AttributePanel'
+import { TOOL_ATTRIBUTE_API } from '../toolAttributeApi'
 import { RefreshFromPageModal } from '../components/RefreshFromPageModal'
 import { ManualPanel } from '../components/ManualPanel'
 import { ToolForm } from '../components/ToolForm'
@@ -223,9 +224,11 @@ export function ToolDetailPage() {
           reason the photos are: one parameter at a time, immediately. */}
       <Paper withBorder p="lg" radius="md">
         <AttributePanel
+          api={TOOL_ATTRIBUTE_API}
           attributes={tool.attributes}
           canEdit={can('catalog.write')}
-          toolId={tool.id}
+          emptyText={t('Nikt nie zapisał jeszcze parametrów tego narzędzia.')}
+          referenceId={tool.id}
         />
       </Paper>
 
