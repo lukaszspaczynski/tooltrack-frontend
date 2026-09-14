@@ -39,6 +39,7 @@ import {
   removeLabelSlot,
   updateCase,
 } from '../../../api/cases'
+import { ReferenceField } from '../../../components/ReferenceField'
 import { fetchOrganizersOfCase } from '../../../api/organizers'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import type { CaseFields, ToolCase } from '../../../api/types'
@@ -442,6 +443,8 @@ function CaseDetails({ item }: { item: ToolCase }) {
           </Text>
         </Stack>
       ) : null}
+
+      <ReferenceField url={item.referenceUrl} />
 
       <Text size="xs" c="dimmed">
         Zmieniono {formatDateTime(item.updatedAt)}

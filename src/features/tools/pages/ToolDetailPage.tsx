@@ -23,6 +23,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError, hasCode } from '../../../api/client'
 import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
+import { ReferenceField } from '../../../components/ReferenceField'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import { useSession } from '../../../session/SessionContext'
@@ -305,6 +306,8 @@ function ToolDetails({ tool }: { tool: Tool }) {
       </SimpleGrid>
 
       <Field label={t('Notatki')} value={tool.notes} multiline />
+
+      <ReferenceField url={tool.referenceUrl} />
 
       <Text size="xs" c="dimmed">
         Dodano {formatDateTime(tool.createdAt)} · ostatnia zmiana {formatDateTime(tool.updatedAt)}
