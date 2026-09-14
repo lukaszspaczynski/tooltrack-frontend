@@ -420,6 +420,14 @@ backend up (`cd ../Backend && npm run db:up && npm run dev`). Vite proxies
 `/api`, so the session cookie is first-party and CORS never enters the picture
 in development.
 
+When the API changes, `npm run api:types` rewrites `src/api/schema.d.ts` from
+`../Backend/docs/openapi.json` — the file `api/contract.ts` checks our own
+types against, so a field that moved shows up as a typecheck failure naming it.
+Nothing runs it for you and nothing can: its input is in the other repo and is
+itself written by hand there, by `npm run openapi:build`. Both are VS Code
+tasks in their own window, along with `api: types check`, which asks whether
+the committed file still matches instead of quietly making it match.
+
 ## Things to leave alone unless asked
 
 - The capability model and `RequireCapability`.

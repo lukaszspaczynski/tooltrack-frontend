@@ -51,6 +51,38 @@
       "problemMatcher": ["$tsc"]
     },
     {
+      // Rewrites src/api/schema.d.ts from ../Backend/docs/openapi.json, which
+      // is the file `api/contract.ts` checks our own types against. Nothing
+      // runs it for you and nothing can: the input lives in the other repo,
+      // and it changes when somebody there runs `openapi: build`.
+      //
+      // So the pair is: that task there, this one here, then typecheck says
+      // which of our types the API no longer agrees with.
+      "label": "api: types",
+      "type": "npm",
+      "script": "api:types",
+      "problemMatcher": []
+    },
+    {
+      // The same question without the write: is the committed schema.d.ts
+      // still what the backend's document generates. A diff, so it fails
+      // loudly rather than quietly bringing the file up to date.
+      "label": "api: types check",
+      "type": "npm",
+      "script": "api:types:check",
+      "problemMatcher": []
+    },
+    {
+      // The contract as a page, served by the API this client talks to. Worth
+      // a click from here rather than from the backend window: the question
+      // "what does this endpoint answer" is asked while writing a screen.
+      "label": "open: swagger in browser",
+      "type": "shell",
+      "command": "open http://localhost:37411/api/docs",
+      "presentation": { "reveal": "never" },
+      "problemMatcher": []
+    },
+    {
       "label": "open: app in browser",
       "type": "shell",
       "command": "open http://localhost:5173",
