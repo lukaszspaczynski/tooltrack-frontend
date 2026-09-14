@@ -161,10 +161,17 @@ export function CaseDetailPage() {
   }
 
   const item = query.data.case
-  // Where this case was read from, when it was read from anywhere. The importer
-  // writes it into the note, because a case has no field for an address the way
-  // a tool card has its Referencja parameter.
-  const reference = /https?:\/\/\S+/.exec(item.notes)?.[0] ?? ''
+  // Where this case was read from, when it was read from anywhere: the same
+  // Referencja parameter a tool card carries, which is what the seeder writes.
+  //
+  // The note is read as well, because the two importers disagree: the seeder
+  // writes the parameter, while POST /api/cases/:id/import still leaves the
+  // address in the note. A case brought in that way has a page to read again
+  // just as much, and losing the button would be losing the feature for it.
+  const reference =
+    item.attributes.find((attribute) => attribute.name === 'Referencja')?.value ??
+    /https?:\/\/\S+/.exec(item.notes)?.[0] ??
+    ''
 
   return (
     <Stack gap="md" maw={720}>
