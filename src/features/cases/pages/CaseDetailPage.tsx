@@ -164,10 +164,11 @@ export function CaseDetailPage() {
   // Where this case was read from, when it was read from anywhere: the same
   // Referencja parameter a tool card carries, which is what the seeder writes.
   //
-  // The note is read as well, because the two importers disagree: the seeder
-  // writes the parameter, while POST /api/cases/:id/import still leaves the
-  // address in the note. A case brought in that way has a page to read again
-  // just as much, and losing the button would be losing the feature for it.
+  // The note is read as well, for the cases imported before the address moved
+  // out of it. Both importers write the parameter now, so this is a fallback
+  // with an end date rather than a second opinion — but a case that has not
+  // been read again since still has a page worth reading, and no button to do
+  // it with if this is dropped.
   const reference =
     item.attributes.find((attribute) => attribute.name === 'Referencja')?.value ??
     /https?:\/\/\S+/.exec(item.notes)?.[0] ??
