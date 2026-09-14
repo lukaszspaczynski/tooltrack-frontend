@@ -1,12 +1,13 @@
 import { Alert, Button, Group, List, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconAlertTriangle, IconRefresh } from '@tabler/icons-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { ApiError } from '../../../api/client'
-import { fetchImportSources, refreshToolFromPage } from '../../../api/tools'
+import { refreshToolFromPage } from '../../../api/tools'
 import { COUNTS, t, tCount } from '../../../i18n'
+import { useImportSources } from '../useImportSources'
 
 // Reading the product page again into a card that already exists.
 //
@@ -32,12 +33,7 @@ export function RefreshFromPageModal({
   const [url, setUrl] = useState(reference)
   const queryClient = useQueryClient()
 
-  const sources = useQuery({
-    queryKey: ['tool-import-sources'],
-    queryFn: fetchImportSources,
-    enabled: opened,
-    staleTime: 60 * 60 * 1000,
-  })
+  const { sources } = useImportSources(opened)
 
   const refresh = useMutation({
     mutationFn: (address: string) => refreshToolFromPage(toolId, address),
@@ -70,7 +66,7 @@ export function RefreshFromPageModal({
       <Stack gap="md">
         <TextInput
           label={t('Adres karty produktu')}
-          placeholder={`https://${sources.data?.sources[0]?.host ?? ''}/…`}
+          placeholder={`https://${sources[0]?.host ?? ''}/…`}
           value={url}
           onChange={(event) => setUrl(event.currentTarget.value)}
           onKeyDown={(event) => {

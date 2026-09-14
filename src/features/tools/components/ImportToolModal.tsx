@@ -1,13 +1,14 @@
 import { Alert, Button, Group, List, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconAlertTriangle, IconDownload } from '@tabler/icons-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { ApiError } from '../../../api/client'
-import { fetchImportSources, importTool } from '../../../api/tools'
+import { importTool } from '../../../api/tools'
 import { COUNTS, t, tCount } from '../../../i18n'
+import { useImportSources } from '../useImportSources'
 
 // Making a card out of a shop's product page: paste the address, and the card
 // arrives with its parameters and its photographs already on it.
@@ -22,14 +23,7 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const sources = useQuery({
-    queryKey: ['tool-import-sources'],
-    queryFn: fetchImportSources,
-    enabled: opened,
-    staleTime: 60 * 60 * 1000,
-  })
-
-  const known = sources.data?.sources ?? []
+  const { sources: known } = useImportSources(opened)
   const unsupported = url.trim().length > 0 && known.length > 0 && !isKnown(url, known)
 
   const run = useMutation({

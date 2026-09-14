@@ -18,9 +18,10 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useState } from 'react'
 
 import { importManualFromUrl, importManualsFromPage, uploadManual } from '../../../api/manuals'
-import { fetchImportSources, fetchTools } from '../../../api/tools'
+import { fetchTools } from '../../../api/tools'
 import { COUNTS, tCount } from '../../../i18n'
 import { t } from '../../../i18n'
+import { useImportSources } from '../../tools/useImportSources'
 
 // Where the file comes from. A shop's product page is the third way because it
 // is how a document actually arrives for an imported card: the maker publishes
@@ -52,17 +53,10 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
   // Only the shops this server can read, and only when that is the way chosen:
   // the answer to "why was my link refused" belongs on the screen that refused
   // it.
-  const sources = useQuery({
-    queryKey: ['tool-import-sources'],
-    queryFn: fetchImportSources,
-    enabled: opened && way === 'page',
-    staleTime: 60 * 60 * 1000,
-  })
-
   // Only the pages that publish documents. Offering a shop here would be
   // promising a file it does not have: most shops sell the tool and leave the
   // manual to the maker.
-  const pages = (sources.data?.sources ?? []).filter((source) => source.manuals)
+  const { manualSources: pages } = useImportSources(opened && way === 'page')
 
   const tools = useQuery({
     queryKey: ['manual-tool-picker', search],

@@ -33,9 +33,9 @@ import {
   uploadManual,
 } from '../../../api/manuals'
 import { apiFileUrl } from '../../../api/client'
-import { fetchImportSources } from '../../../api/tools'
 import type { Manual } from '../../../api/types'
 import { COUNTS, t, tCount, tDate } from '../../../i18n'
+import { useImportSources } from '../useImportSources'
 
 // The PDFs that belong beside a tool: the manual from the box, a parts
 // diagram, a safety sheet.
@@ -69,16 +69,9 @@ export function ManualPanel({
   // shops do not: the tool is theirs to sell and the manual is the maker's to
   // publish, and a button promising a file that cannot arrive is worse than no
   // button.
-  const sources = useQuery({
-    queryKey: ['tool-import-sources'],
-    queryFn: fetchImportSources,
-    enabled: canEdit && reference.length > 0,
-    staleTime: 60 * 60 * 1000,
-  })
+  const { manualSources } = useImportSources(canEdit && reference.length > 0)
 
-  const pageHasManuals = (sources.data?.sources ?? []).some(
-    (source) => source.manuals && hostOf(reference).endsWith(source.host),
-  )
+  const pageHasManuals = manualSources.some((source) => hostOf(reference).endsWith(source.host))
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['tool-manuals', toolId] })
   const failed = (error: unknown) =>

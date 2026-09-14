@@ -68,8 +68,12 @@ screen, because typing from the plate and reading off the page the tool was
 bought from are the same errand.
 
 The dialog names the shops it can read before asking for anything —
-`GET /api/tools/import/sources` — so the answer to "why was my link refused" is
-on the screen that refused it. The same check runs here and on the server: here
+`GET /api/tools/import/sources`, through `useImportSources`, which every screen
+that offers them shares. It is asked again each time one opens: the list grows
+whenever the server learns a new shop, and it was once cached for an hour,
+which meant a tab left open since before that went on offering the old two. So
+the answer to "why was my link refused" is on the screen that refused it, and
+it is today's answer. The same check runs here and on the server: here
 so nobody waits for a round trip to be told, there because that is where it is
 true.
 
