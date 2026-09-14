@@ -136,9 +136,10 @@ export function ToolDetailPage() {
   const tool = query.data.tool
   // Where this card was read from, when it was read from anywhere: what the
   // update starts with, and what tells the manuals panel whether the maker
-  // publishes documents.
-  const reference =
-    tool.attributes.find((attribute) => attribute.name === 'Referencja')?.value ?? ''
+  // publishes documents. A field on the card since it stopped being a
+  // parameter called Referencja, which three screens looked for by name and
+  // any edit to the spec sheet could rename out from under them.
+  const reference = tool.referenceUrl
   const serialConflict = hasCode(save.error, 'SERIAL_NUMBER_TAKEN') ? save.error.message : null
 
   return (
@@ -338,6 +339,7 @@ function toFields(tool: Tool): ToolFields {
     model: tool.model,
     name: tool.name,
     notes: tool.notes,
+    referenceUrl: tool.referenceUrl,
     serialNumber: tool.serialNumber,
   }
 }

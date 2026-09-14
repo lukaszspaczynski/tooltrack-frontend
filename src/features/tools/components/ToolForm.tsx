@@ -25,6 +25,7 @@ const EMPTY: ToolFields = {
   model: '',
   name: '',
   notes: '',
+  referenceUrl: '',
   serialNumber: '',
 }
 
@@ -156,6 +157,17 @@ export function ToolForm({
           {...form.getInputProps('notes')}
         />
 
+        {/* An import fills this in, and typing it here is what gives a card
+            written by hand the same three things: the update button, the
+            manuals the maker publishes, and pictures from the page itself. */}
+        <TextInput
+          label={t('Strona producenta')}
+          placeholder="https://…"
+          type="url"
+          key={form.key('referenceUrl')}
+          {...form.getInputProps('referenceUrl')}
+        />
+
         <Group justify="flex-end" mt="xs">
           <Button variant="default" onClick={onCancel} type="button">
             {t('Anuluj')}
@@ -179,6 +191,7 @@ function trimAll(fields: ToolFields): ToolFields {
     model: fields.model.trim(),
     name: fields.name.trim(),
     notes: fields.notes.trim(),
+    referenceUrl: fields.referenceUrl.trim(),
     serialNumber: fields.serialNumber.trim(),
   }
 }

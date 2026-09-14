@@ -36,7 +36,8 @@ export function importManualFromUrl(
 }
 
 // Everything a product page offers, at once. The card usually knows the
-// address already — it is the Referencja parameter an import leaves behind.
+// address already — it is the card's own referenceUrl, which an import fills
+// in and a form can be typed into.
 export function importManualsFromPage(
   toolId: number,
   url: string,

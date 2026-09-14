@@ -103,7 +103,7 @@ cards called "Sekator akumulatorowy" is told apart by that and nothing else.
 
 `RefreshFromPageModal` is the same errand done by somebody else: the maker
 corrected a spec, added a manual, renamed the model. It starts from the card's
-own **Referencja** and says what it will overwrite before it does — two of
+own **`referenceUrl`** and says what it will overwrite before it does — two of
 those lines are destructive, since the parameters and the documents are cleared
 and written again rather than merged, a hand-typed parameter included. What it
 will not touch is listed beside it: the name, the serial number, the condition
@@ -130,6 +130,13 @@ the plate on the machine already says it the right way.
 The catalog grid does not show parameters, and `GET /api/tools` does not send
 them. A card in a grid says a name, a maker and a condition; the spec sheet is
 what somebody reads one tool at a time.
+
+The address the card was imported from is **not** one of these. It was a
+parameter called `Referencja` and it is a field on the card now: every imported
+card has exactly one and no card has two, which is the shape of a field — and
+on the sheet it sorted among the voltages, where an edit to a row could rename
+the thing three screens read by name. It is typed in the card's own form, which
+is what lets a card written by hand have the update button too.
 
 ## Cases
 
@@ -196,8 +203,9 @@ could only ever empty it. Selection is cleared whenever the list underneath it
 changes, and the grid is paginated, because the newest two dozen photos are not
 the only ones worth attaching.
 
-When a card knows where it came from — the **Referencja** an import leaves —
-the suggestions modal offers that page beside the engines. It is usually the
+When a card knows where it came from — the **`referenceUrl`** an import leaves
+in, and a form can be typed into — the suggestions modal offers that page beside
+the engines. It is usually the
 better answer: the maker's own photographs of this exact machine rather than
 ten plausible pictures of something like it, and the one source that cannot
 come back with the wrong tool. A button rather than a second search box,

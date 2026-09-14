@@ -20,6 +20,9 @@ export type Tool = {
   model: string
   name: string
   notes: string
+  // Where an import read this card from, '' when nobody imported it. The
+  // update dialog, the manuals panel and the photo suggestions all read it.
+  referenceUrl: string
   serialNumber: string
   updatedAt: string
   updatedBy: null | number
@@ -330,6 +333,7 @@ export type ToolFields = {
   model: string
   name: string
   notes: string
+  referenceUrl: string
   serialNumber: string
 }
 
@@ -367,6 +371,9 @@ export type ToolCase = {
   outerHeightMm: null | number
   outerLengthMm: null | number
   outerWidthMm: null | number
+  // The same field a tool card has, and what the "update from the page" button
+  // on a case reads.
+  referenceUrl: string
   sku: string
   system: string
   updatedAt: string
@@ -400,6 +407,7 @@ export type CaseFields = {
   outerHeightMm: null | number
   outerLengthMm: null | number
   outerWidthMm: null | number
+  referenceUrl: string
   sku: string
   system: string
 }

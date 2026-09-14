@@ -1775,7 +1775,7 @@ export interface paths {
          *
          *     The card is the thing being asked for, so a parameter or a photograph that fails does not fail the import: what could not be read is reported beside the card in `imported` rather than instead of it. The serial number is deliberately left blank, because the page describes a model and a serial number is one physical machine.
          *
-         *     Every imported card carries a `Referencja` parameter holding the address it was read from, with any analytics tail removed.
+         *     Every imported card carries a `referenceUrl` holding the address it was read from, with any analytics tail removed. A field on the card rather than a parameter on its sheet: a card has exactly one, and the analytics tail a shop adds to a shared link is not part of it.
          */
         post: operations["importTool"];
         delete?: never;
@@ -1989,6 +1989,7 @@ export interface components {
             model: string;
             name: string;
             notes: string;
+            referenceUrl: string;
             serialNumber: string;
             updatedAt: string;
             updatedBy: null | number;
@@ -2012,6 +2013,7 @@ export interface components {
             model: string;
             name: string;
             notes: string;
+            referenceUrl: string;
             serialNumber: string;
             updatedAt: string;
             updatedBy: null | number;
@@ -2171,6 +2173,7 @@ export interface components {
             manufacturer: string;
             name: string;
             notes: string;
+            referenceUrl: string;
             outerHeightMm: null | number;
             outerLengthMm: null | number;
             outerWidthMm: null | number;
@@ -2201,6 +2204,7 @@ export interface components {
             manufacturer: string;
             name: string;
             notes: string;
+            referenceUrl: string;
             outerHeightMm: null | number;
             outerLengthMm: null | number;
             outerWidthMm: null | number;
@@ -2479,6 +2483,7 @@ export interface components {
             manufacturer: string;
             name: string;
             notes?: string;
+            referenceUrl?: string;
             outerHeightMm?: number | string | null;
             outerLengthMm?: number | string | null;
             outerWidthMm?: number | string | null;
@@ -2500,6 +2505,7 @@ export interface components {
             manufacturer?: string;
             name?: string;
             notes?: string;
+            referenceUrl?: string;
             outerHeightMm?: number | string | null;
             outerLengthMm?: number | string | null;
             outerWidthMm?: number | string | null;
@@ -2606,6 +2612,7 @@ export interface components {
             model?: string;
             name: string;
             notes?: string;
+            referenceUrl?: string;
             serialNumber?: string;
         };
         ToolIdsBody: {
@@ -2619,6 +2626,7 @@ export interface components {
             model?: string;
             name?: string;
             notes?: string;
+            referenceUrl?: string;
             serialNumber?: string;
         };
         UserPatchBody: {

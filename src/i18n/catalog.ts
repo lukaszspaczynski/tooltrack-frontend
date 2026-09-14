@@ -125,6 +125,7 @@ export const EN: Record<string, string> = {
   'Młotowiertarka SDS': 'SDS rotary hammer',
   Nazwa: 'Name',
   Notatki: 'Notes',
+  'Strona producenta': "The maker's page",
   Opcje: 'Options',
   Opis: 'Description',
   Plik: 'File',

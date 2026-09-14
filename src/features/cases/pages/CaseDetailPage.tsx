@@ -162,17 +162,10 @@ export function CaseDetailPage() {
 
   const item = query.data.case
   // Where this case was read from, when it was read from anywhere: the same
-  // Referencja parameter a tool card carries, which is what the seeder writes.
-  //
-  // The note is read as well, for the cases imported before the address moved
-  // out of it. Both importers write the parameter now, so this is a fallback
-  // with an end date rather than a second opinion — but a case that has not
-  // been read again since still has a page worth reading, and no button to do
-  // it with if this is dropped.
-  const reference =
-    item.attributes.find((attribute) => attribute.name === 'Referencja')?.value ??
-    /https?:\/\/\S+/.exec(item.notes)?.[0] ??
-    ''
+  // field a tool card carries. It has been a line in the note and a parameter
+  // called Referencja on the way here; the migration moved both into the
+  // column, so there is one place to read and no fallback to keep in step.
+  const reference = item.referenceUrl
 
   return (
     <Stack gap="md" maw={720}>
@@ -497,6 +490,7 @@ function toFields(item: ToolCase): CaseFields {
     outerHeightMm: item.outerHeightMm,
     outerLengthMm: item.outerLengthMm,
     outerWidthMm: item.outerWidthMm,
+    referenceUrl: item.referenceUrl,
     sku: item.sku,
     system: item.system,
   }

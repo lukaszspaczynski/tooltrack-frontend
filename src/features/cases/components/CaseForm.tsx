@@ -26,6 +26,7 @@ const EMPTY: CaseFields = {
   manufacturer: '',
   name: '',
   notes: '',
+  referenceUrl: '',
   outerHeightMm: null,
   outerLengthMm: null,
   outerWidthMm: null,
@@ -174,6 +175,16 @@ export function CaseForm({
           {...form.getInputProps('notes')}
         />
 
+        {/* An import fills this in, and typing it here is what gives a box
+            catalogued by hand the update button an imported one has. */}
+        <TextInput
+          label={t('Strona producenta')}
+          placeholder="https://…"
+          type="url"
+          key={form.key('referenceUrl')}
+          {...form.getInputProps('referenceUrl')}
+        />
+
         <Group justify="flex-end" gap="sm">
           <Button variant="default" onClick={onCancel} disabled={pending}>
             {t('Anuluj')}
@@ -233,4 +244,4 @@ function normalise(values: CaseFields): CaseFields {
   return result
 }
 
-const TEXT_FIELDS = new Set<keyof CaseFields>(['ean', 'notes', 'sku', 'system'])
+const TEXT_FIELDS = new Set<keyof CaseFields>(['ean', 'notes', 'referenceUrl', 'sku', 'system'])
