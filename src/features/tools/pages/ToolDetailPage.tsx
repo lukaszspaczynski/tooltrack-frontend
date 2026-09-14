@@ -240,6 +240,7 @@ export function ToolDetailPage() {
           canEdit={can('catalog.write')}
           label={tool.name}
           owner={{ id: tool.id, kind: 'tool' }}
+          reference={reference}
           // Brand and model identify a machine; the name alone would find a
           // category. The server falls back to the same thing.
           searchQuery={[tool.brand, tool.model].filter(Boolean).join(' ') || tool.name}

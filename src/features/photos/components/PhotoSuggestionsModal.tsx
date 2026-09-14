@@ -14,11 +14,11 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-import { IconSearch } from '@tabler/icons-react'
+import { IconFileSearch, IconSearch } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 
-import { fetchPhotoSuggestions } from '../../../api/photos'
+import { fetchPageSuggestions, fetchPhotoSuggestions } from '../../../api/photos'
 import type { PhotoOwner, PhotoSuggestion } from '../../../api/types'
 import { t } from '../../../i18n'
 
@@ -30,6 +30,7 @@ import { t } from '../../../i18n'
 // machine" — the tick boxes are the point of the screen, not a refinement.
 export function PhotoSuggestionsModal({
   defaultQuery,
+  fromPage,
   onClose,
   onSave,
   opened,
@@ -39,6 +40,11 @@ export function PhotoSuggestionsModal({
   // What to search for before anyone types. A tool is identified by its brand
   // and model, a case by its maker and name, and the caller knows which it is.
   defaultQuery: string
+  // Whether this card knows where it came from. When it does, the page it was
+  // imported from is offered beside the engines — and it is the better answer,
+  // being the maker's own photographs of this exact machine rather than ten
+  // plausible pictures of something like it.
+  fromPage: boolean
   onClose: () => void
   onSave: (items: { attribution: string; url: string }[]) => void
   opened: boolean
@@ -53,7 +59,8 @@ export function PhotoSuggestionsModal({
   const [broken, setBroken] = useState<string[]>([])
 
   const search = useMutation({
-    mutationFn: (value: string) => fetchPhotoSuggestions(owner, value),
+    mutationFn: (where: 'page' | 'web') =>
+      where === 'page' ? fetchPageSuggestions(owner) : fetchPhotoSuggestions(owner, query),
     onSuccess: () => {
       setSelected([])
       setBroken([])
@@ -110,14 +117,36 @@ export function PhotoSuggestionsModal({
             description={t('Domyślnie marka i model — to one identyfikują maszynę')}
             value={query}
             onChange={(event) => setQuery(event.currentTarget.value)}
-            onKeyDown={(event) => event.key === 'Enter' && search.mutate(query)}
+            onKeyDown={(event) => event.key === 'Enter' && search.mutate('web')}
             style={{ flexGrow: 1 }}
             leftSection={<IconSearch size={16} />}
           />
-          <Button onClick={() => search.mutate(query)} loading={search.isPending}>
+          <Button
+            onClick={() => search.mutate('web')}
+            loading={search.isPending && search.variables === 'web'}
+          >
             {t('Szukaj')}
           </Button>
         </Group>
+
+        {/* The card's own page, when it has one. Offered as a button rather
+            than as a second search box: there is nothing to type, the address
+            is already on the card. */}
+        {fromPage ? (
+          <Group gap="sm" align="center">
+            <Button
+              variant="light"
+              leftSection={<IconFileSearch size={18} />}
+              onClick={() => search.mutate('page')}
+              loading={search.isPending && search.variables === 'page'}
+            >
+              {t('Z karty produktu')}
+            </Button>
+            <Text size="xs" c="dimmed">
+              {t('Zdjęcia producenta tego właśnie modelu, zamiast wyników wyszukiwania')}
+            </Text>
+          </Group>
+        ) : null}
 
         {search.isError ? (
           <Alert color="orange" variant="light" title={t('Wyszukiwanie niedostępne')}>
@@ -127,9 +156,11 @@ export function PhotoSuggestionsModal({
 
         {/* Several engines can be on at once, so a partial failure is normal:
             the results are still usable and the screen says what is missing. */}
-        {search.data && search.data.failed.length > 0 ? (
+        {/* Read defensively: an answer without this field is a bug on the
+            other side, and a blank screen is a poor way to report one. */}
+        {(search.data?.failed ?? []).length > 0 ? (
           <Alert color="yellow" variant="light" title={t('Część wyszukiwarek nie odpowiedziała')}>
-            {search.data.failed.map((entry) => entry.message).join(' · ')}
+            {(search.data?.failed ?? []).map((entry) => entry.message).join(' · ')}
           </Alert>
         ) : null}
 

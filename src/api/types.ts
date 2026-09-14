@@ -206,11 +206,15 @@ export type PhotoSuggestion = {
 
 export type SearchProvider = 'brave' | 'google' | 'mistama' | 'openverse'
 
+// Where a suggestion came from: an engine, or the product page this card was
+// imported from — which is not an engine and has no settings of its own.
+export type SuggestionProvider = 'page' | SearchProvider
+
 export type PhotoSearchResult = {
   // Which engines were asked, and which of them failed. Several can be on at
   // once, so a result set is not all-or-nothing.
-  failed: { message: string; provider: SearchProvider }[]
-  providers: SearchProvider[]
+  failed: { message: string; provider: SuggestionProvider }[]
+  providers: SuggestionProvider[]
   query: string
   suggestions: PhotoSuggestion[]
 }

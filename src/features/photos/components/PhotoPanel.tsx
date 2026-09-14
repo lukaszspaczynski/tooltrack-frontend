@@ -66,12 +66,16 @@ export function PhotoPanel({
   canEdit,
   label,
   owner,
+  reference = '',
   searchQuery,
 }: {
   canEdit: boolean
   // What to put in the alt text: the name of the card these belong to.
   label: string
   owner: PhotoOwner
+  // The address this card was imported from, when it was imported. A case is
+  // never imported from anywhere, so it is optional and empty there.
+  reference?: string
   // What the suggestions modal should search for before anyone types.
   searchQuery: string
 }) {
@@ -361,6 +365,7 @@ export function PhotoPanel({
           saving={busy}
           owner={owner}
           defaultQuery={searchQuery}
+          fromPage={reference.length > 0}
         />
       ) : null}
     </Stack>

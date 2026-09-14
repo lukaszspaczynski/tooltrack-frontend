@@ -534,6 +534,9 @@ export const EN: Record<string, string> = {
   // Searching the web for photos
   'Znajdź w internecie': 'Search the web',
   'Znajdź zdjęcia w internecie': 'Search the web for photos',
+  'Z karty produktu': 'From the product page',
+  'Zdjęcia producenta tego właśnie modelu, zamiast wyników wyszukiwania':
+    'The maker’s photographs of this exact model, instead of search results',
   'Czego szukamy': 'What we are looking for',
   'Domyślnie marka i model — to one identyfikują maszynę':
     'The make and model by default — those are what identify a machine',

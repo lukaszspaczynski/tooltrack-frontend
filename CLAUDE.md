@@ -196,6 +196,13 @@ could only ever empty it. Selection is cleared whenever the list underneath it
 changes, and the grid is paginated, because the newest two dozen photos are not
 the only ones worth attaching.
 
+When a card knows where it came from — the **Referencja** an import leaves —
+the suggestions modal offers that page beside the engines. It is usually the
+better answer: the maker's own photographs of this exact machine rather than
+ten plausible pictures of something like it, and the one source that cannot
+come back with the wrong tool. A button rather than a second search box,
+because there is nothing to type.
+
 The suggestions modal searches only when its button is pressed. It costs the
 server a call to every enabled search provider, so it must never fire on page
 load. Each engine contributes up to ten results, so the grid holds more than

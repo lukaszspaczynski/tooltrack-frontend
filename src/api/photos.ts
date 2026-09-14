@@ -122,6 +122,15 @@ export function fetchPhotoSuggestions(
   return request(`${ownerPath(owner)}/photo-suggestions`, { search })
 }
 
+// The pictures the product page this card was imported from publishes. Not a
+// search: the address is written on the card, so this is the one source that
+// cannot come back with somebody else's machine.
+export function fetchPageSuggestions(owner: PhotoOwner): Promise<PhotoSearchResult> {
+  const search = new URLSearchParams({ source: 'page' })
+
+  return request(`${ownerPath(owner)}/photo-suggestions`, { search })
+}
+
 export type LibraryQuery = {
   // Null means both: photos on a card and photos still waiting for one.
   assigned: boolean | null
