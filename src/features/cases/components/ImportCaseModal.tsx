@@ -30,7 +30,7 @@ export function ImportCaseModal({ onClose, opened }: { onClose: () => void; open
     onSuccess: async ({ case: imported, imported: outcome }) => {
       queryClient.setQueryData(['case', imported.id], { case: imported })
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
+      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
 
       notifications.show({
         color: 'teal',

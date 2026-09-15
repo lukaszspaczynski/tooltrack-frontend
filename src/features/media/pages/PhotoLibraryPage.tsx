@@ -64,7 +64,7 @@ const SOURCE_LABELS: Record<string, string> = {
   url: 'z adresu',
 }
 
-// Every photo in the system, across all items. This is the screen for cleaning
+// Every photo in the model, across all items. This is the screen for cleaning
 // up after an import that pulled in the wrong pictures — hence the tick boxes
 // and the batch delete, which the per-item gallery deliberately does not have.
 export function PhotoLibraryPage() {

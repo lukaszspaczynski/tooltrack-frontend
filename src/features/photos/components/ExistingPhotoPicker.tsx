@@ -27,7 +27,7 @@ import { t } from '../../../i18n'
 
 const PAGE_SIZE = 24
 
-// Picking a picture that is already in the system.
+// Picking a picture that is already in the model.
 //
 // It opens on the unassigned ones, because that is what the shelf is for: a
 // photo uploaded before anyone decided what it was. "Wszystkie" is there for

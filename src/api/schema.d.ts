@@ -395,7 +395,7 @@ export interface paths {
          * Add a parameter to a case
          * @description One line off the spec sheet of a box, on exactly the terms an item's parameters are: both halves required, whitespace collapsed, one name per case.
          *
-         *     The columns hold what every box has — a length is a length — and this holds what they do not: a stacking system, a lid type, whatever the next kind of box turns out to state. Answers with the whole case rather than the row that changed.
+         *     The columns hold what every box has — a length is a length — and this holds what they do not: a stacking model, a lid type, whatever the next kind of box turns out to state. Answers with the whole case rather than the row that changed.
          */
         post: operations["addCaseAttribute"];
         delete?: never;
@@ -439,7 +439,7 @@ export interface paths {
         put?: never;
         /**
          * Read the page again into an existing case
-         * @description Reads the page again into a case that already exists. What the page knows it overwrites: the maker, the name, the system, every measurement and the note.
+         * @description Reads the page again into a case that already exists. What the page knows it overwrites: the maker, the name, the model, every measurement and the note.
          *
          *     What it cannot know it leaves alone — the **label slots**, which are where a sticker goes on this particular box in this particular van and about which no product page has an opinion, and the photographs, which somebody may well have taken themselves. That is why this is a refresh rather than a delete and a re-import, and why `imported.photos` is always 0 here.
          */
@@ -760,7 +760,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cases/systems": {
+    "/api/cases/models": {
         parameters: {
             query?: never;
             header?: never;
@@ -768,8 +768,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * The stacking systems in use
-         * @description Read from the cases themselves rather than from a table of systems, so the list is what is actually on the shelf. That is the list to offer in a filter.
+         * The stacking models in use
+         * @description Read from the cases themselves rather than from a table of models, so the list is what is actually on the shelf. That is the list to offer in a filter.
          */
         get: operations["listCaseSystems"];
         put?: never;
@@ -2343,7 +2343,7 @@ export interface components {
             name: string;
             notes: string;
             referenceUrl: string;
-            system: string;
+            model: string;
             updatedAt: string;
             updatedBy: null | number;
         };
@@ -2363,7 +2363,7 @@ export interface components {
             name: string;
             notes: string;
             referenceUrl: string;
-            system: string;
+            model: string;
             updatedAt: string;
             updatedBy: null | number;
         };
@@ -2373,9 +2373,9 @@ export interface components {
             offset: number;
             total: number;
         };
-        SystemCount: {
+        ModelCount: {
             count: number;
-            system: string;
+            model: string;
         };
         Organizer: {
             addressId: null | number;
@@ -2651,7 +2651,7 @@ export interface components {
             name: string;
             notes?: string;
             referenceUrl?: string;
-            system?: string;
+            model?: string;
         };
         CaseLabelSlotBody: {
             heightMm: number | string | null;
@@ -2662,7 +2662,7 @@ export interface components {
             name?: string;
             notes?: string;
             referenceUrl?: string;
-            system?: string;
+            model?: string;
         };
         CutoutCommitBody: {
             checksum: string;
@@ -3847,10 +3847,10 @@ export interface operations {
                 /** @description Exact maker, as the cases spell it. */
                 manufacturer?: string;
                 /**
-                 * @description Exact stacking system.
+                 * @description Exact stacking model.
                  * @example L-BOXX
                  */
-                system?: string;
+                model?: string;
                 /** @description By name unless asked otherwise. */
                 sort?: "name" | "capacityL" | "createdAt" | "updatedAt";
                 /** @description Direction. */
@@ -5166,14 +5166,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Every stacking system in use, with how many cases belong to it. */
+            /** @description Every stacking model in use, with how many cases belong to it. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        systems: components["schemas"]["SystemCount"][];
+                        models: components["schemas"]["ModelCount"][];
                     };
                 };
             };

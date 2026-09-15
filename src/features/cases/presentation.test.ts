@@ -60,11 +60,11 @@ test('a parameter nobody wrote reads as empty, not as undefined', () => {
 test('the subtitle closes up around whatever is missing', () => {
   const maker = { color: '', id: 1, name: 'Qbrick' }
 
-  assert.equal(caseSubtitle({ brand: maker, system: 'PRO' }), 'Qbrick · PRO')
-  assert.equal(caseSubtitle({ brand: maker, system: '' }), 'Qbrick')
+  assert.equal(caseSubtitle({ brand: maker, model: 'PRO' }), 'Qbrick · PRO')
+  assert.equal(caseSubtitle({ brand: maker, model: '' }), 'Qbrick')
   // A box whose maker nobody has recorded is still a box.
-  assert.equal(caseSubtitle({ brand: null, system: 'PRO' }), 'PRO')
-  assert.equal(caseSubtitle({ brand: null, system: '' }), '')
+  assert.equal(caseSubtitle({ brand: null, model: 'PRO' }), 'PRO')
+  assert.equal(caseSubtitle({ brand: null, model: '' }), '')
 })
 
 test('Polish counts a case three ways', () => {

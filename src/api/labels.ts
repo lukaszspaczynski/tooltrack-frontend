@@ -1,7 +1,7 @@
 import { apiFileUrl, request } from './client'
 import type { LabelPage } from './types'
 
-// Every label in the system, whichever organizer made it. The per-organizer
+// Every label in the model, whichever organizer made it. The per-organizer
 // calls live in `organizers.ts`; this is the shelf rather than the drawer, the
 // same split as the photo library next to a card's gallery.
 export type LabelQuery = {

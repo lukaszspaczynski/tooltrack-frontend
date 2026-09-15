@@ -41,7 +41,7 @@ export function RefreshCaseModal({
     onSuccess: async ({ case: updated }) => {
       queryClient.setQueryData(['case', caseId], { case: updated })
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
+      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
 
       notifications.show({ color: 'teal', message: t('Zaktualizowano skrzynkę ze strony') })
       onClose()
@@ -61,7 +61,7 @@ export function RefreshCaseModal({
           <Stack gap={4}>
             <Text size="sm">{t('Ze strony zostaną nadpisane:')}</Text>
             <List size="sm" withPadding>
-              <List.Item>{t('producent, nazwa i system')}</List.Item>
+              <List.Item>{t('producent, nazwa i model')}</List.Item>
               <List.Item>{t('wszystkie wymiary, pojemność i ładowność')}</List.Item>
               <List.Item>{t('EAN, SKU i notatka')}</List.Item>
             </List>

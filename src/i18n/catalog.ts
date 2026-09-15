@@ -199,7 +199,7 @@ export const EN: Record<string, string> = {
   'Zaimportowano skrzynkę: {photos}': 'Case imported: {photos}',
   'Zaktualizowano skrzynkę ze strony': 'Case updated from the page',
   'Ze strony zostaną nadpisane:': 'The page will overwrite:',
-  'producent, nazwa i system': 'maker, name and system',
+  'producent, nazwa i model': 'maker, name and model',
   'wszystkie wymiary, pojemność i ładowność': 'every dimension, capacity and load',
   'Konto wyłączone': 'Account disabled',
   'Nie udało się odczytać zaimportowanej karty': 'The imported card could not be read back',
@@ -327,7 +327,7 @@ export const EN: Record<string, string> = {
   'Do którego narzędzia należy ten plik': 'Which item this file belongs to',
   'Wybierz plik PDF': 'Choose a PDF',
   'Wszystkie pliki w systemie, niezależnie od narzędzia.':
-    'Every file in the system, whichever item it belongs to.',
+    'Every file in the model, whichever item it belongs to.',
   'Brak instrukcji': 'No manuals',
   'Nie udało się wczytać instrukcji': 'The manuals could not be loaded',
   'Nazwa instrukcji, narzędzie, model…': 'Manual title, item, model…',
@@ -429,7 +429,7 @@ export const EN: Record<string, string> = {
   // Cases
   'Nowa skrzynka': 'New case',
   'Szukaj skrzynki': 'Search for a case',
-  'Nazwa, producent, system, EAN, SKU…': 'Name, manufacturer, system, EAN, SKU…',
+  'Nazwa, producent, model, EAN, SKU…': 'Name, manufacturer, model, EAN, SKU…',
   'Nazwa, producent…': 'Name, manufacturer…',
   'Co jest w środku, gdzie stoi, co się w niej zepsuło…':
     'What is inside, where it stands, what broke in it…',
@@ -582,7 +582,7 @@ export const EN: Record<string, string> = {
   'Jedno z nich to zdjęcie główne — kartę zacznie ilustrować inne zdjęcie, a jeśli innych nie ma, karta zostanie bez zdjęcia.':
     'One of them is a main photo — another will take its place on the card, and if there is no other the card is left without one.',
   'Wszystkie zdjęcia w systemie, niezależnie od narzędzia.':
-    'Every photo in the system, whichever item it belongs to.',
+    'Every photo in the model, whichever item it belongs to.',
   'Zdjęcie nie ma własnej nazwy — szukamy po narzędziu':
     'A photo has no name of its own — we search by item',
   'Nazwa karty, do której zdjęcie należy…': 'The name of the card the photo belongs to…',

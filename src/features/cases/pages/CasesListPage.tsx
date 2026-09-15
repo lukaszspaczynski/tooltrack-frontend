@@ -97,7 +97,7 @@ export function CasesListPage() {
       <Group align="flex-end" gap="sm" grow preventGrowOverflow={false} wrap="wrap">
         <TextInput
           label={t('Szukaj')}
-          placeholder={t('Nazwa, producent, system, EAN, SKU…')}
+          placeholder={t('Nazwa, producent, model, EAN, SKU…')}
           leftSection={<IconSearch size={16} />}
           value={searchText}
           onChange={(event) => {

@@ -52,10 +52,10 @@ export function load(item: Pick<ToolCase, 'attributes'>): string {
   return attributeValue(item, CASE_ATTRIBUTE_LABELS.load)
 }
 
-// The maker and the system, as one line under the name. Either may be missing
+// The maker and the model, as one line under the name. Either may be missing
 // and the line closes up rather than showing a stray separator.
-export function caseSubtitle(item: Pick<ToolCase, 'brand' | 'system'>): string {
-  return [item.brand?.name, item.system]
+export function caseSubtitle(item: Pick<ToolCase, 'brand' | 'model'>): string {
+  return [item.brand?.name, item.model]
     .map((part) => part?.trim())
     .filter(Boolean)
     .join(' · ')

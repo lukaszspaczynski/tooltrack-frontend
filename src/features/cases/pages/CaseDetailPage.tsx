@@ -75,7 +75,7 @@ export function CaseDetailPage() {
     onSuccess: async ({ case: saved }) => {
       queryClient.setQueryData(['case', caseId], { case: saved })
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
+      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
       notifications.show({ color: 'teal', message: t('Zapisano zmiany') })
       setEditing(false)
     },
@@ -126,7 +126,7 @@ export function CaseDetailPage() {
     mutationFn: () => deleteCase(caseId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
+      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
       // The photos went with it, so the library is stale too — and so did the
       // organizers that arranged this case.
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
@@ -182,9 +182,9 @@ export function CaseDetailPage() {
           <Title order={2}>{item.name}</Title>
           <Group gap="xs">
             <Badge variant="default">{item.brand?.name ?? ''}</Badge>
-            {item.system ? (
+            {item.model ? (
               <Badge variant="light" color="amber">
-                {item.system}
+                {item.model}
               </Badge>
             ) : null}
           </Group>
@@ -423,7 +423,7 @@ function CaseDetails({ item }: { item: ToolCase }) {
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         <Field label={t('Producent')} value={item.brand?.name ?? ''} swatch={item.brand?.color} />
-        <Field label="System" value={item.system} />
+        <Field label="Model" value={item.model} />
         {/* The only two lines here that the parameter panel below cannot show:
             each is three parameters read as one measurement. Everything else a
             box states — the diagonal, what goes in, what it carries, the
@@ -502,6 +502,6 @@ function toFields(item: ToolCase): CaseFields {
     name: item.name,
     notes: item.notes,
     referenceUrl: item.referenceUrl,
-    system: item.system,
+    model: item.model,
   }
 }

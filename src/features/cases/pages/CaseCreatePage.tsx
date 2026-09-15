@@ -16,9 +16,9 @@ export function CaseCreatePage() {
   const mutation = useMutation({
     mutationFn: (fields: CaseFields) => createCase(fields),
     onSuccess: async ({ case: created }) => {
-      // The shelf and the system list both changed.
+      // The shelf and the model list both changed.
       await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-systems'] })
+      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
       notifications.show({ color: 'teal', message: `Dodano „${created.name}"` })
       navigate(`/cases/${created.id}`, { replace: true })
     },

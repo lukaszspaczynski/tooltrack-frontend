@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { fetchBrands } from '../../../api/brands'
-import { fetchSystems } from '../../../api/cases'
+import { fetchModels } from '../../../api/cases'
 import type { CaseFields } from '../../../api/types'
 import { t } from '../../../i18n'
 
@@ -13,7 +13,7 @@ const EMPTY: CaseFields = {
   name: '',
   notes: '',
   referenceUrl: '',
-  system: '',
+  model: '',
 }
 
 export type CaseFormProps = {
@@ -55,9 +55,9 @@ export function CaseForm({
     staleTime: 60_000,
   })
 
-  const systems = useQuery({
-    queryFn: fetchSystems,
-    queryKey: ['case-systems'],
+  const models = useQuery({
+    queryFn: fetchModels,
+    queryKey: ['case-models'],
     staleTime: 60_000,
   })
 
@@ -90,11 +90,11 @@ export function CaseForm({
           {/* Free text on purpose: which modular range a box stacks with is not
               a list that is ours to close. */}
           <Autocomplete
-            label="System"
+            label="Model"
             placeholder="PRO"
-            data={systems.data?.systems.map((entry) => entry.system) ?? []}
-            key={form.key('system')}
-            {...form.getInputProps('system')}
+            data={models.data?.models.map((entry) => entry.model) ?? []}
+            key={form.key('model')}
+            {...form.getInputProps('model')}
           />
         </Group>
 
@@ -136,6 +136,6 @@ function trimAll(fields: CaseFields): CaseFields {
     name: fields.name.trim(),
     notes: fields.notes.trim(),
     referenceUrl: fields.referenceUrl.trim(),
-    system: fields.system.trim(),
+    model: fields.model.trim(),
   }
 }

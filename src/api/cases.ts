@@ -5,7 +5,7 @@ import type {
   CaseImportResult,
   CaseImportSource,
   CasePage,
-  SystemCount,
+  ModelCount,
   ToolCase,
 } from './types'
 
@@ -59,9 +59,9 @@ export function removeLabelSlot(id: number, slotId: number): Promise<{ case: Too
   return request(`/cases/${id}/label-slots/${slotId}`, { method: 'DELETE' })
 }
 
-// What the system filter offers, counted from the cases themselves.
-export function fetchSystems(): Promise<{ systems: SystemCount[] }> {
-  return request('/cases/systems')
+// What the model filter offers, counted from the cases themselves.
+export function fetchModels(): Promise<{ models: ModelCount[] }> {
+  return request('/cases/models')
 }
 
 // Reading a maker's product page into a case. The answer carries the box and a
@@ -72,7 +72,7 @@ export function importCase(url: string): Promise<CaseImportResult> {
 }
 
 // The same page read again into a case that exists. The maker, the name, the
-// system, every measurement and the note are overwritten; the label slots and
+// model, every measurement and the note are overwritten; the label slots and
 // the photographs are not — a slot is where a sticker goes on this box in this
 // van, and no product page has an opinion about that.
 export function refreshCaseFromPage(caseId: number, url: string): Promise<CaseImportResult> {
@@ -111,7 +111,7 @@ export function deleteCaseAttribute(
 }
 
 // The vocabulary other cases already use, so a shelf ends up with one spelling
-// of "System" rather than four.
+// of "Model" rather than four.
 export function fetchCaseAttributeNames(): Promise<{ names: AttributeNameCount[] }> {
   return request('/cases/attributes')
 }

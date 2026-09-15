@@ -140,7 +140,7 @@ export type LibraryQuery = {
   source: null | string
 }
 
-// Every photo in the system, not one card's. Its own endpoint because it is
+// Every photo in the model, not one card's. Its own endpoint because it is
 // its own question: what did we import, rather than what does this item or
 // this case look like.
 export function fetchPhotoLibrary(query: LibraryQuery): Promise<PhotoLibraryPage> {

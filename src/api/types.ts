@@ -388,7 +388,7 @@ export type ToolCase = {
   // The same field an item card carries, and what the "update from the page"
   // button on a case reads.
   referenceUrl: string
-  system: string
+  model: string
   updatedAt: string
   updatedBy: null | number
 }
@@ -412,7 +412,7 @@ export type CaseFields = {
   name: string
   notes: string
   referenceUrl: string
-  system: string
+  model: string
 }
 
 // Where a case can be read from. Shorter than the item list and a different
@@ -434,9 +434,9 @@ export type CaseImportResult = {
   }
 }
 
-export type SystemCount = {
+export type ModelCount = {
   count: number
-  system: string
+  model: string
 }
 
 // An organizer: which items live in which case. The number is the one painted
