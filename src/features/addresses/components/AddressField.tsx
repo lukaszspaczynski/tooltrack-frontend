@@ -1,10 +1,9 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
-import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
-import { fetchAddresses } from '../../../api/addresses'
 import { t } from '../../../i18n'
 import { addressLine } from '../presentation'
+import { useAddresses } from '../useAddresses'
 import { AddressDot } from './AddressDot'
 
 // Where a thing is, on the reading side of a detail page.
@@ -17,13 +16,8 @@ import { AddressDot } from './AddressDot'
 // A link, because the reason to look at a place is usually to see what else is
 // there.
 export function AddressField({ addressId }: { addressId: null | number }) {
-  const query = useQuery({
-    enabled: addressId !== null,
-    queryFn: () => fetchAddresses({ limit: 500, offset: 0, search: null, sort: 'name' }),
-    queryKey: ['addresses', { limit: 500, search: null, sort: 'name' }],
-  })
-
-  const address = query.data?.items.find((item) => item.id === addressId) ?? null
+  const { addressById } = useAddresses()
+  const address = addressById(addressId)
   const line = address ? addressLine(address) : ''
 
   return (

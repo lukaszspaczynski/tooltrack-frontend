@@ -5,12 +5,16 @@ import { Link } from 'react-router-dom'
 import { apiFileUrl } from '../../../api/client'
 import type { Organizer } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
+import { AddressBadge } from '../../addresses/components/AddressBadge'
+import { useAddresses } from '../../addresses/useAddresses'
 
 // One arrangement, as it appears in the list. The whole card opens it, the
 // same as a tool or a case card — everything that changes anything lives on
 // the page behind it, so nothing here can be pressed by accident while
 // scrolling with a gloved thumb.
 export function OrganizerCard({ item }: { item: Organizer }) {
+  const { addressById } = useAddresses()
+
   return (
     <Card
       component={Link}
@@ -57,9 +61,14 @@ export function OrganizerCard({ item }: { item: Organizer }) {
           </Text>
         ) : null}
 
-        <Text size="xs" c="dimmed">
-          {toolCountLabel(item.tools.length)}
-        </Text>
+        <Group gap="xs" wrap="nowrap" justify="space-between">
+          <Text size="xs" c="dimmed">
+            {toolCountLabel(item.tools.length)}
+          </Text>
+          {/* Where the box stands. Nothing when nobody has said, so a list of
+              arrangements nobody has located looks as it did before. */}
+          <AddressBadge address={addressById(item.addressId)} />
+        </Group>
       </Stack>
     </Card>
   )

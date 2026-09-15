@@ -1,10 +1,8 @@
 import { Group, Select } from '@mantine/core'
 import { IconMapPin } from '@tabler/icons-react'
-import { useQuery } from '@tanstack/react-query'
-
-import { fetchAddresses } from '../../../api/addresses'
 import { t } from '../../../i18n'
 import { addressSummary } from '../presentation'
+import { useAddresses } from '../useAddresses'
 import { AddressDot } from './AddressDot'
 
 // Choosing where a thing is kept. A select rather than the search-and-grid
@@ -24,25 +22,17 @@ export function AddressSelect({
   onChange: (addressId: null | number) => void
   value: null | number
 }) {
-  // The whole list, because it is short. Shared cache key with the addresses
-  // screen, so opening a form after visiting it costs nothing.
-  const query = useQuery({
-    queryFn: () => fetchAddresses({ limit: 500, offset: 0, search: null, sort: 'name' }),
-    queryKey: ['addresses', { limit: 500, search: null, sort: 'name' }],
-  })
-
-  const data = query.data?.items ?? []
+  // The whole list, because it is short — and through the same hook the badges
+  // and the detail field use, so all four share one request and one staleness
+  // rule rather than three copies of the same query.
+  const { addresses: data, pending } = useAddresses()
   const chosen = data.find((address) => address.id === value) ?? null
 
   return (
     <Select
       label={label ?? t('Miejsce')}
       placeholder={
-        query.isPending
-          ? t('Wczytywanie…')
-          : data.length === 0
-            ? t('Brak adresów')
-            : t('Nie podano')
+        pending ? t('Wczytywanie…') : data.length === 0 ? t('Brak adresów') : t('Nie podano')
       }
       data={data.map((address) => ({
         label: addressSummary(address),
@@ -64,7 +54,7 @@ export function AddressSelect({
       // An empty select is null, not 0: the API tells "not set" from "set to
       // nothing" and so does the column behind it.
       onChange={(next) => onChange(next === null || next === '' ? null : Number(next))}
-      disabled={disabled || (data.length === 0 && !query.isPending)}
+      disabled={disabled || (data.length === 0 && !pending)}
       clearable
       searchable={data.length > 8}
       nothingFoundMessage={t('Nic nie pasuje')}

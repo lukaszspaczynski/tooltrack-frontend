@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
 import type { ToolListItem } from '../../../api/types'
+import { AddressBadge } from '../../addresses/components/AddressBadge'
+import { useAddresses } from '../../addresses/useAddresses'
 import { t } from '../../../i18n'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime, toolSubtitle } from '../presentation'
 
@@ -12,6 +14,8 @@ import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime, toolSubtitle } from
 // scroll sideways is a row nobody reads.
 export function ToolCard({ tool }: { tool: ToolListItem }) {
   const subtitle = toolSubtitle(tool)
+  // One query for the whole grid, shared with the picker and the detail pages.
+  const { addressById } = useAddresses()
 
   return (
     <Card withBorder padding="md" radius="md" pos="relative">
@@ -72,16 +76,22 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
         </Stack>
 
         <Group justify="space-between" gap="xs" wrap="nowrap">
-          {tool.category ? (
-            <Badge variant="default" size="sm">
-              {tool.category}
-            </Badge>
-          ) : (
-            <Text size="xs" c="dimmed">
-              bez kategorii
-            </Text>
-          )}
-          <Text size="xs" c="dimmed">
+          <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
+            {tool.category ? (
+              <Badge variant="default" size="sm">
+                {tool.category}
+              </Badge>
+            ) : (
+              <Text size="xs" c="dimmed">
+                bez kategorii
+              </Text>
+            )}
+            {/* Where it is, beside what it is. Nothing when nobody has said,
+                so a catalog where the field is unused looks exactly as it did
+                before there was a field. */}
+            <AddressBadge address={addressById(tool.addressId)} />
+          </Group>
+          <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
             {formatDateTime(tool.updatedAt)}
           </Text>
         </Group>
