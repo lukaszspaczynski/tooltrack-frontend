@@ -125,6 +125,10 @@ export function ItemsListPage() {
           data={[
             { label: t('Narzędzie'), value: 'tool' },
             { label: t('RTV/AGD'), value: 'appliance' },
+            // A box is a card too, since the fold. It has its own screen under
+            // Skrzynki, and it is here because leaving it out would make the
+            // unfiltered catalog show something no filter could then isolate.
+            { label: t('Skrzynka'), value: 'case' },
           ]}
           value={query.kind ?? null}
           onChange={(value) => apply({ kind: (value as ItemKind) ?? null })}
