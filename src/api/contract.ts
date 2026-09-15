@@ -14,13 +14,15 @@
 
 import type { components, paths } from './schema'
 import type {
-  CaseImportSource,
   AccountStatus,
+  Address,
+  AddressPage,
   AttributeNameCount,
   Brand,
   BrandPage,
   Capability,
   CardPhoto,
+  CaseImportSource,
   CaseListItem,
   CasePage,
   CategoryCount,
@@ -75,6 +77,8 @@ type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false
 type Assert<T extends true> = T
 
 export type _AccountStatus = Assert<Same<AccountStatus, Schemas['AccountStatus']>>
+export type _Address = Assert<Same<Address, Schemas['Address']>>
+export type _AddressPage = Assert<Same<AddressPage, Schemas['AddressPage']>>
 export type _AttributeNameCount = Assert<Same<AttributeNameCount, Schemas['AttributeNameCount']>>
 export type _Brand = Assert<Same<Brand, Schemas['Brand']>>
 export type _BrandPage = Assert<Same<BrandPage, Schemas['BrandPage']>>

@@ -4,6 +4,64 @@
  */
 
 export interface paths {
+    "/api/addresses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List places
+         * @description Every place, with `toolCount` and `organizerCount` — how many things say they are there. Those counts are most of why the list is worth looking at: they answer "where is the kit" and "which of these is empty and can be tidied away".
+         *
+         *     Sorted by name unless `?sort=` says otherwise, and ascending by default, like the makers: a short list of places is read alphabetically rather than newest-first.
+         */
+        get: operations["listAddresses"];
+        put?: never;
+        /**
+         * Add a place
+         * @description Only `name` is required, and it is the part a picker shows — a crew says "magazyn", not a postcode. The rest is the postal half, for when somebody has to drive there, and all of it is optional: a yard on a building site has a name and no street, and refusing to record it until somebody invents one means it is not recorded at all.
+         *
+         *     Names are unique folded and trimmed, so "Magazyn" and "magazyn " are one place rather than two lines nobody can choose between.
+         */
+        post: operations["createAddress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/addresses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a place
+         * @description One place, with what is kept there counted.
+         */
+        get: operations["getAddress"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a place
+         * @description The tools and arrangements that were here stay in the catalog and stop pointing at anything — closing a site must not take the kit that was on it out of the catalog.
+         *
+         *     `cleared` says how many lost their place. That number is the reason this answer is not a bare `ok`: "delete" on a list of places reads like tidying up, and forty cards quietly losing their location does not.
+         */
+        delete: operations["deleteAddress"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a place
+         * @description Any subset of the create body. Absent fields are left alone.
+         */
+        patch: operations["updateAddress"];
+        trace?: never;
+    };
     "/api/auth/language": {
         parameters: {
             query?: never;
@@ -36,6 +94,8 @@ export interface paths {
         /**
          * Sign in
          * @description Sets the session cookie. The body is checked for presence rather than shape: telling somebody their address "looks wrong" at sign-in leaks which addresses this instance considers acceptable, so a bad address and a bad password are answered the same way.
+         *
+         *     Failures are counted per address and per e-mail, and a caller over either limit is answered 429 with `Retry-After` before the password is looked at. Being refused does not extend the block, so somebody else's guessing cannot hold an account shut.
          */
         post: operations["login"];
         delete?: never;
@@ -118,6 +178,72 @@ export interface paths {
          * @description Always creates a viewer, whatever the body asks for: promotion is an administrator action and never a side effect of signing up. A display name is optional — without one the account is named after the part of the address before the @, which is a better placeholder than a blank row in the user list.
          */
         post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List open sessions
+         * @description Where this account is signed in, newest use first, with the session making the request marked `current`. Its own only — the account comes from the session rather than from anything the caller sent — and expired rows are left out, since the question is what is open now.
+         */
+        get: operations["listSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke a session
+         * @description Signs a device out. A session that is not this account's answers 404, the same as one that never existed, so other accounts' ids cannot be found by trying them. Revoking the session making the request is allowed: the answer goes out, and the next call with that token is a 401.
+         */
+        delete: operations["revokeSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in for a bearer token
+         * @description The same door as `login`, for a client with no cookie jar worth relying on. It answers with the token itself and sets no cookie; send it back as `Authorization: Bearer <token>`, which wins over a cookie when both are present.
+         *
+         *     Two doors, one session: the same row, the same expiry, the same revocation. `login` deliberately does not answer with a token — a token in a response body is one any script on the page can read, and that is what the httpOnly cookie exists to prevent.
+         *
+         *     `device` is a label for the session list and nothing else. It is never read while authenticating.
+         *
+         *     The same throttle as `login`, counting against the same totals: a limit guarding one of two doors into the same house is one a caller walks around.
+         */
+        post: operations["issueToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1901,16 +2027,20 @@ export interface components {
              *     - `BODY_TOO_LARGE` — The request body is over the route’s ceiling.
              *     - `UNSUPPORTED_MEDIA_TYPE` — The bytes are not a format this route can read.
              *     - `METHOD_NOT_ALLOWED` — The path exists, but not with this method. See the Allow header.
+             *     - `CLIENT_TOO_OLD` — This build of the client is older than the floor this server answers. `minimum` says which build to update to.
              *     - `UNAUTHENTICATED` — No session, or one that has expired.
              *     - `FORBIDDEN` — A session, but not the capability this route needs.
              *     - `ACCOUNT_DISABLED` — The account exists but has been switched off.
              *     - `INVALID_CREDENTIALS` — The e-mail and password do not match an account.
+             *     - `TOO_MANY_ATTEMPTS` — Too many failed sign-ins from this address, or against this e-mail. See Retry-After.
              *     - `NOT_FOUND` — No such record, or none this account may see.
              *     - `TOOL_NOT_FOUND` — No such tool card.
              *     - `CASE_NOT_FOUND` — No such case.
              *     - `ORGANIZER_NOT_FOUND` — No such organizer.
              *     - `BRAND_NOT_FOUND` — No such maker.
              *     - `USER_NOT_FOUND` — No such account.
+             *     - `ADDRESS_NOT_FOUND` — No such address.
+             *     - `SESSION_NOT_FOUND` — No such session, or none belonging to this account.
              *     - `PHOTO_NOT_FOUND` — No such photograph, or its file is gone.
              *     - `MANUAL_NOT_FOUND` — No such document, or its file is gone.
              *     - `LABEL_NOT_FOUND` — No such label, or its file is gone.
@@ -1918,6 +2048,7 @@ export interface components {
              *     - `LABEL_SLOT_NOT_FOUND` — This case has no such label slot.
              *     - `TOOL_NOT_IN_ORGANIZER` — That tool is not in this organizer.
              *     - `EMAIL_TAKEN` — An account with that e-mail already exists.
+             *     - `ADDRESS_NAME_TAKEN` — Another place is already called that.
              *     - `SERIAL_NUMBER_TAKEN` — Another card already carries that serial number.
              *     - `ATTRIBUTE_NAME_TAKEN` — This card already has a parameter with that name.
              *     - `BRAND_NAME_TAKEN` — A maker with that name already exists.
@@ -1947,7 +2078,7 @@ export interface components {
              *     - `INTERNAL` — Something went wrong that the caller cannot act on.
              * @enum {string}
              */
-            code: "INVALID_BODY" | "INVALID_QUERY" | "BODY_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "METHOD_NOT_ALLOWED" | "UNAUTHENTICATED" | "FORBIDDEN" | "ACCOUNT_DISABLED" | "INVALID_CREDENTIALS" | "NOT_FOUND" | "TOOL_NOT_FOUND" | "CASE_NOT_FOUND" | "ORGANIZER_NOT_FOUND" | "BRAND_NOT_FOUND" | "USER_NOT_FOUND" | "PHOTO_NOT_FOUND" | "MANUAL_NOT_FOUND" | "LABEL_NOT_FOUND" | "SEARCH_ENGINE_NOT_FOUND" | "LABEL_SLOT_NOT_FOUND" | "TOOL_NOT_IN_ORGANIZER" | "EMAIL_TAKEN" | "SERIAL_NUMBER_TAKEN" | "ATTRIBUTE_NAME_TAKEN" | "BRAND_NAME_TAKEN" | "LOGO_TAKEN" | "LABEL_SLOT_TAKEN" | "ORGANIZER_NUMBER_TAKEN" | "TOOL_ALREADY_IN_ORGANIZER" | "PHOTO_ALREADY_ON_CARD" | "MANUAL_ALREADY_ON_CARD" | "LAST_ACTIVE_ADMIN" | "SELF_ROLE_CHANGE" | "PAGE_UNREACHABLE" | "NOT_A_PRODUCT_PAGE" | "UNSUPPORTED_SOURCE" | "NO_SOURCE_PAGE" | "SOURCE_HAS_NO_MANUALS" | "DOWNLOAD_FAILED" | "IMAGE_UNREADABLE" | "NOT_A_PDF" | "CUTOUT_UNSUITABLE" | "CUTOUT_UNAVAILABLE" | "PREVIEW_EXPIRED" | "LABEL_UNDRAWABLE" | "SEARCH_UNAVAILABLE" | "ATTACH_FAILED" | "DATABASE_UNAVAILABLE" | "INTERNAL";
+            code: "INVALID_BODY" | "INVALID_QUERY" | "BODY_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "METHOD_NOT_ALLOWED" | "CLIENT_TOO_OLD" | "UNAUTHENTICATED" | "FORBIDDEN" | "ACCOUNT_DISABLED" | "INVALID_CREDENTIALS" | "TOO_MANY_ATTEMPTS" | "NOT_FOUND" | "TOOL_NOT_FOUND" | "CASE_NOT_FOUND" | "ORGANIZER_NOT_FOUND" | "BRAND_NOT_FOUND" | "USER_NOT_FOUND" | "ADDRESS_NOT_FOUND" | "SESSION_NOT_FOUND" | "PHOTO_NOT_FOUND" | "MANUAL_NOT_FOUND" | "LABEL_NOT_FOUND" | "SEARCH_ENGINE_NOT_FOUND" | "LABEL_SLOT_NOT_FOUND" | "TOOL_NOT_IN_ORGANIZER" | "EMAIL_TAKEN" | "ADDRESS_NAME_TAKEN" | "SERIAL_NUMBER_TAKEN" | "ATTRIBUTE_NAME_TAKEN" | "BRAND_NAME_TAKEN" | "LOGO_TAKEN" | "LABEL_SLOT_TAKEN" | "ORGANIZER_NUMBER_TAKEN" | "TOOL_ALREADY_IN_ORGANIZER" | "PHOTO_ALREADY_ON_CARD" | "MANUAL_ALREADY_ON_CARD" | "LAST_ACTIVE_ADMIN" | "SELF_ROLE_CHANGE" | "PAGE_UNREACHABLE" | "NOT_A_PRODUCT_PAGE" | "UNSUPPORTED_SOURCE" | "NO_SOURCE_PAGE" | "SOURCE_HAS_NO_MANUALS" | "DOWNLOAD_FAILED" | "IMAGE_UNREADABLE" | "NOT_A_PDF" | "CUTOUT_UNSUITABLE" | "CUTOUT_UNAVAILABLE" | "PREVIEW_EXPIRED" | "LABEL_UNDRAWABLE" | "SEARCH_UNAVAILABLE" | "ATTACH_FAILED" | "DATABASE_UNAVAILABLE" | "INTERNAL";
             /** @description What went wrong, written for a person and translated to the language of the Accept-Language header. Not a stable identifier. */
             error: string;
         };
@@ -1978,6 +2109,14 @@ export interface components {
             role: components["schemas"]["Role"];
             status: components["schemas"]["AccountStatus"];
         };
+        SessionSummary: {
+            createdAt: string;
+            current: boolean;
+            device: string;
+            expiresAt: string;
+            id: number;
+            lastSeenAt: string;
+        };
         ToolDetail: {
             attributes: components["schemas"]["Attribute"][];
             brand: string;
@@ -1987,6 +2126,7 @@ export interface components {
             createdBy: null | number;
             id: number;
             model: string;
+            addressId: null | number;
             name: string;
             notes: string;
             referenceUrl: string;
@@ -2011,6 +2151,7 @@ export interface components {
             createdBy: null | number;
             id: number;
             model: string;
+            addressId: null | number;
             name: string;
             notes: string;
             referenceUrl: string;
@@ -2139,6 +2280,28 @@ export interface components {
             id: number;
             kind: components["schemas"]["PhotoOwnerKind"];
         };
+        Address: {
+            building: string;
+            city: string;
+            createdAt: string;
+            createdBy: null | number;
+            id: number;
+            name: string;
+            notes: string;
+            organizerCount: number;
+            postalCode: string;
+            street: string;
+            toolCount: number;
+            unit: string;
+            updatedAt: string;
+            updatedBy: null | number;
+        };
+        AddressPage: {
+            items: components["schemas"]["Address"][];
+            limit: number;
+            offset: number;
+            total: number;
+        };
         Brand: {
             color: string;
             createdAt: string;
@@ -2225,6 +2388,7 @@ export interface components {
             system: string;
         };
         Organizer: {
+            addressId: null | number;
             case: {
                 id: number;
                 manufacturer: string;
@@ -2451,6 +2615,24 @@ export interface components {
             /** @description Whether this source publishes documents at all. */
             manuals: boolean;
         };
+        AddressCreateBody: {
+            building?: string;
+            city?: string;
+            name: string;
+            notes?: string;
+            postalCode?: string;
+            street?: string;
+            unit?: string;
+        };
+        AddressPatchBody: {
+            building?: string;
+            city?: string;
+            name?: string;
+            notes?: string;
+            postalCode?: string;
+            street?: string;
+            unit?: string;
+        };
         AttributeCreateBody: {
             name: string;
             value: string;
@@ -2568,6 +2750,7 @@ export interface components {
             url: string;
         };
         OrganizerCreateBody: {
+            addressId?: number | string | null;
             caseId: number | string;
             description?: string;
             name: string;
@@ -2575,6 +2758,7 @@ export interface components {
             toolIds?: unknown[];
         };
         OrganizerPatchBody: {
+            addressId?: number | string | null;
             caseId?: number | string;
             description?: string;
             name?: string;
@@ -2604,7 +2788,13 @@ export interface components {
         SearchEngineMineBody: {
             enabled: boolean;
         };
+        TokenBody: {
+            email: string;
+            password: string;
+            device?: string;
+        };
         ToolCreateBody: {
+            addressId?: number | string | null;
             brand?: string;
             category?: string;
             /** @enum {string} */
@@ -2619,6 +2809,7 @@ export interface components {
             toolIds: unknown[];
         };
         ToolPatchBody: {
+            addressId?: number | string | null;
             brand?: string;
             category?: string;
             /** @enum {string} */
@@ -2701,6 +2892,24 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description This build of the client is older than the floor this server answers. The body carries `minimum`, the build to update to. Sent only to a caller that identified itself with `X-ToolTrack-Client`; the public routes never send it, so a stale build can still read /api/version and the contract. */
+        426: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Too many failed sign-ins from this address, or against this e-mail. `Retry-After` carries the seconds to wait; the same answer is given whether or not an account by that name exists. */
+        429: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description The database is unreachable. The request itself was fine; retry it. */
         503: {
             headers: {
@@ -2718,6 +2927,235 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listAddresses: {
+        parameters: {
+            query?: {
+                /** @description Free-text over name, city, street, postcode and notes. */
+                q?: string;
+                /** @description By name, by city, or by how much is kept there. */
+                sort?: "name" | "city" | "tools";
+                /** @description Direction. */
+                order?: "asc" | "desc";
+                /**
+                 * @description How many records to return. A value above the maximum is clamped rather than refused.
+                 * @example 100
+                 */
+                limit?: number;
+                /**
+                 * @description How many records to skip, for paging.
+                 * @example 0
+                 */
+                offset?: number;
+            };
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of places. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressPage"];
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    createAddress: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressCreateBody"];
+            };
+        };
+        responses: {
+            /** @description The place. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        address: components["schemas"]["Address"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            409: components["responses"]["409"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    getAddress: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The address id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The place. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        address: components["schemas"]["Address"];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    deleteAddress: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The address id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted, and what stopped pointing at it. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        cleared: {
+                            organizers: number;
+                            tools: number;
+                        };
+                        ok: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    updateAddress: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The address id. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressPatchBody"];
+            };
+        };
+        responses: {
+            /** @description The place. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        address: components["schemas"]["Address"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            409: components["responses"]["409"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
     changeLanguage: {
         parameters: {
             query?: never;
@@ -2727,6 +3165,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2751,6 +3194,7 @@ export interface operations {
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -2763,6 +3207,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2784,6 +3233,8 @@ export interface operations {
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
+            426: components["responses"]["426"];
+            429: components["responses"]["429"];
             503: components["responses"]["503"];
         };
     };
@@ -2796,6 +3247,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2813,6 +3269,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
         };
     };
     getCurrentUser: {
@@ -2824,6 +3281,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2854,6 +3316,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
         };
     };
     changePassword: {
@@ -2865,6 +3328,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2888,6 +3356,7 @@ export interface operations {
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -2900,6 +3369,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2921,6 +3395,125 @@ export interface operations {
             };
             400: components["responses"]["400"];
             409: components["responses"]["409"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    listSessions: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The open sessions of this account. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        sessions: components["schemas"]["SessionSummary"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    revokeSession: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The session id, from `GET /api/auth/sessions`. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked. The token stops working immediately. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["401"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    issueToken: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenBody"];
+            };
+        };
+        responses: {
+            /** @description Signed in. No cookie is set; the token is in the body and nowhere else. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        capabilities: components["schemas"]["Capability"][];
+                        /** Format: date-time */
+                        expiresAt: string;
+                        token: string;
+                        user: components["schemas"]["User"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            426: components["responses"]["426"];
+            429: components["responses"]["429"];
             503: components["responses"]["503"];
         };
     };
@@ -2950,6 +3543,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2968,6 +3566,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -2980,6 +3579,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -3013,6 +3617,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3025,6 +3630,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The maker. */
@@ -3048,6 +3658,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3060,6 +3671,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The maker to delete. */
@@ -3084,6 +3700,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3096,6 +3713,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The maker to edit. */
@@ -3134,6 +3756,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3146,6 +3769,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The maker. */
@@ -3192,6 +3820,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3204,6 +3833,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The maker. */
@@ -3227,6 +3861,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3263,6 +3898,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -3281,6 +3921,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3293,6 +3934,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -3317,6 +3963,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3329,6 +3976,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3352,6 +4004,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3364,6 +4017,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case to delete. */
@@ -3388,6 +4046,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3400,6 +4059,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case to edit. */
@@ -3429,6 +4093,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3441,6 +4106,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case to add the parameter to. */
@@ -3478,6 +4148,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3490,6 +4161,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case the parameter is on. */
@@ -3515,6 +4191,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3527,6 +4204,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case the parameter is on. */
@@ -3566,6 +4248,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3578,6 +4261,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case to read the page into. */
@@ -3619,6 +4307,7 @@ export interface operations {
             403: components["responses"]["403"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3631,6 +4320,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3668,6 +4362,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3680,6 +4375,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3705,6 +4405,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3722,6 +4423,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3755,6 +4461,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             /** @description No search engine is configured and enabled for this account. */
             503: {
                 headers: {
@@ -3784,6 +4491,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3807,6 +4519,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3819,6 +4532,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3903,6 +4621,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3915,6 +4634,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3941,6 +4665,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3953,6 +4678,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -3986,6 +4716,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -3998,6 +4729,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -4030,6 +4766,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4042,6 +4779,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -4082,6 +4824,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4094,6 +4837,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -4132,6 +4880,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4144,6 +4893,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -4177,6 +4931,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
         };
     };
     getCasePhotoFile: {
@@ -4188,6 +4943,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -4211,6 +4971,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
         };
     };
     attachCasePhotos: {
@@ -4222,6 +4983,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The case. */
@@ -4263,6 +5029,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4275,6 +5042,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4294,6 +5066,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4306,6 +5079,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4351,6 +5129,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             422: components["responses"]["422"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4363,6 +5142,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4385,6 +5169,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
         };
     };
     listCaseSystems: {
@@ -4396,6 +5181,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4415,6 +5205,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4427,6 +5218,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4453,6 +5249,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description A file name, never a path. */
@@ -4511,6 +5312,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4537,6 +5343,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4549,6 +5356,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4580,6 +5392,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4598,6 +5411,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4642,6 +5460,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4667,6 +5486,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4684,6 +5508,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4696,6 +5521,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The document. */
@@ -4724,6 +5554,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4736,6 +5567,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The document. */
@@ -4757,6 +5593,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
         };
     };
     deleteManuals: {
@@ -4768,6 +5605,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4790,6 +5632,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4802,6 +5645,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description Which engine. */
@@ -4840,6 +5688,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4852,6 +5701,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4897,6 +5751,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4915,6 +5774,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4927,6 +5787,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -4969,6 +5834,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -4981,6 +5847,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5004,6 +5875,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5016,6 +5888,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement to delete. */
@@ -5040,6 +5917,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5052,6 +5930,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement to edit. */
@@ -5098,6 +5981,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5110,6 +5994,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5133,6 +6022,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5145,6 +6035,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5181,6 +6076,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5193,6 +6089,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5218,6 +6119,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5230,6 +6132,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5253,6 +6160,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
         };
     };
     getOrganizerLabelPreview: {
@@ -5264,6 +6172,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5287,6 +6200,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
         };
     };
     refreshOrganizerLabels: {
@@ -5298,6 +6212,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5332,6 +6251,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5344,6 +6264,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5381,6 +6306,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5393,6 +6319,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The arrangement. */
@@ -5419,6 +6350,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5450,6 +6382,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5476,6 +6413,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5488,6 +6426,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5531,6 +6474,7 @@ export interface operations {
                 };
             };
             422: components["responses"]["422"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5543,6 +6487,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The photograph. */
@@ -5564,6 +6513,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
         };
     };
     deleteLibraryPhotos: {
@@ -5575,6 +6525,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5597,6 +6552,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5609,6 +6565,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5626,6 +6587,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5638,6 +6600,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5660,6 +6627,7 @@ export interface operations {
             400: components["responses"]["400"];
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5672,6 +6640,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description Which method. */
@@ -5714,6 +6687,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5726,6 +6700,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5747,6 +6726,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5759,6 +6739,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description Which engine. */
@@ -5797,6 +6782,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5835,6 +6821,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5861,6 +6852,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5873,6 +6865,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5907,6 +6904,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5919,6 +6917,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card. */
@@ -5942,6 +6945,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5954,6 +6958,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card to delete. */
@@ -5978,6 +6987,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -5990,6 +7000,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card to edit. */
@@ -6028,6 +7043,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6040,6 +7056,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card to add the parameter to. */
@@ -6081,6 +7102,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6093,6 +7115,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card the parameter is on. */
@@ -6118,6 +7145,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6130,6 +7158,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card the parameter is on. */
@@ -6172,6 +7205,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6184,6 +7218,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card to copy. */
@@ -6207,6 +7246,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6219,6 +7259,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The card to read the page into. */
@@ -6247,6 +7292,7 @@ export interface operations {
             403: components["responses"]["403"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6259,6 +7305,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6282,6 +7333,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6300,6 +7352,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6367,6 +7424,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6379,6 +7437,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6405,6 +7468,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6417,6 +7481,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6447,6 +7516,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6459,6 +7529,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6485,6 +7560,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6497,6 +7573,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6547,6 +7628,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6564,6 +7646,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6597,6 +7684,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             /** @description No search engine is configured and enabled for this account. */
             503: {
                 headers: {
@@ -6626,6 +7714,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6649,6 +7742,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6661,6 +7755,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6745,6 +7844,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6757,6 +7857,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6783,6 +7888,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6795,6 +7901,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6828,6 +7939,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6840,6 +7952,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6872,6 +7989,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6884,6 +8002,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6924,6 +8047,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6936,6 +8060,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -6974,6 +8103,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -6986,6 +8116,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -7019,6 +8154,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
         };
     };
     getToolPhotoFile: {
@@ -7030,6 +8166,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -7053,6 +8194,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             404: components["responses"]["404"];
+            426: components["responses"]["426"];
         };
     };
     attachToolPhotos: {
@@ -7064,6 +8206,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The tool card. */
@@ -7105,6 +8252,7 @@ export interface operations {
                     };
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7117,6 +8265,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -7136,6 +8289,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7148,6 +8302,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -7167,6 +8326,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7179,6 +8339,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -7211,6 +8376,7 @@ export interface operations {
             401: components["responses"]["401"];
             403: components["responses"]["403"];
             422: components["responses"]["422"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7223,6 +8389,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -7242,6 +8413,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
         };
     };
     listUsers: {
@@ -7253,6 +8425,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -7270,6 +8447,7 @@ export interface operations {
             };
             401: components["responses"]["401"];
             403: components["responses"]["403"];
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7282,6 +8460,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The account to delete. */
@@ -7323,6 +8506,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7335,6 +8519,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path: {
                 /** @description The account to edit. */
@@ -7381,6 +8570,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
     };
@@ -7393,6 +8583,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;
@@ -7424,6 +8619,11 @@ export interface operations {
                  * @example pl
                  */
                 "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
             };
             path?: never;
             cookie?: never;

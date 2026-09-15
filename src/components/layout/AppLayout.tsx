@@ -19,6 +19,7 @@ import {
   IconBox,
   IconFileTypePdf,
   IconLayoutGrid,
+  IconMapPin,
   IconPhoto,
   IconSettings,
   IconSun,
@@ -159,6 +160,17 @@ export function AppLayout() {
             onClick={close}
           />
         </NavLink>
+        {/* Top level rather than under the tools, because a place is where an
+            arrangement stands as much as where a tool does. Under either of
+            them it would read as belonging to that one. */}
+        <NavLink
+          component={Link}
+          to="/addresses"
+          label={t('Adresy')}
+          leftSection={<IconMapPin size={18} />}
+          active={location.pathname.startsWith('/addresses')}
+          onClick={close}
+        />
         <NavLink
           component={Link}
           to="/photos"

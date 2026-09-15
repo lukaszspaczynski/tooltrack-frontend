@@ -59,6 +59,11 @@ export function OrganizerWizard({
   const submit = () => {
     if (!chosenCase || !name.trim()) return
     onCreate({
+      // Not asked for here. The wizard's job is the case and the tools in it;
+      // where the box stands is something somebody sets afterwards, on the
+      // arrangement, and asking for it in step one would be a field nobody has
+      // an answer to yet.
+      addressId: null,
       caseId: chosenCase.id,
       description: description.trim(),
       name: name.trim(),

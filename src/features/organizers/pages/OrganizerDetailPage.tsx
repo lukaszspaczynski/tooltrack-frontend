@@ -51,6 +51,7 @@ import {
   type LabelRequest,
 } from '../../../api/organizers'
 import type { Organizer } from '../../../api/types'
+import { AddressField } from '../../addresses/components/AddressField'
 import { t } from '../../../i18n'
 import { formatDateTime } from '../../tools/presentation'
 import { useSession } from '../../../session/SessionContext'
@@ -296,6 +297,7 @@ export function OrganizerDetailPage() {
           <OrganizerForm
             caseName={organizer.case.name}
             initialValues={{
+              addressId: organizer.addressId,
               caseId: organizer.case.id,
               description: organizer.description,
               name: organizer.name,
@@ -649,6 +651,8 @@ function OrganizerDetails({ organizer }: { organizer: Organizer }) {
           </Text>
         </Stack>
       </Group>
+
+      <AddressField addressId={organizer.addressId} />
 
       {organizer.description ? (
         <Stack gap={2}>

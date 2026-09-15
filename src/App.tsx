@@ -6,6 +6,7 @@ import { AccountLanguage } from './i18n/AccountLanguage'
 import { LoginPage } from './features/auth/pages/LoginPage'
 import { CaseCreatePage } from './features/cases/pages/CaseCreatePage'
 import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
+import { AddressesPage } from './features/addresses/pages/AddressesPage'
 import { BrandsPage } from './features/brands/pages/BrandsPage'
 import { CasesListPage } from './features/cases/pages/CasesListPage'
 import { LabelsPage } from './features/organizers/pages/LabelsPage'
@@ -72,6 +73,14 @@ export function App() {
           />
           {/* Cases before the :id route, as on the server: "new" must not be
             read as the id of a case. */}
+          <Route
+            path="addresses"
+            element={
+              <RequireCapability capability="catalog.read">
+                <AddressesPage />
+              </RequireCapability>
+            }
+          />
           <Route
             path="brands"
             element={

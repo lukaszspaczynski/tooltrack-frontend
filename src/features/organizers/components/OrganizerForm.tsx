@@ -13,10 +13,14 @@ import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 
 import type { CaseListItem } from '../../../api/types'
+import { AddressSelect } from '../../addresses/components/AddressSelect'
 import { t } from '../../../i18n'
 import { CasePicker } from './CasePicker'
 
 export type OrganizerFormValues = {
+  // Where this arrangement stands. Null is "nobody has said", which is what a
+  // new one is until somebody puts the box down somewhere.
+  addressId: null | number
   caseId: number
   description: string
   name: string
@@ -47,11 +51,15 @@ export function OrganizerForm({
 
   const [chosenCase, setChosenCase] = useState({ id: initialValues.caseId, name: caseName })
   const [caseOpen, casePicker] = useDisclosure(false)
+  // Its own state and merged at submit, like the case above. The form is
+  // uncontrolled, so setFieldValue writes the value and renders nothing — the
+  // select would keep showing the old place while holding the new one.
+  const [addressId, setAddressId] = useState(initialValues.addressId)
 
   return (
     <form
       onSubmit={form.onSubmit((values) =>
-        onSubmit({ ...values, caseId: chosenCase.id, name: values.name.trim() }),
+        onSubmit({ ...values, addressId, caseId: chosenCase.id, name: values.name.trim() }),
       )}
     >
       <Stack gap="md">
@@ -72,6 +80,11 @@ export function OrganizerForm({
             {...form.getInputProps('number')}
           />
         </Group>
+
+        {/* Where the box stands. The tools inside carry one of their own and
+            the two may disagree — a drill on a site while its box is in the
+            workshop is genuinely two places. */}
+        <AddressSelect value={addressId} onChange={setAddressId} />
 
         <Textarea
           label={t('Opis')}

@@ -211,6 +211,43 @@ export const EN: Record<string, string> = {
   Źródło: 'Source',
   'Typ obiektu': 'Kind',
 
+  // Places the kit is kept
+  'Adres usunięty.': 'Address deleted.',
+  'Adres usunięty. {n} pozycji straciło lokalizację.':
+    'Address deleted. {n} items no longer say where they are.',
+  Adresy: 'Addresses',
+  'Brak adresów': 'No addresses yet',
+  'Dodaj adres': 'Add an address',
+  'Dodaj pierwsze miejsce, a potem przypiszesz do niego narzędzia i organizery.':
+    'Add the first place, then assign tools and arrangements to it.',
+  'Edytuj adres': 'Edit the address',
+  'Klucz u kierownika, wjazd od podwórza…': 'Key with the foreman, entrance from the yard…',
+  'Kod pocztowy': 'Postcode',
+  Lokal: 'Unit',
+  'Magazyn, Budowa Mokotów…': 'Workshop, Mokotów site…',
+  'Miejsca, w których stoi sprzęt: magazyn, plac, budowa.':
+    'Where the kit stands: a workshop, a yard, a site.',
+  Miejsce: 'Place',
+  'Miejsce „{name}” zniknie z listy.': 'The place “{name}” will disappear from the list.',
+  Miejscowość: 'Town',
+  'Nic nie pasuje': 'Nothing matches',
+  'Nic tu nie stoi.': 'Nothing is kept here.',
+  'Nie ma jeszcze żadnego adresu': 'No address yet',
+  'Nie podano': 'Not given',
+  'Nie udało się wczytać adresów': 'The addresses could not be loaded',
+  'Nowy adres': 'New address',
+  Numer: 'Number',
+  Pusto: 'Empty',
+  'Szukaj po nazwie, mieście, ulicy…': 'Search by name, town, street…',
+  'To, jak mówicie o tym miejscu. Po tym się je wybiera.':
+    'What you call this place. It is what you pick it by.',
+  Ulica: 'Street',
+  'Usunąć adres?': 'Delete the address?',
+  'Wczytywanie…': 'Loading…',
+  '{n} organizerów': '{n} arrangements',
+  '{things} stracą lokalizację. Zostaną w katalogu.':
+    '{things} will stop saying where they are. They stay in the catalog.',
+
   // Signing in
   Hasło: 'Password',
   'Zarejestruj się': 'Sign up',

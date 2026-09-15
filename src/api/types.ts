@@ -11,6 +11,8 @@ export const TOOL_CONDITIONS = ['new', 'good', 'worn', 'needs_repair', 'retired'
 export type ToolCondition = (typeof TOOL_CONDITIONS)[number]
 
 export type Tool = {
+  // Where this tool is kept, or null when nobody has said.
+  addressId: null | number
   brand: string
   category: string
   condition: ToolCondition
@@ -327,6 +329,7 @@ export type CategoryCount = {
 
 // What POST /api/tools accepts. A PATCH sends any subset of it.
 export type ToolFields = {
+  addressId: null | number
   brand: string
   category: string
   condition: ToolCondition
@@ -486,6 +489,10 @@ export type OrganizerLabelSlot = {
 }
 
 export type Organizer = {
+  // Where this arrangement is kept, or null when nobody has said. The tools in
+  // it carry one of their own and the two may disagree: a drill taken to a site
+  // while its box stays in the workshop is genuinely two places.
+  addressId: null | number
   case: {
     id: number
     manufacturer: string
@@ -514,6 +521,7 @@ export type OrganizerPage = {
 // What POST /api/organizers accepts. `number` absent means "the next free
 // one", which only the server can work out.
 export type OrganizerFields = {
+  addressId: null | number
   caseId: number
   description: string
   name: string
@@ -523,6 +531,45 @@ export type OrganizerFields = {
 
 // A maker. One row, many tools; the logo is a picture from the library, linked
 // one to one in its own table rather than held as a column.
+// Where the kit is: a workshop, a yard, a site, a van. Only `name` is required
+// and it is the part a picker shows — a crew says "magazyn", not a postcode.
+export type Address = {
+  building: string
+  city: string
+  createdAt: string
+  createdBy: null | number
+  id: number
+  name: string
+  notes: string
+  // How many things say they are here. Read-only, and what makes the list
+  // worth looking at: "where is the kit", and "which of these is empty".
+  organizerCount: number
+  postalCode: string
+  street: string
+  toolCount: number
+  unit: string
+  updatedAt: string
+  updatedBy: null | number
+}
+
+export type AddressPage = {
+  items: Address[]
+  limit: number
+  offset: number
+  total: number
+}
+
+// What POST /api/addresses accepts. A PATCH sends any subset of it.
+export type AddressFields = {
+  building: string
+  city: string
+  name: string
+  notes: string
+  postalCode: string
+  street: string
+  unit: string
+}
+
 export type Brand = {
   // '#rrggbb', or '' when nobody has said. Not black — a maker without a
   // colour has to look different from one whose colour is black.

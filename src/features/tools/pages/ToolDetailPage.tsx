@@ -23,6 +23,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError, hasCode } from '../../../api/client'
 import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
 import type { Tool, ToolFields } from '../../../api/types'
+import { AddressField } from '../../addresses/components/AddressField'
 import { ReferenceField } from '../../../components/ReferenceField'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
@@ -307,6 +308,8 @@ function ToolDetails({ tool }: { tool: Tool }) {
 
       <Field label={t('Notatki')} value={tool.notes} multiline />
 
+      <AddressField addressId={tool.addressId} />
+
       <ReferenceField url={tool.referenceUrl} />
 
       <Text size="xs" c="dimmed">
@@ -340,6 +343,7 @@ function toFields(tool: Tool): ToolFields {
     category: tool.category,
     condition: tool.condition,
     model: tool.model,
+    addressId: tool.addressId,
     name: tool.name,
     notes: tool.notes,
     referenceUrl: tool.referenceUrl,

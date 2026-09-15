@@ -9,16 +9,19 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
 import { fetchBrands } from '../../../api/brands'
 import { fetchCategories } from '../../../api/tools'
 import type { ToolFields } from '../../../api/types'
+import { AddressSelect } from '../../addresses/components/AddressSelect'
 import { t } from '../../../i18n'
 import { conditionOptions } from '../presentation'
 
 const EMPTY: ToolFields = {
+  addressId: null,
   brand: '',
   category: '',
   condition: 'good',
@@ -57,6 +60,11 @@ export function ToolForm({
     },
   })
 
+  // Its own state, merged at submit. The form is uncontrolled, so
+  // setFieldValue writes the value and renders nothing — the select would keep
+  // showing the old place while holding the new one.
+  const [addressId, setAddressId] = useState(initialValues?.addressId ?? null)
+
   // Categories come from the tools themselves, so the field suggests what is
   // already in use without forcing anyone to pick from a list. Typing a new one
   // is how a category gets created.
@@ -83,7 +91,7 @@ export function ToolForm({
   const brandOptions = current && !known.includes(current) ? [...known, current] : known
 
   return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(trimAll(values)))}>
+    <form onSubmit={form.onSubmit((values) => onSubmit(trimAll({ ...values, addressId })))}>
       <Stack gap="md">
         <TextInput
           label={t('Nazwa')}
@@ -156,6 +164,11 @@ export function ToolForm({
           key={form.key('notes')}
           {...form.getInputProps('notes')}
         />
+
+        {/* Where it is kept. Beside the notes rather than among the maker and
+            the model: those say what the tool is, this says where to go and
+            get it. */}
+        <AddressSelect value={addressId} onChange={setAddressId} />
 
         {/* An import fills this in, and typing it here is what gives a card
             written by hand the same three things: the update button, the
