@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import type { OrganizerTool } from '../../api/types'
+import type { OrganizerItem } from '../../api/types'
 import {
   defaultCaptionSource,
   defaultLabelRequest,
@@ -11,7 +11,7 @@ import {
   toolModels,
 } from './labelDefaults'
 
-function tool(id: number, fields: Partial<OrganizerTool> = {}): OrganizerTool {
+function item(id: number, fields: Partial<OrganizerItem> = {}): OrganizerItem {
   return {
     brand: 'Bosch',
     id,
@@ -34,42 +34,42 @@ test('how many pictures fit is a fact about the shape', () => {
   assert.equal(maxPhotosFor(null), 3)
 })
 
-test('a picture two tools share is offered once', () => {
-  // Two identical batteries are two tools and one photograph. Offering it twice
+test('a picture two items share is offered once', () => {
+  // Two identical batteries are two items and one photograph. Offering it twice
   // would let somebody spend two of three places on the same image.
-  const photos = labelPhotos([tool(7), tool(8, { primaryPhotoUrl: '/api/photos/7/file' }), tool(9)])
+  const photos = labelPhotos([item(7), item(8, { primaryPhotoUrl: '/api/photos/7/file' }), item(9)])
 
   assert.deepEqual(
     photos.map((photo) => photo.id),
     [7, 9],
   )
-  // The first tool to carry it gives it a name.
+  // The first item to carry it gives it a name.
   assert.equal(photos[0].name, 'Narzędzie 7')
 })
 
-test('a tool with no picture contributes nothing', () => {
-  assert.deepEqual(labelPhotos([tool(1, { primaryPhotoUrl: null })]), [])
+test('an item with no picture contributes nothing', () => {
+  assert.deepEqual(labelPhotos([item(1, { primaryPhotoUrl: null })]), [])
 })
 
-test('the models are listed once each, in the order the tools come', () => {
-  const models = toolModels([tool(1, { model: 'POF 1200' }), tool(2, { model: 'POF 1200' })])
+test('the models are listed once each, in the order the items come', () => {
+  const models = toolModels([item(1, { model: 'POF 1200' }), item(2, { model: 'POF 1200' })])
 
   assert.equal(models, 'POF 1200')
-  assert.equal(toolModels([tool(1, { model: '  ' })]), '')
+  assert.equal(toolModels([item(1, { model: '  ' })]), '')
 })
 
-test('the caption falls back to the names when no tool has a model', () => {
+test('the caption falls back to the names when no item has a model', () => {
   // The models fit a 30 mm band where catalog names do not, but an organizer
-  // whose tools carry none has nothing to print from them.
-  assert.equal(defaultCaptionSource([tool(1)]), 'models')
-  assert.equal(defaultCaptionSource([tool(1, { model: '' })]), 'tools')
-  assert.equal(defaultCaptionSource([]), 'tools')
+  // whose items carry none has nothing to print from them.
+  assert.equal(defaultCaptionSource([item(1)]), 'models')
+  assert.equal(defaultCaptionSource([item(1, { model: '' })]), 'items')
+  assert.equal(defaultCaptionSource([]), 'items')
 })
 
 test('a default contents label fills the place it is made for', () => {
-  const tools = [tool(1), tool(2), tool(3), tool(4)]
+  const items = [item(1), item(2), item(3), item(4)]
 
-  assert.deepEqual(defaultLabelRequest(tools, front, 'contents'), {
+  assert.deepEqual(defaultLabelRequest(items, front, 'contents'), {
     namesSource: 'models',
     namesText: '',
     // As many as the shape holds, and no more: the server refuses a fourth on
@@ -85,11 +85,11 @@ test('a default contents label fills the place it is made for', () => {
     withTitle: true,
   })
 
-  assert.deepEqual(defaultLabelRequest(tools, lid, 'contents').photoIds, [1, 2, 3, 4])
+  assert.deepEqual(defaultLabelRequest(items, lid, 'contents').photoIds, [1, 2, 3, 4])
 })
 
 test('a default number label asks for the logos and nothing else', () => {
-  // Nothing on it comes from the tools, so it is the same request whatever the
+  // Nothing on it comes from the items, so it is the same request whatever the
   // organizer holds.
   assert.deepEqual(defaultLabelRequest([], front, 'number'), {
     printReady: true,
@@ -145,5 +145,5 @@ test('an organizer with nothing in it still makes a label', () => {
   // A box can be labelled before it is filled. The template copes with no
   // pictures; refusing here would be a rule the server does not have.
   assert.deepEqual(defaultLabelRequest([], front, 'contents').photoIds, [])
-  assert.equal(defaultLabelRequest([], front, 'contents').namesSource, 'tools')
+  assert.equal(defaultLabelRequest([], front, 'contents').namesSource, 'items')
 })

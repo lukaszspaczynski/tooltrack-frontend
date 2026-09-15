@@ -15,7 +15,7 @@ import { isKnownCaseSource, useCaseImportSources } from '../useCaseImportSources
 //
 // The dialog says which pages it can read before asking for anything, because
 // the answer to "why was my link refused" should be on the screen that refused
-// it. The list is the cases one, not the tools one — a page that sells drills
+// it. The list is the cases one, not the items one — a page that sells drills
 // has nothing to say about a box.
 export function ImportCaseModal({ onClose, opened }: { onClose: () => void; opened: boolean }) {
   const [url, setUrl] = useState('')

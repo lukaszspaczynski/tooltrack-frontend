@@ -85,7 +85,7 @@ export function fetchCaseImportSources(): Promise<{ sources: CaseImportSource[] 
   return request('/cases/import/sources')
 }
 
-// The parameters under a case, on the same terms as a tool's. Each answers with
+// The parameters under a case, on the same terms as an item's. Each answers with
 // the whole case rather than the row that changed, so the screen never shows a
 // sheet assembled from two different moments.
 export function addCaseAttribute(

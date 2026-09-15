@@ -17,7 +17,7 @@ export const COUNTS = {
   manual: { en: ['manual', 'manuals', 'manuals'], pl: ['instrukcję', 'instrukcje', 'instrukcji'] },
   photo: { en: ['photo', 'photos', 'photos'], pl: ['zdjęcie', 'zdjęcia', 'zdjęć'] },
   place: { en: ['place', 'places', 'places'], pl: ['miejsce', 'miejsca', 'miejsc'] },
-  tool: { en: ['tool', 'tools', 'tools'], pl: ['narzędzie', 'narzędzia', 'narzędzi'] },
+  item: { en: ['item', 'items', 'items'], pl: ['narzędzie', 'narzędzia', 'narzędzi'] },
 } satisfies Record<string, CountForms>
 
 export const EN: Record<string, string> = {
@@ -36,18 +36,18 @@ export const EN: Record<string, string> = {
     'The case “{name}” will disappear from the list. This cannot be undone.',
   'Zniknie też {n} organizerów tej skrzynki': '{n} arrangements of this case go with it',
   'Usuń miejsce {width} na {height}': 'Delete the {width} by {height} place',
-  'Zmiana nazwy poprawi ją też na {tools}.': 'Renaming corrects it on {tools} as well.',
-  '{tools} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.':
-    '{tools} stay in the catalog and keep the maker’s name as text — they lose only the link to this entry.',
-  'brak narzędzi': 'no tools',
+  'Zmiana nazwy poprawi ją też na {items}.': 'Renaming corrects it on {items} as well.',
+  '{items} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.':
+    '{items} stay in the catalog and keep the maker’s name as text — they lose only the link to this entry.',
+  'brak narzędzi': 'no items',
   pusty: 'empty',
   skrzynka: 'case',
-  narzędzie: 'tool',
-  'bez narzędzi': 'no tools',
+  narzędzie: 'item',
+  'bez narzędzi': 'no items',
   'Dodaj rozmiar na karcie skrzynki „{name}”, a potem wróć tutaj.':
     'Add a size on the case card for “{name}”, then come back here.',
   'Układ „{name}” zniknie. Narzędzia i skrzynka zostają — przestaną tylko być ze sobą powiązane.':
-    'The arrangement “{name}” will disappear. The tools and the case stay — they simply stop being linked.',
+    'The arrangement “{name}” will disappear. The items and the case stay — they simply stop being linked.',
   'Odśwież zaznaczone': 'Refresh the selected ones',
   'Narysowano od nowa: {done}': 'Drawn again: {done}',
   'Narysowano od nowa: {done}. Nie udało się: {reasons}': 'Drawn again: {done}. Failed: {reasons}',
@@ -75,7 +75,7 @@ export const EN: Record<string, string> = {
   'Przypisano {n}': 'Attached {n}',
   'Przypisano {n}, pominięto {skipped}': 'Attached {n}, skipped {skipped}',
   'Nieprzypisane zdjęcie przenosi się na kartę. Zdjęcie innego narzędzia zostaje tam, gdzie jest — tutaj pojawia się jego kopia.':
-    'An unattached photo moves onto the card. Another tool’s photo stays where it is — a copy of it appears here.',
+    'An unattached photo moves onto the card. Another item’s photo stays where it is — a copy of it appears here.',
   'Znaleziono {n}, ale żaden podgląd się nie wczytał. Spróbuj innego zapytania.':
     'Found {n}, but no preview loaded. Try another query.',
   'Niedostępne bez klucza: {methods} — konfiguruje je administrator w Ustawieniach.':
@@ -103,7 +103,7 @@ export const EN: Record<string, string> = {
     'Shared configuration for the whole installation. Keys are never sent back from the server — only the last four characters show. Saving an empty field deletes the key.',
   'Usuń konto {email}': 'Delete account {email}',
   'Konto {email} straci dostęp. Karty narzędzi, które dodało, zostają w katalogu.':
-    'The account {email} loses access. The tool cards it added stay in the catalog.',
+    'The account {email} loses access. The item cards it added stay in the catalog.',
 
   // Single words that a form, a filter or a button leans on
   Aktywne: 'Active',
@@ -154,7 +154,7 @@ export const EN: Record<string, string> = {
   Etykiety: 'Labels',
   'Jasny motyw': 'Light theme',
   Język: 'Language',
-  Narzędzia: 'Tools',
+  Narzędzia: 'Items',
   Katalog: 'Catalog',
   Organizer: 'Organiser',
   Producenci: 'Manufacturers',
@@ -217,12 +217,15 @@ export const EN: Record<string, string> = {
     'Address deleted. {n} items no longer say where they are.',
   Adresy: 'Addresses',
   Kolor: 'Colour',
+  Narzędzie: 'Tool',
+  Rodzaj: 'Kind',
+  'RTV/AGD': 'Appliance',
   'Po nim rozpoznasz miejsce na liście narzędzi.':
-    'It is how you recognise the place on a list of tools.',
+    'It is how you recognise the place on a list of items.',
   'Brak adresów': 'No addresses yet',
   'Dodaj adres': 'Add an address',
   'Dodaj pierwsze miejsce, a potem przypiszesz do niego narzędzia i organizery.':
-    'Add the first place, then assign tools and arrangements to it.',
+    'Add the first place, then assign items and arrangements to it.',
   'Edytuj adres': 'Edit the address',
   'Klucz u kierownika, wjazd od podwórza…': 'Key with the foreman, entrance from the yard…',
   'Kod pocztowy': 'Postcode',
@@ -260,7 +263,7 @@ export const EN: Record<string, string> = {
   'Opcjonalne — domyślnie część adresu przed @':
     'Optional — the part of the address before @ by default',
   'Katalog narzędzi budowlanych. Wiesz, co masz i w jakim jest stanie.':
-    'A catalog of construction tools. You know what you have and what state it is in.',
+    'A catalog of construction items. You know what you have and what state it is in.',
 
   // Reading the page again into a card that exists
   Aktualizuj: 'Update',
@@ -276,7 +279,7 @@ export const EN: Record<string, string> = {
   'Zdjęcia — także te wgrane ręcznie': 'Photos — including the ones uploaded by hand',
   'Zaktualizowano: {attributes} parametrów, {manuals}':
     'Updated: {attributes} parameters, {manuals}',
-  'Nie udało się zaktualizować narzędzia': 'The tool could not be updated',
+  'Nie udało się zaktualizować narzędzia': 'The item could not be updated',
 
   // Importing a card from a shop's page
   Importuj: 'Import',
@@ -291,7 +294,7 @@ export const EN: Record<string, string> = {
     'Imported: {photos} photos, {attributes} parameters, {manuals}',
   'Zaimportowano: {photos} zdjęć, {attributes} parametrów':
     'Imported: {photos} photos, {attributes} parameters',
-  'Nie udało się zaimportować narzędzia': 'The tool could not be imported',
+  'Nie udało się zaimportować narzędzia': 'The item could not be imported',
 
   // The library of documents
   'Dodaj instrukcję': 'Add a manual',
@@ -304,28 +307,28 @@ export const EN: Record<string, string> = {
     'Fetches every manual that page publishes',
   'Obsługiwane źródła:': 'Supported sources:',
   'Pobrano {manuals}, nie udało się: {failed}': 'Fetched {manuals}, {failed} failed',
-  Narzędzie: 'Tool',
-  'Do którego narzędzia należy ten plik': 'Which tool this file belongs to',
+  Pozycja: 'Item',
+  'Do którego narzędzia należy ten plik': 'Which item this file belongs to',
   'Wybierz plik PDF': 'Choose a PDF',
   'Wszystkie pliki w systemie, niezależnie od narzędzia.':
-    'Every file in the system, whichever tool it belongs to.',
+    'Every file in the system, whichever item it belongs to.',
   'Brak instrukcji': 'No manuals',
   'Nie udało się wczytać instrukcji': 'The manuals could not be loaded',
-  'Nazwa instrukcji, narzędzie, model…': 'Manual title, tool, model…',
+  'Nazwa instrukcji, narzędzie, model…': 'Manual title, item, model…',
   'Po nazwie pliku albo po narzędziu, do którego należy':
-    'By the file’s name, or by the tool it belongs to',
+    'By the file’s name, or by the item it belongs to',
   'Nie dodano jeszcze żadnej instrukcji. Robi się to na karcie narzędzia.':
-    'No manual has been added yet. They are added on a tool’s card.',
-  'Bez narzędzia': 'On no tool',
+    'No manual has been added yet. They are added on an item’s card.',
+  'Bez narzędzia': 'On no item',
   'Zaznacz instrukcję {title}': 'Select the manual {title}',
   'Usunąć instrukcje?': 'Delete the manuals?',
   '{manuals} zniknie z katalogu i z dysku. Tej operacji nie da się cofnąć.':
     '{manuals} will disappear from the catalog and from the disk. This cannot be undone.',
-  'Zniknie też z kart narzędzi': 'It goes off these tool cards too',
+  'Zniknie też z kart narzędzi': 'It goes off these item cards too',
   'Usunięto {manuals}': 'Deleted {manuals}',
   'Usunięto {manuals} z {n} kart': 'Deleted {manuals} from {n} cards',
 
-  // The manuals kept beside a tool
+  // The manuals kept beside an item
   Instrukcje: 'Manuals',
   'Instrukcja dodana': 'Manual added',
   'Nazwa instrukcji': 'Manual title',
@@ -340,9 +343,9 @@ export const EN: Record<string, string> = {
   'Brak instrukcji. Wgraj plik PDF, wklej adres albo pobierz ze strony producenta.':
     'No manuals. Upload a PDF, paste an address, or fetch them from the maker’s page.',
   'Nikt nie dodał jeszcze instrukcji do tego narzędzia.':
-    'Nobody has added a manual to this tool yet.',
+    'Nobody has added a manual to this item yet.',
 
-  // What a tool is: the parameters off its rating plate
+  // What an item is: the parameters off its rating plate
   Parametry: 'Parameters',
   'Nazwa parametru': 'Parameter name',
   Wartość: 'Value',
@@ -355,21 +358,21 @@ export const EN: Record<string, string> = {
   'Usuń parametr': 'Delete parameter',
   'Usuń parametr {name}': 'Delete the parameter {name}',
   'Nikt nie zapisał jeszcze parametrów tego narzędzia.':
-    'Nobody has written down this tool’s parameters yet.',
+    'Nobody has written down this item’s parameters yet.',
 
-  // Tools
-  'Nowe narzędzie': 'New tool',
-  'Dodaj narzędzie': 'Add a tool',
-  'Dodaj narzędzia': 'Add tools',
-  'Szukaj narzędzia': 'Search for a tool',
+  // Items
+  'Nowe narzędzie': 'New item',
+  'Dodaj narzędzie': 'Add an item',
+  'Dodaj narzędzia': 'Add items',
+  'Szukaj narzędzia': 'Search for an item',
   'Nazwa, marka, model, numer seryjny…': 'Name, make, model, serial number…',
   'Nazwa, marka, model…': 'Name, make, model…',
   'Nazwa jest wymagana': 'A name is required',
   'Producent jest wymagany': 'A manufacturer is required',
   'Numer seryjny': 'Serial number',
   'Katalog jest pusty': 'The catalog is empty',
-  'Nikt jeszcze nie dodał żadnego narzędzia.': 'Nobody has added a tool yet.',
-  'Dodaj pierwsze narzędzie, żeby zacząć ewidencję.': 'Add the first tool to start the record.',
+  'Nikt jeszcze nie dodał żadnego narzędzia.': 'Nobody has added an item yet.',
+  'Dodaj pierwsze narzędzie, żeby zacząć ewidencję.': 'Add the first item to start the record.',
   'Nic nie pasuje do filtrów': 'Nothing matches the filters',
   'Zmień wyszukiwanie albo wyczyść filtry.': 'Change the search or clear the filters.',
   'Nie udało się wczytać katalogu': 'The catalog could not be loaded',
@@ -381,7 +384,7 @@ export const EN: Record<string, string> = {
   'Ostatnio dodane': 'Recently added',
   'Ostatnio zmienione': 'Recently changed',
 
-  // Condition of a tool
+  // Condition of an item
   Dobry: 'Good',
   'Do naprawy': 'Needs repair',
   Nowe: 'New',
@@ -394,7 +397,7 @@ export const EN: Record<string, string> = {
   'Wszystko co edytor, plus zarządzanie użytkownikami i rolami.':
     'Everything an editor can do, plus managing users and roles.',
   'Przegląda katalog oraz dodaje, edytuje i usuwa narzędzia.':
-    'Reads the catalog, and adds, edits and deletes tools.',
+    'Reads the catalog, and adds, edits and deletes items.',
   'Tylko przegląda katalog.': 'Reads the catalog only.',
 
   // Users
@@ -460,12 +463,12 @@ export const EN: Record<string, string> = {
   'Jedno zdjęcie może być logo tylko jednej marki.':
     'One photo can be the logo of one manufacturer only.',
   'Ten producent zostanie bez logo. Sama pozycja i jej narzędzia zostają.':
-    'This manufacturer will be left without a logo. The entry itself and its tools stay.',
+    'This manufacturer will be left without a logo. The entry itself and its items stay.',
   'Ci producenci zostaną bez logo. Same pozycje i ich narzędzia zostają.':
-    'These manufacturers will be left without a logo. The entries themselves and their tools stay.',
+    'These manufacturers will be left without a logo. The entries themselves and their items stay.',
   'Nic tu nie ma. Wgraj logo na ekranie Zdjęcia, a potem wróć tutaj.':
     'Nothing here. Upload a logo on the Photos screen, then come back.',
-  'Żadne narzędzie jej nie używa.': 'No tool uses it.',
+  'Żadne narzędzie jej nie używa.': 'No item uses it.',
 
   // Organiser
   'Nowy organizer': 'New arrangement',
@@ -482,17 +485,17 @@ export const EN: Record<string, string> = {
   'Usunąć organizer?': 'Delete the arrangement?',
   'Organizer usunięty': 'Arrangement deleted',
   'Wyjmij z organizera': 'Take out of the arrangement',
-  'Wszystkie narzędzia są już w organizerach.': 'Every tool is already in an arrangement.',
+  'Wszystkie narzędzia są już w organizerach.': 'Every item is already in an arrangement.',
   'Nic nie pasuje — albo te narzędzia są już w innych organizerach.':
-    'Nothing matches — or those tools are already in other arrangements.',
+    'Nothing matches — or those items are already in other arrangements.',
   'Nic tu jeszcze nie leży.': 'Nothing lies here yet.',
   'Same narzędzia zostają w katalogu — znika tylko informacja, co w czym leżało.':
-    'The tools themselves stay in the catalog — only the record of what lay in what goes.',
+    'The items themselves stay in the catalog — only the record of what lay in what goes.',
   'Musi być wolny': 'Must be free',
   'Musi być unikalny — dwa razy ten sam numer to duplikat karty':
     'Must be unique — the same number twice is a duplicate card',
   'Zostaw puste, żeby dostać kolejny wolny': 'Leave empty to get the next free one',
-  'Narzędzia w tym organizerze nie mają zdjęć.': 'The tools in this arrangement have no photos.',
+  'Narzędzia w tym organizerze nie mają zdjęć.': 'The items in this arrangement have no photos.',
 
   // Labels
   'Wszystkie etykiety': 'All labels',
@@ -526,15 +529,15 @@ export const EN: Record<string, string> = {
   'Własna nazwa na etykiecie': 'Your own name on the label',
   'Własny podpis na etykiecie': 'Your own caption on the label',
   'Własny tekst': 'Your own text',
-  'Nazwy narzędzi': 'Tool names',
+  'Nazwy narzędzi': 'Item names',
   'Modele urządzeń': 'Machine models',
   'Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało':
     'If they do not all fit, the label says how many are left',
-  'Żadne narzędzie tutaj nie ma wpisanego modelu': 'No tool here has a model written down',
+  'Żadne narzędzie tutaj nie ma wpisanego modelu': 'No item here has a model written down',
   'Duży numer organizera na tle w kolorach producentów. Opcjonalnie z ich logo.':
     'A large arrangement number on a ground in the makers’ colours. With their logos if you like.',
   'Do trzech zdjęć narzędzi, pod nimi nazwa organizera i nazwy narzędzi.':
-    'Up to three tool photos, with the arrangement’s name and the tool names beneath them.',
+    'Up to three item photos, with the arrangement’s name and the item names beneath them.',
   'Gotowy do druku': 'Ready to print',
   'Sama grafika': 'Artwork only',
   'Margines ze znacznikami cięcia w rogach, linia cięcia wzdłuż etykiety i linijka kontrolna — zmierz ją po wydruku, żeby sprawdzić, czy drukarka nie przeskalowała pliku':
@@ -567,21 +570,21 @@ export const EN: Record<string, string> = {
   'To zdjęcie zostanie trwale usunięte z dysku.':
     'This photo will be permanently deleted from the disk.',
   'Same narzędzia zostają w katalogu — usuwasz wyłącznie zdjęcia.':
-    'The tools themselves stay in the catalog — you are deleting photos only.',
+    'The items themselves stay in the catalog — you are deleting photos only.',
   'Jedno z nich to zdjęcie główne — kartę zacznie ilustrować inne zdjęcie, a jeśli innych nie ma, karta zostanie bez zdjęcia.':
     'One of them is a main photo — another will take its place on the card, and if there is no other the card is left without one.',
   'Wszystkie zdjęcia w systemie, niezależnie od narzędzia.':
-    'Every photo in the system, whichever tool it belongs to.',
+    'Every photo in the system, whichever item it belongs to.',
   'Zdjęcie nie ma własnej nazwy — szukamy po narzędziu':
-    'A photo has no name of its own — we search by tool',
+    'A photo has no name of its own — we search by item',
   'Nazwa karty, do której zdjęcie należy…': 'The name of the card the photo belongs to…',
-  'Przypisane do narzędzia': 'Attached to a tool',
+  'Przypisane do narzędzia': 'Attached to an item',
   'Zdjęcie jest przypisane do karty': 'The photo is attached to a card',
   'To zdjęcie nie jest przypisane do niczego.': 'This photo is not attached to anything.',
   'Żadne z tych zdjęć nie jest do niczego przypisane.':
     'None of these photos is attached to anything.',
   'Nieprzypisane zdjęcia nie należą do narzędzia, więc nie ma czego szukać':
-    'Unattached photos belong to no tool, so there is nothing to search by',
+    'Unattached photos belong to no item, so there is nothing to search by',
   'Nie ma nieprzypisanych zdjęć. Wgraj je na ekranie Zdjęcia albo przełącz na „Wszystkie”.':
     'There are no unattached photos. Upload some on the Photos screen, or switch to “All”.',
   'To zdjęcie już tu było': 'This photo was already here',
@@ -613,10 +616,10 @@ export const EN: Record<string, string> = {
   'Włącz którąś poniżej lub poproś administratora o skonfigurowanie kluczy.':
     'Switch one on below, or ask an administrator to configure the keys.',
 
-  // Cutting a tool out of its photo
-  'Wytnij samo narzędzie': 'Cut out the tool alone',
+  // Cutting an item out of its photo
+  'Wytnij samo narzędzie': 'Cut out the item alone',
   'Wytnij sam przedmiot': 'Cut out the object alone',
-  'samo narzędzie': 'the tool alone',
+  'samo narzędzie': 'the item alone',
   'Metody wycinania': 'Cutout methods',
   'Nie udało się wyciąć': 'The cutout failed',
   'Nie udało się wczytać ustawień wycinania': 'The cutout settings could not be loaded',
@@ -639,11 +642,11 @@ export const EN: Record<string, string> = {
   'Usługa do wycinania — radzi sobie ze zdjęciami z warsztatu.':
     'A cutout service — it copes with photographs taken in a workshop.',
   'Model ogólny — narzędzie na białym tle, bez przezroczystości.':
-    'A general model — the tool on a white ground, with no transparency.',
+    'A general model — the item on a white ground, with no transparency.',
   'Próg jasności tła': 'Background brightness threshold',
   'Domyślny próg jasności tła': 'Default background brightness threshold',
   'Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasne narzędzie gubi fragmenty.':
-    'The sum of the RGB components at which a pixel counts as background. 735 is 245 per channel on average. Lower it for a greyish ground; raise it when a light tool loses pieces.',
+    'The sum of the RGB components at which a pixel counts as background. 735 is 245 per channel on average. Lower it for a greyish ground; raise it when a light item loses pieces.',
   'Zapisz próg': 'Save the threshold',
   'Zapisano próg': 'Threshold saved',
   'Wykryj sam': 'Detect it',

@@ -24,7 +24,7 @@ export function fetchOrganizersOfCase(caseId: number): Promise<OrganizerPage> {
   return fetchOrganizers({ caseId, limit: 200, offset: 0, search: null })
 }
 
-// The wizard's last step: the case, the name and the tools that were ticked,
+// The wizard's last step: the case, the name and the items that were ticked,
 // in one request — a half-made organizer cannot exist because somebody closed
 // the tab between two of them.
 export function fetchOrganizer(id: number): Promise<{ organizer: Organizer }> {
@@ -44,13 +44,13 @@ export function updateOrganizer(
   return request(`/organizers/${id}`, { body: patch, method: 'PATCH' })
 }
 
-// Puts more tools into an existing arrangement. 409 when one of them is
+// Puts more items into an existing arrangement. 409 when one of them is
 // already somewhere else — moving it is a decision somebody has to make.
 export function addToolsToOrganizer(
   id: number,
-  toolIds: number[],
+  itemIds: number[],
 ): Promise<{ organizer: Organizer }> {
-  return request(`/organizers/${id}/tools`, { body: { toolIds }, method: 'POST' })
+  return request(`/organizers/${id}/items`, { body: { itemIds }, method: 'POST' })
 }
 
 // The sizes this organizer's case has places for. The wizard offers these and
@@ -61,11 +61,11 @@ export function fetchLabelSlots(id: number): Promise<{ slots: OrganizerLabelSlot
 }
 
 export type LabelRequest = {
-  // Where the line under the rule comes from: the tool names, their model
+  // Where the line under the rule comes from: the item names, their model
   // numbers, or `namesText`. Absent means the server works it out from
   // whether a text was sent, which is what labels made before the choice
   // existed still mean.
-  namesSource?: 'models' | 'text' | 'tools'
+  namesSource?: 'models' | 'text' | 'items'
   // Only read when `namesSource` is 'text'.
   namesText?: string
   photoIds?: number[]
@@ -103,8 +103,8 @@ export function deleteOrganizer(id: number): Promise<{ ok: true }> {
   return request(`/organizers/${id}`, { method: 'DELETE' })
 }
 
-// Takes one tool out of an arrangement. The tool itself is untouched; it
+// Takes one item out of an arrangement. The item itself is untouched; it
 // simply lies nowhere until somebody puts it somewhere.
-export function removeToolFromOrganizer(id: number, toolId: number): Promise<{ ok: true }> {
-  return request(`/organizers/${id}/tools/${toolId}`, { method: 'DELETE' })
+export function removeToolFromOrganizer(id: number, itemId: number): Promise<{ ok: true }> {
+  return request(`/organizers/${id}/items/${itemId}`, { method: 'DELETE' })
 }

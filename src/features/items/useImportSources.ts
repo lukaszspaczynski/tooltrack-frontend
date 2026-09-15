@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { fetchImportSources } from '../../api/tools'
+import { fetchImportSources } from '../../api/items'
 import type { ImportSource } from '../../api/types'
 
 // Which pages this server can read, and which of them publish documents.
@@ -15,7 +15,7 @@ export function useImportSources(enabled: boolean): {
   sources: ImportSource[]
 } {
   const query = useQuery({
-    queryKey: ['tool-import-sources'],
+    queryKey: ['item-import-sources'],
     queryFn: fetchImportSources,
     enabled,
     refetchOnMount: 'always',
@@ -25,7 +25,7 @@ export function useImportSources(enabled: boolean): {
   const sources = query.data?.sources ?? []
 
   return {
-    // A shop that sells the tool is not obliged to host its manual, and most do
+    // A shop that sells the item is not obliged to host its manual, and most do
     // not: a screen asking for one offers only the pages that have any.
     manualSources: sources.filter((source) => source.manuals),
     sources,

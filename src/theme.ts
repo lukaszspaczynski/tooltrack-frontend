@@ -1,6 +1,6 @@
 import { createTheme, type MantineColorsTuple } from '@mantine/core'
 
-// A single accent colour, warm enough to read as tools rather than as a
+// A single accent colour, warm enough to read as items rather than as a
 // dashboard. Everything else is Mantine's default scale — this app has no
 // brand to honour yet, and inventing one now would only be in the way when it
 // gets one.

@@ -52,7 +52,7 @@ const SOURCE_LABELS: Record<Photo['source'], string> = {
   url: 'z adresu',
 }
 
-// The gallery of a card — a tool or a case: every photo, with one marked as
+// The gallery of a card — an item or a case: every photo, with one marked as
 // the main one, which is what the grid shows.
 //
 // Four ways in, because they are four different situations: a photo taken on
@@ -60,7 +60,7 @@ const SOURCE_LABELS: Record<Photo['source'], string> = {
 // when nobody has photographed this one yet (search), and a picture that is
 // already in the library (pick).
 //
-// It takes an owner rather than a tool because a case carries photos on
+// It takes an owner rather than an item because a case carries photos on
 // exactly the same terms; the server serves both from one set of routes.
 export function PhotoPanel({
   canEdit,
@@ -102,7 +102,7 @@ export function PhotoPanel({
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['card-photos', owner.kind, owner.id] })
     // The grid shows the main photo, so it changed too.
-    await queryClient.invalidateQueries({ queryKey: ['tools'] })
+    await queryClient.invalidateQueries({ queryKey: ['items'] })
   }
 
   const upload = useMutation({
@@ -139,7 +139,7 @@ export function PhotoPanel({
   const [cutoutPhoto, setCutoutPhoto] = useState<null | Photo>(null)
 
   // Photos that already exist: the unassigned shelf in the library, or a
-  // picture another tool is using.
+  // picture another item is using.
   const attach = useMutation({
     mutationFn: (photoIds: number[]) => attachPhotos(owner, photoIds),
     onSuccess: async (result) => {

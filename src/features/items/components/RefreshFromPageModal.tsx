@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { ApiError } from '../../../api/client'
-import { refreshToolFromPage } from '../../../api/tools'
+import { refreshToolFromPage } from '../../../api/items'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useImportSources } from '../useImportSources'
 
@@ -21,14 +21,14 @@ export function RefreshFromPageModal({
   onClose,
   opened,
   reference,
-  toolId,
+  itemId,
 }: {
   onClose: () => void
   opened: boolean
   // The address this card was last read from, when it was read from one. The
   // common case is updating from the same page, so it starts filled in.
   reference: string
-  toolId: number
+  itemId: number
 }) {
   const [url, setUrl] = useState(reference)
   const queryClient = useQueryClient()
@@ -36,12 +36,12 @@ export function RefreshFromPageModal({
   const { sources } = useImportSources(opened)
 
   const refresh = useMutation({
-    mutationFn: (address: string) => refreshToolFromPage(toolId, address),
-    onSuccess: async ({ imported, tool }) => {
-      queryClient.setQueryData(['tool', toolId], { tool })
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-manuals', toolId] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-attribute-names'] })
+    mutationFn: (address: string) => refreshToolFromPage(itemId, address),
+    onSuccess: async ({ imported, item }) => {
+      queryClient.setQueryData(['item', itemId], { item })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-manuals', itemId] })
+      await queryClient.invalidateQueries({ queryKey: ['item-attribute-names'] })
       await queryClient.invalidateQueries({ queryKey: ['manual-library'] })
 
       notifications.show({

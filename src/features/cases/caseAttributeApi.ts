@@ -7,7 +7,7 @@ import {
   updateCaseAttribute,
 } from '../../api/cases'
 import type { ToolCase } from '../../api/types'
-import type { AttributeApi } from '../tools/components/AttributePanel'
+import type { AttributeApi } from '../items/components/AttributePanel'
 
 // The same wiring for a case. The suggestion list is its own — a box and a
 // drill have nothing in common on a spec sheet, and offering "napięcie

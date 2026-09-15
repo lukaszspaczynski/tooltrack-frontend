@@ -72,7 +72,7 @@ export function t(text: string, vars?: Record<string, number | string>): string 
   return vars ? interpolate(phrase, current, vars) : phrase
 }
 
-// "3 narzędzia" is not "3 narzędzi", and it is not "3 tools" either. The forms
+// "3 narzędzia" is not "3 narzędzi", and it is not "3 items" either. The forms
 // live in the catalog beside the phrases.
 export function tCount(forms: CountForms, count: number): string {
   return countLabel(current, forms, count)

@@ -55,10 +55,10 @@ export function AddressesPage() {
   })
 
   // Everything that can change a place changes what a picker offers and what
-  // the tool and organizer screens show beside a card, so all three go.
+  // the item and organizer screens show beside a card, so all three go.
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['addresses'] })
-    await queryClient.invalidateQueries({ queryKey: ['tools'] })
+    await queryClient.invalidateQueries({ queryKey: ['items'] })
     await queryClient.invalidateQueries({ queryKey: ['organizers'] })
   }
 
@@ -76,7 +76,7 @@ export function AddressesPage() {
     mutationFn: (address: Address) => deleteAddress(address.id),
     onSuccess: async (answer) => {
       setConfirming(null)
-      const lost = answer.cleared.tools + answer.cleared.organizers
+      const lost = answer.cleared.items + answer.cleared.organizers
       notifications.show({
         color: 'green',
         message:
@@ -282,14 +282,14 @@ function AddressCard({
             <>
               {/* A link rather than a number: the count is only interesting
                   because of what it stands for, and this is the way there. */}
-              {contents.tools > 0 ? (
+              {contents.items > 0 ? (
                 <Badge
                   component={Link}
                   to={`/?addressId=${address.id}`}
                   variant="light"
                   style={{ cursor: 'pointer' }}
                 >
-                  {tCount(COUNTS.tool, contents.tools)}
+                  {tCount(COUNTS.item, contents.items)}
                 </Badge>
               ) : null}
               {contents.organizers > 0 ? (
@@ -315,7 +315,7 @@ function contentsText(address: Address): string {
   const contents = addressContents(address)
   const parts: string[] = []
 
-  if (contents.tools > 0) parts.push(tCount(COUNTS.tool, contents.tools))
+  if (contents.items > 0) parts.push(tCount(COUNTS.item, contents.items))
   if (contents.organizers > 0) parts.push(t('{n} organizerów', { n: contents.organizers }))
 
   return parts.join(', ')

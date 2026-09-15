@@ -31,7 +31,7 @@ import { fetchLabels, labelSheetUrl, refreshAllLabels } from '../../../api/label
 import type { LabelListItem } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
-import { formatDateTime } from '../../tools/presentation'
+import { formatDateTime } from '../../items/presentation'
 import {
   allShownCount,
   keepVisibleSelection,

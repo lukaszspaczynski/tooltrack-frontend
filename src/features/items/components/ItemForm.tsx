@@ -1,4 +1,5 @@
 import {
+  SegmentedControl,
   Anchor,
   Autocomplete,
   Button,
@@ -14,15 +15,16 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
 import { fetchBrands } from '../../../api/brands'
-import { fetchCategories } from '../../../api/tools'
-import type { ToolFields } from '../../../api/types'
+import { fetchCategories } from '../../../api/items'
+import type { ItemFields, ItemKind } from '../../../api/types'
 import { AddressSelect } from '../../addresses/components/AddressSelect'
 import { t } from '../../../i18n'
 import { conditionOptions } from '../presentation'
 
-const EMPTY: ToolFields = {
+const EMPTY: ItemFields = {
   addressId: null,
-  brand: '',
+  brandId: null,
+  kind: 'tool',
   category: '',
   condition: 'good',
   model: '',
@@ -33,9 +35,9 @@ const EMPTY: ToolFields = {
 }
 
 export type ToolFormProps = {
-  initialValues?: ToolFields
+  initialValues?: ItemFields
   onCancel: () => void
-  onSubmit: (fields: ToolFields) => void
+  onSubmit: (fields: ItemFields) => void
   pending: boolean
   submitLabel: string
   // A duplicate serial number comes back as a 409 from the API. It belongs on
@@ -44,7 +46,7 @@ export type ToolFormProps = {
   serialNumberError?: null | string
 }
 
-export function ToolForm({
+export function ItemForm({
   initialValues,
   onCancel,
   onSubmit,
@@ -52,7 +54,7 @@ export function ToolForm({
   serialNumberError,
   submitLabel,
 }: ToolFormProps) {
-  const form = useForm<ToolFields>({
+  const form = useForm<ItemFields>({
     mode: 'uncontrolled',
     initialValues: initialValues ?? EMPTY,
     validate: {
@@ -64,12 +66,16 @@ export function ToolForm({
   // setFieldValue writes the value and renders nothing — the select would keep
   // showing the old place while holding the new one.
   const [addressId, setAddressId] = useState(initialValues?.addressId ?? null)
+  // Their own state and merged at submit, like the place below. The form is
+  // uncontrolled, so setFieldValue writes the value and renders nothing.
+  const [brandId, setBrandId] = useState(initialValues?.brandId ?? null)
+  const [kind, setKind] = useState<ItemKind>(initialValues?.kind ?? 'tool')
 
-  // Categories come from the tools themselves, so the field suggests what is
+  // Categories come from the items themselves, so the field suggests what is
   // already in use without forcing anyone to pick from a list. Typing a new one
   // is how a category gets created.
   const categories = useQuery({
-    queryKey: ['tool-categories'],
+    queryKey: ['item-categories'],
     queryFn: fetchCategories,
     staleTime: 60_000,
   })
@@ -86,12 +92,20 @@ export function ToolForm({
   // A card written before this table existed can name a maker that is not in
   // it. Keeping that value as an option means editing the model number does
   // not silently blank the maker.
-  const known = brands.data?.items.map((brand) => brand.name) ?? []
-  const current = initialValues?.brand.trim() ?? ''
-  const brandOptions = current && !known.includes(current) ? [...known, current] : known
+  // Ids rather than names. The maker is a row a card points at, so a card that
+  // named one by string and a card that pointed at it were two different facts
+  // to keep in step; the value here is the fact.
+  const brandOptions = (brands.data?.items ?? []).map((brand) => ({
+    label: brand.name,
+    value: String(brand.id),
+  }))
 
   return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(trimAll({ ...values, addressId })))}>
+    <form
+      onSubmit={form.onSubmit((values) =>
+        onSubmit(trimAll({ ...values, addressId, brandId, kind })),
+      )}
+    >
       <Stack gap="md">
         <TextInput
           label={t('Nazwa')}
@@ -100,6 +114,20 @@ export function ToolForm({
           data-autofocus
           key={form.key('name')}
           {...form.getInputProps('name')}
+        />
+
+        {/* What sort of thing this is, which is not the same question as the
+            category: a category is your own word for a shelf, this is the
+            handful of sorts the catalog behaves differently about. Only a tool
+            goes in an organizer, and the server refuses the rest. */}
+        <SegmentedControl
+          fullWidth
+          data={[
+            { label: t('Narzędzie'), value: 'tool' },
+            { label: t('RTV/AGD'), value: 'appliance' },
+          ]}
+          value={kind === 'case' ? 'tool' : kind}
+          onChange={(next) => setKind(next as ItemKind)}
         />
 
         <Autocomplete
@@ -126,8 +154,8 @@ export function ToolForm({
             searchable
             clearable
             nothingFoundMessage={t('Nie ma takiego producenta')}
-            key={form.key('brand')}
-            {...form.getInputProps('brand')}
+            value={brandId === null ? null : String(brandId)}
+            onChange={(next) => setBrandId(next === null || next === '' ? null : Number(next))}
           />
           <TextInput
             label={t('Model')}
@@ -166,7 +194,7 @@ export function ToolForm({
         />
 
         {/* Where it is kept. Beside the notes rather than among the maker and
-            the model: those say what the tool is, this says where to go and
+            the model: those say what the item is, this says where to go and
             get it. */}
         <AddressSelect value={addressId} onChange={setAddressId} />
 
@@ -196,10 +224,9 @@ export function ToolForm({
 
 // The API trims anyway; doing it here means the value that gets sent is the
 // value the person will see when the card comes back.
-function trimAll(fields: ToolFields): ToolFields {
+function trimAll(fields: ItemFields): ItemFields {
   return {
     ...fields,
-    brand: fields.brand.trim(),
     category: fields.category.trim(),
     model: fields.model.trim(),
     name: fields.name.trim(),

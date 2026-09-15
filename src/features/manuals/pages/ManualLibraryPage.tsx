@@ -47,10 +47,10 @@ import {
   writeManualListParams,
 } from '../manualListParams'
 
-// Every document the catalog holds, whichever tool keeps it.
+// Every document the catalog holds, whichever item keeps it.
 //
 // The same relation to a card's panel as the photo library has to a gallery:
-// the panel answers "what does this tool come with", this answers "what
+// the panel answers "what does this item come with", this answers "what
 // documents do we have" — which is the question somebody asks when a manual is
 // missing from a card that ought to have it, or when the same PDF has been
 // uploaded three times under three names.
@@ -86,7 +86,7 @@ export function ManualLibraryPage() {
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['manual-library'] })
     // The cards showing these documents hold their own copy of the list.
-    await queryClient.invalidateQueries({ queryKey: ['tool-manuals'] })
+    await queryClient.invalidateQueries({ queryKey: ['item-manuals'] })
   }
 
   const failed = (error: unknown) =>
@@ -103,16 +103,16 @@ export function ManualLibraryPage() {
 
   const remove = useMutation({
     mutationFn: (ids: number[]) => deleteManuals(ids),
-    onSuccess: async ({ deleted, tools }) => {
+    onSuccess: async ({ deleted, items }) => {
       confirm.close()
       setSelected([])
       await refresh()
       notifications.show({
         color: 'teal',
-        message: tools.length
+        message: items.length
           ? t('Usunięto {manuals} z {n} kart', {
               manuals: tCount(COUNTS.manual, deleted),
-              n: tools.length,
+              n: items.length,
             })
           : t('Usunięto {manuals}', { manuals: tCount(COUNTS.manual, deleted) }),
       })
@@ -153,8 +153,8 @@ export function ManualLibraryPage() {
             ) : null}
             {/* Adding from here as well as from a card: somebody who has just
                 been handed a folder of PDFs is on this screen, not on twelve
-                cards in turn. Which tool it belongs to is asked for, because a
-                document with no tool is one nobody will look for. */}
+                cards in turn. Which item it belongs to is asked for, because a
+                document with no item is one nobody will look for. */}
             <Button leftSection={<IconPlus size={18} />} onClick={adding.open}>
               {t('Dodaj')}
             </Button>
@@ -255,16 +255,16 @@ export function ManualLibraryPage() {
                       than to a machine, so this is often more than one. */}
                   <Table.Td>
                     <Group gap={4} wrap="wrap">
-                      {manual.tools.map((tool) => (
-                        <Anchor key={tool.id} component={Link} to={`/tools/${tool.id}`} size="xs">
+                      {manual.items.map((item) => (
+                        <Anchor key={item.id} component={Link} to={`/items/${item.id}`} size="xs">
                           {/* The model beside the name: three cards called
                               "Sekator akumulatorowy" are told apart by it. */}
                           <Badge variant="light" color="gray" size="sm">
-                            {tool.model ? `${tool.name} · ${tool.model}` : tool.name}
+                            {item.model ? `${item.name} · ${item.model}` : item.name}
                           </Badge>
                         </Anchor>
                       ))}
-                      {manual.tools.length === 0 ? (
+                      {manual.items.length === 0 ? (
                         <Badge variant="light" color="orange" size="sm">
                           {t('Bez narzędzia')}
                         </Badge>
@@ -326,11 +326,11 @@ export function ManualLibraryPage() {
               manuals: tCount(COUNTS.manual, pending.length),
             })}
           </Text>
-          {pending.some((manual) => manual.tools.length > 0) ? (
+          {pending.some((manual) => manual.items.length > 0) ? (
             <Alert color="orange" variant="light" title={t('Zniknie też z kart narzędzi')}>
               <Text size="sm">
                 {[
-                  ...new Set(pending.flatMap((manual) => manual.tools.map((tool) => tool.name))),
+                  ...new Set(pending.flatMap((manual) => manual.items.map((item) => item.name))),
                 ].join(', ')}
               </Text>
             </Alert>

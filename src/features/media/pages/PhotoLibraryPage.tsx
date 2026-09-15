@@ -47,7 +47,7 @@ import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutStudio } from '../../photos/components/CutoutStudio'
-import { formatDateTime } from '../../tools/presentation'
+import { formatDateTime } from '../../items/presentation'
 import {
   ASSIGNED_OPTIONS,
   LIBRARY_PAGE_SIZE,
@@ -64,9 +64,9 @@ const SOURCE_LABELS: Record<string, string> = {
   url: 'z adresu',
 }
 
-// Every photo in the system, across all tools. This is the screen for cleaning
+// Every photo in the system, across all items. This is the screen for cleaning
 // up after an import that pulled in the wrong pictures — hence the tick boxes
-// and the batch delete, which the per-tool gallery deliberately does not have.
+// and the batch delete, which the per-item gallery deliberately does not have.
 export function PhotoLibraryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
@@ -93,8 +93,8 @@ export function PhotoLibraryPage() {
     placeholderData: keepPreviousData,
   })
 
-  // An upload here belongs to no tool. Pictures arrive before anyone decides
-  // what they are, and forcing a tool at that moment is how photos end up on
+  // An upload here belongs to no item. Pictures arrive before anyone decides
+  // what they are, and forcing an item at that moment is how photos end up on
   // the wrong card.
   const upload = useMutation({
     mutationFn: (file: File) => uploadLibraryPhoto(file),
@@ -129,9 +129,9 @@ export function PhotoLibraryPage() {
       setPending([])
       confirm.close()
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
-      // The tool cards and their galleries show these pictures too.
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-photos'] })
+      // The item cards and their galleries show these pictures too.
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-photos'] })
 
       notifications.show({
         color: 'teal',
@@ -147,7 +147,7 @@ export function PhotoLibraryPage() {
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
-  // The same cutout screen as on the tool's own gallery. It belongs here too:
+  // The same cutout screen as on the item's own gallery. It belongs here too:
   // this is where a whole import is reviewed, and "this one needs cutting out"
   // is decided while looking at the batch.
   const [cutoutTarget, setCutoutTarget] = useState<null | LibraryPhoto>(null)
@@ -418,7 +418,7 @@ function PhotoTile({
               <Text
                 key={`${owner.kind}-${owner.id}`}
                 component={Link}
-                to={owner.kind === 'case' ? `/cases/${owner.id}` : `/tools/${owner.id}`}
+                to={owner.kind === 'case' ? `/cases/${owner.id}` : `/items/${owner.id}`}
                 size="xs"
                 fw={600}
                 lineClamp={1}
@@ -494,8 +494,8 @@ function PhotoTile({
 }
 
 // The alert the deletion has to pass through. Every photo here belongs to a
-// tool, so the modal always names them — and calls out the ones that are a
-// tool's main photo, because removing those changes what the catalog grid
+// item, so the modal always names them — and calls out the ones that are a
+// item's main photo, because removing those changes what the catalog grid
 // shows, which is the surprise worth warning about.
 function DeleteConfirmation({
   onCancel,
@@ -511,7 +511,7 @@ function DeleteConfirmation({
   working: boolean
 }) {
   const attached = pending.filter((photo) => photo.owners.length > 0)
-  // Keyed by kind and id: tool 4 and case 4 are different cards that happen to
+  // Keyed by kind and id: item 4 and case 4 are different cards that happen to
   // share a number, and listing them as one would hide a deletion. A picture on
   // several cards contributes each of them, because deleting it takes it off
   // all of them at once.

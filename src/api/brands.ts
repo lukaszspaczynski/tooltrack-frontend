@@ -5,14 +5,14 @@ export type BrandQuery = {
   limit: number
   offset: number
   search: null | string
-  sort: 'name' | 'tools'
+  sort: 'name' | 'items'
 }
 
 export function fetchBrands(query: BrandQuery): Promise<BrandPage> {
   const search = new URLSearchParams()
   if (query.search) search.set('q', query.search)
   search.set('sort', query.sort)
-  if (query.sort === 'tools') search.set('order', 'desc')
+  if (query.sort === 'items') search.set('order', 'desc')
   search.set('limit', String(query.limit))
   if (query.offset > 0) search.set('offset', String(query.offset))
 

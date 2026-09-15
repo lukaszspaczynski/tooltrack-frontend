@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * List places
-         * @description Every place, with `toolCount` and `organizerCount` — how many things say they are there. Those counts are most of why the list is worth looking at: they answer "where is the kit" and "which of these is empty and can be tidied away".
+         * @description Every place, with `itemCount` and `organizerCount` — how many things say they are there. Those counts are most of why the list is worth looking at: they answer "where is the kit" and "which of these is empty and can be tidied away".
          *
          *     Sorted by name unless `?sort=` says otherwise, and ascending by default, like the makers: a short list of places is read alphabetically rather than newest-first.
          */
@@ -48,7 +48,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a place
-         * @description The tools and arrangements that were here stay in the catalog and stop pointing at anything — closing a site must not take the kit that was on it out of the catalog.
+         * @description The items and arrangements that were here stay in the catalog and stop pointing at anything — closing a site must not take the kit that was on it out of the catalog.
          *
          *     `cleared` says how many lost their place. That number is the reason this answer is not a bare `ok`: "delete" on a list of places reads like tidying up, and forty cards quietly losing their location does not.
          */
@@ -259,9 +259,9 @@ export interface paths {
         };
         /**
          * List makers
-         * @description Every maker, with `toolCount` — how many cards name it. That count is the reason the list is worth looking at, and it is read-only.
+         * @description Every maker, with `itemCount` — how many cards name it. That count is the reason the list is worth looking at, and it is read-only.
          *
-         *     Sorted by name unless `?sort=tools`, and ascending by default, unlike every other list here: a shelf of makers is read alphabetically.
+         *     Sorted by name unless `?sort=items`, and ascending by default, unlike every other list here: a shelf of makers is read alphabetically.
          */
         get: operations["listBrands"];
         put?: never;
@@ -370,7 +370,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a case
-         * @description The pictures no other card shows go with it. One that a tool inside the case also uses stays, which is the whole point of storing them as links.
+         * @description The pictures no other card shows go with it. One that an item inside the case also uses stays, which is the whole point of storing them as links.
          */
         delete: operations["deleteCase"];
         options?: never;
@@ -393,7 +393,7 @@ export interface paths {
         put?: never;
         /**
          * Add a parameter to a case
-         * @description One line off the spec sheet of a box, on exactly the terms a tool's parameters are: both halves required, whitespace collapsed, one name per case.
+         * @description One line off the spec sheet of a box, on exactly the terms an item's parameters are: both halves required, whitespace collapsed, one name per case.
          *
          *     The columns hold what every box has — a length is a length — and this holds what they do not: a stacking system, a lid type, whatever the next kind of box turns out to state. Answers with the whole case rather than the row that changed.
          */
@@ -503,7 +503,7 @@ export interface paths {
          * Where a picture of this card could come from
          * @description Links and thumbnails, nothing downloaded: the client shows them, somebody ticks the ones that are actually this machine, and `POST …/photos` with those addresses is what puts bytes on our disk. It needs `catalog.write` for that reason — it is the first half of an edit.
          *
-         *     Without `q` the query is built from the card: a tool by its maker and model, a case by who makes it and what it is called.
+         *     Without `q` the query is built from the card: an item by its maker and model, a case by who makes it and what it is called.
          *
          *     Every engine enabled for this account is asked in parallel and contributes its own share; one failing costs its results rather than the search, and `failed` says which. With no engine enabled at all the answer is 503 — the catalog is fine, this one integration is not.
          *
@@ -583,7 +583,7 @@ export interface paths {
          * Cut the subject out of a photograph
          * @description The one-click edit: the thing alone, without the bench it was photographed on.
          *
-         *     It **adds** a photograph rather than replacing one. The original stays and the two are linked by `derivedFrom`, so a cutout that mangled the tool is one delete away from undone. The new photograph does not become the main one on its own — whether the cutout is better than the photograph is a judgement, and the person looking at both makes it.
+         *     It **adds** a photograph rather than replacing one. The original stays and the two are linked by `derivedFrom`, so a cutout that mangled the item is one delete away from undone. The new photograph does not become the main one on its own — whether the cutout is better than the photograph is a judgement, and the person looking at both makes it.
          *
          *     The default method needs no key and no service, and refuses with a 422 rather than returning half a cut-out workbench.
          */
@@ -749,7 +749,7 @@ export interface paths {
         };
         /**
          * The sources a case can be imported from
-         * @description What the import dialog lists before asking for an address. A shorter list than the tools one, and a different one: a page that sells drills has nothing to say about a box.
+         * @description What the import dialog lists before asking for an address. A shorter list than the items one, and a different one: a page that sells drills has nothing to say about a box.
          */
         get: operations["listCaseImportSources"];
         put?: never;
@@ -822,6 +822,542 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List item cards
+         * @description A page of cards for the grid. Every item carries two things the card itself does not: `primaryPhotoUrl` for the thumbnail, and `organizer` saying where the item lies — both fetched for the whole page in one query rather than per row, because this list is read on a phone.
+         *
+         *     A bad value in the query string is clamped or dropped rather than refused: a link somebody pasted with `?limit=banana` should still show the catalog. The one exception is `condition`, where a value naming no condition is a 400 — silently listing every item would look like an answer rather than a typo.
+         */
+        get: operations["listItems"];
+        put?: never;
+        /**
+         * Create an item card
+         * @description A new card arrives with no parameters, and `attributes` comes back as an empty array rather than absent — saying so beats leaving the client to work out whether the field is missing or empty.
+         */
+        post: operations["createItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One item card
+         * @description The card with its whole spec sheet. The list answers with the card alone: a grid shows a name, a maker and a condition, and sending every card’s parameters to draw that would be paying for what nobody reads.
+         */
+        get: operations["getItem"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete an item card
+         * @description The pictures and documents no other card uses go with it; one that another card still shows stays, which is the whole point of storing them as links.
+         *
+         *     Deleting a card that is already gone answers 404 rather than 200. It is the outcome the caller wanted either way, but two people clearing the same row from two phones should not both be told they did it.
+         */
+        delete: operations["deleteItem"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit an item card
+         * @description Only the fields present in the body are touched. `""` and absent are different on purpose: clearing the brand is a real edit, and a PATCH that could not express it would force the client to resend the whole card. A body with no editable field at all is a 400 rather than a no-op that looks to the screen like it saved something.
+         */
+        patch: operations["updateItem"];
+        trace?: never;
+    };
+    "/api/items/{id}/attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a parameter to a card
+         * @description One line off a rating plate: mains voltage, speed, chuck, weight. Both halves are required and neither may be blank — a parameter with no name says nothing, and one with no value is a question rather than an answer.
+         *
+         *     Runs of whitespace inside either half collapse to a single space, because the index that keeps names unique folds case and trims the ends; without it "napięcie  sieciowe" would sit on the card beside "napięcie sieciowe".
+         */
+        post: operations["addItemAttribute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/attributes/{attributeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a parameter
+         * @description Answers with the card, so the screen holding the spec sheet can redraw it whole.
+         */
+        delete: operations["deleteItemAttribute"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a parameter
+         * @description A typo in the name, or a value read off the plate again. Sending neither is refused rather than answered with the row unchanged. A parameter that is not this card’s reads the same as one that never existed.
+         */
+        patch: operations["updateItemAttribute"];
+        trace?: never;
+    };
+    "/api/items/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Duplicate an item card
+         * @description Everything is copied except the serial number, which identifies one physical machine: the copy starts blank there, so the person filling it in is the one who read the plate.
+         *
+         *     The photographs and the documents come along as links to the same files — two of the same model look alike and read the same manual, and a link costs a row rather than a second 7 MB PDF.
+         */
+        post: operations["duplicateItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read the page again into an existing card
+         * @description Reads the page again into a card that already exists. What a product page knows, it overwrites: the maker, the model, the category, the description, the whole spec sheet and the documents.
+         *
+         *     What it cannot know, it leaves alone — the name somebody gave this card, the serial number of this particular machine, its condition, and the photographs, which somebody may well have taken themselves. `imported.photos` is therefore always 0 here, and saying so beats a client wondering whether they were quietly replaced.
+         *
+         *     The parameters and the documents are cleared and written again rather than merged: the page is the source of truth for what a machine is, so a parameter the maker has dropped should leave the card.
+         */
+        post: operations["refreshItemFromPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/manuals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The documents on a card
+         * @description What this item comes with: the manual, maybe a parts diagram, maybe a safety sheet.
+         */
+        get: operations["listItemManuals"];
+        put?: never;
+        /**
+         * Add a document to a card
+         * @description Two request shapes on one route, like the photographs.
+         *
+         *     With `application/pdf` (or `application/octet-stream`) the body is the file, and `?name=` carries the file name to take a title from.
+         *
+         *     With `application/json` the body is an address this server fetches.
+         *
+         *     Either way the bytes are checked before anything is stored: an empty body is a 400, one over the size limit a 413, and anything whose first bytes are not a PDF a 415 — whatever the content-type or the `.pdf` on the end of the address claimed.
+         */
+        post: operations["addItemManual"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/manuals/{manualId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Take a document off a card
+         * @description Off this card. The file stays as long as another card keeps it — to take a document out of the catalog entirely, use `POST /api/manuals/delete`.
+         */
+        delete: operations["removeItemManual"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename a document on a card
+         * @description Renaming as this card calls it. The title is the only thing about a document anybody edits — everything else is a fact about the file.
+         */
+        patch: operations["renameItemManual"];
+        trace?: never;
+    };
+    "/api/items/{id}/manuals/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Put existing documents on a card
+         * @description Documents the catalog already has. The same PDF belongs on every card of that model, and attaching costs a row rather than a second copy of a 7 MB file.
+         */
+        post: operations["attachItemManuals"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/manuals/from-page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Take the documents a product page publishes
+         * @description The documents a product page offers, read by the same scripts that import a whole card — so a shop this server cannot read is refused here in the same words, and at most eight are taken (a page offering thirty is listing somebody’s whole catalogue).
+         *
+         *     Only sources that publish documents at all are accepted. Fetching a shop’s page to say afterwards that it has no manuals is a round trip nobody needed, which is what `manuals` on `GET /api/items/import/sources` is for.
+         *
+         *     One document that will not download does not lose the others; `failed` reports each. When every one fails the status is 422 and nothing was stored.
+         */
+        post: operations["addItemManualsFromPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photo-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where a picture of this card could come from
+         * @description Links and thumbnails, nothing downloaded: the client shows them, somebody ticks the ones that are actually this machine, and `POST …/photos` with those addresses is what puts bytes on our disk. It needs `catalog.write` for that reason — it is the first half of an edit.
+         *
+         *     Without `q` the query is built from the card: an item by its maker and model, a case by who makes it and what it is called.
+         *
+         *     Every engine enabled for this account is asked in parallel and contributes its own share; one failing costs its results rather than the search, and `failed` says which. With no engine enabled at all the answer is 503 — the catalog is fine, this one integration is not.
+         *
+         *     `?source=page` reads the product page this card was imported from instead of the engines. Not a search: the address is written on the card, so it is the one source that cannot return somebody else’s machine.
+         */
+        get: operations["suggestItemPhotos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the photographs on a card
+         * @description `?exclusive=1` narrows it to the pictures this card is the only home of — what a delete confirmation needs, because "and its photographs" is not something anybody can weigh without a number, and that number is not the length of the gallery when another card shows half of it.
+         */
+        get: operations["listItemPhotos"];
+        put?: never;
+        /**
+         * Upload a photograph, or fetch one from an address
+         * @description Two requests in one, told apart by the content-type.
+         *
+         *     With an `image/*` body the bytes are the file: they are converted to PNG and stored, and the answer is `{ photo }`.
+         *
+         *     With `application/json` the body carries addresses this server fetches on the caller’s behalf, and the answer is `{ photos, failed }` — one bad link out of ten must not lose the other nine, so each failure is reported next to the address that caused it. When every link fails the status is 422 and nothing was stored.
+         */
+        post: operations["addItemPhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos/{photoId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a photograph from a card
+         * @description Off this card, and off the disk if no other card shows it.
+         */
+        delete: operations["removeItemPhoto"];
+        options?: never;
+        head?: never;
+        /**
+         * Make a photograph the main one
+         * @description Promoting is the only edit a photograph has: everything else about it — its size, its type, where it came from — is a fact about the file rather than a decision. Being the main one is a property of the pairing, so the same photograph can head one card and sit fourth on another.
+         */
+        patch: operations["promoteItemPhoto"];
+        trace?: never;
+    };
+    "/api/items/{id}/photos/{photoId}/cutout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cut the subject out of a photograph
+         * @description The one-click edit: the thing alone, without the bench it was photographed on.
+         *
+         *     It **adds** a photograph rather than replacing one. The original stays and the two are linked by `derivedFrom`, so a cutout that mangled the item is one delete away from undone. The new photograph does not become the main one on its own — whether the cutout is better than the photograph is a judgement, and the person looking at both makes it.
+         *
+         *     The default method needs no key and no service, and refuses with a 422 rather than returning half a cut-out workbench.
+         */
+        post: operations["cutoutItemPhoto"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos/{photoId}/cutout/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keep a previewed cutout
+         * @description Keeps a preview. The bytes are already on disk; this is the row that turns them into a photograph of this card. Both stores are addressed by content, so the checksum — and the client’s idea of what it accepted — does not change.
+         *
+         *     A preview that has expired, or comes from a tab left open since yesterday, is a 409: asked for again rather than half-saved.
+         */
+        post: operations["commitItemCutout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos/{photoId}/cutout/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Try a cutout without keeping it
+         * @description Runs the cutout and hands back somewhere to look at it, without writing a photograph. The result goes into a cache that expires on its own, and `preview.checksum` is what `…/cutout/commit` takes to keep it.
+         */
+        post: operations["previewItemCutout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos/{photoId}/cutout/preview/{checksum}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The preview image
+         * @description Addressed by checksum, so nothing here can serve a file that was not produced by a cutout somebody just ran. `cache-control` carries what is left of this preview’s life rather than a fresh TTL on every request: a browser holding a picture the server has already swept is how a save fails after a preview that still looked fine.
+         */
+        get: operations["getItemCutoutPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos/{photoId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The photograph itself
+         * @description The bytes. Content-addressed behind a row id, so this response can never change and is served `immutable` for a year — but `private`, because the catalog is behind a login and a shared cache must not hold it. A row whose file is missing is a 404: a broken photograph, not a broken server.
+         */
+        get: operations["getItemPhotoFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/{id}/photos/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Put existing photographs on a card
+         * @description The way out of the library’s unassigned shelf, and the other half of being able to upload a picture before deciding what it is. A photograph that belongs to nothing is moved onto this card, keeping its id; one that already belongs elsewhere is copied, which costs a row rather than a second file.
+         *
+         *     Nothing attached at all is a 409 — some of them failing is normal and reported per photograph.
+         */
+        post: operations["attachItemPhotos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The parameter names in use
+         * @description What the form offers while somebody types a parameter name, most used first. Read from the cards for the same reason the category list is: the names in use are the vocabulary, and "napięcie sieciowe" typed the same way on every card is what makes the catalog answerable later. Names differing only in case or spacing count as one.
+         */
+        get: operations["listItemAttributeNames"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The categories in use
+         * @description Read from the cards themselves rather than from a table of categories, so the list is what is actually in use. That is the list to offer in a filter.
+         */
+        get: operations["listItemCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import a card from a product page
+         * @description The address decides which script reads the page, and an address from a host this server has never been taught to read is refused rather than guessed at — a page nobody has written a reader for would produce a card full of empty fields.
+         *
+         *     The card is the thing being asked for, so a parameter or a photograph that fails does not fail the import: what could not be read is reported beside the card in `imported` rather than instead of it. The serial number is deliberately left blank, because the page describes a model and a serial number is one physical machine.
+         *
+         *     Every imported card carries a `referenceUrl` holding the address it was read from, with any analytics tail removed. A field on the card rather than a parameter on its sheet: a card has exactly one, and the analytics tail a shop adds to a shared link is not part of it.
+         */
+        post: operations["importItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/items/import/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The sources that can be imported from
+         * @description What the import dialog lists before asking for an address. `manuals` says whether that source publishes documents at all: a shop sells the item and leaves the manual to the maker, so a screen asking for one offers only the sources that have any.
+         */
+        get: operations["listImportSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/labels": {
         parameters: {
             query?: never;
@@ -855,7 +1391,7 @@ export interface paths {
         put?: never;
         /**
          * Draw labels again
-         * @description Draws the chosen labels again, wherever they live. This is how a label stops being wrong after somebody moved a tool between boxes.
+         * @description Draws the chosen labels again, wherever they live. This is how a label stops being wrong after somebody moved an item between boxes.
          *
          *     The selection spans arrangements, so the answer cannot be one of them the way the per-organizer refresh’s is — the screen re-reads the list instead. What it does say is how many were drawn and which were not, because a label whose photographs have been deleted since is the one thing somebody has to act on.
          */
@@ -900,8 +1436,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Every document, with the tools that keep it
-         * @description The shelf rather than the drawer. Every item carries the tools that keep it, because "what is this a manual for" is the question this screen exists to answer and asking it per row would be a query per document.
+         * Every document, with the items that keep it
+         * @description The shelf rather than the drawer. Every item carries the items that keep it, because "what is this a manual for" is the question this screen exists to answer and asking it per row would be a query per document.
          *
          *     A bad value in the query string is clamped or dropped rather than refused, like every other list here.
          */
@@ -969,7 +1505,7 @@ export interface paths {
          * Delete documents outright
          * @description Off every card at once and off the disk. A different decision from taking one off a single card, and made about several at a time — which is why it is a batch and why it is capped at fifty.
          *
-         *     `tools` names the cards the delete took a document from, so a screen showing them can say so rather than quietly refreshing.
+         *     `items` names the cards the delete took a document from, so a screen showing them can say so rather than quietly refreshing.
          */
         post: operations["deleteManuals"];
         delete?: never;
@@ -1033,7 +1569,7 @@ export interface paths {
         put?: never;
         /**
          * Create an organizer
-         * @description The wizard’s last step, in one request: a case, a name, and the tools that were ticked. One request rather than three, so a half-made arrangement cannot exist because somebody closed the tab between two of them.
+         * @description The wizard’s last step, in one request: a case, a name, and the items that were ticked. One request rather than three, so a half-made arrangement cannot exist because somebody closed the tab between two of them.
          *
          *     An arrangement without a case is an arrangement of nothing, so `caseId` is required. Leave `number` out for the next free one — only the server can see what is taken.
          */
@@ -1053,14 +1589,14 @@ export interface paths {
         };
         /**
          * One organizer
-         * @description The arrangement, its case, the tools in it and the labels made for it.
+         * @description The arrangement, its case, the items in it and the labels made for it.
          */
         get: operations["getOrganizer"];
         put?: never;
         post?: never;
         /**
          * Delete an organizer
-         * @description The tools stay; only the arrangement goes. Nothing here touches a tool card, which is the point of keeping the link in a table of its own.
+         * @description The items stay; only the arrangement goes. Nothing here touches an item card, which is the point of keeping the link in a table of its own.
          */
         delete: operations["deleteOrganizer"];
         options?: never;
@@ -1070,6 +1606,46 @@ export interface paths {
          * @description Only the fields present are touched. `caseId` may move the arrangement to another box but cannot be null — that would leave an arrangement of nothing.
          */
         patch: operations["updateOrganizer"];
+        trace?: never;
+    };
+    "/api/organizers/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Put items in an organizer
+         * @description An item is in one arrangement at a time — that is what makes a label true — so one that is already somewhere else is a 409 rather than a quiet move.
+         */
+        post: operations["addOrganizerItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizers/{id}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Take an item out of an organizer
+         * @description Takes the item out of the arrangement. The card is untouched — it simply stops being anywhere.
+         */
+        delete: operations["removeOrganizerItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/organizers/{id}/label-slots": {
@@ -1185,52 +1761,12 @@ export interface paths {
         put?: never;
         /**
          * Draw an organizer’s labels again
-         * @description Draws the chosen labels again from the options they were made with — which is how a label stops being wrong after somebody moved a tool.
+         * @description Draws the chosen labels again from the options they were made with — which is how a label stops being wrong after somebody moved an item.
          *
          *     Scoped to this arrangement: a label id belonging to another one is not found here rather than redrawn, which is what makes the URL mean what it says. For a selection spanning arrangements, use `POST /api/labels/refresh`.
          */
         post: operations["refreshOrganizerLabels"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/organizers/{id}/tools": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Put tools in an organizer
-         * @description A tool is in one arrangement at a time — that is what makes a label true — so one that is already somewhere else is a 409 rather than a quiet move.
-         */
-        post: operations["addOrganizerTools"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/organizers/{id}/tools/{toolId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Take a tool out of an organizer
-         * @description Takes the tool out of the arrangement. The card is untouched — it simply stops being anywhere.
-         */
-        delete: operations["removeOrganizerTool"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1245,7 +1781,7 @@ export interface paths {
         };
         /**
          * Every photograph, with or without a card
-         * @description Every photograph on disk, newest first, because the library is opened right after an import went wrong. `q` matches the tool a picture belongs to rather than the picture: a photograph has no name of its own, and "which tool was this" is the question people ask.
+         * @description Every photograph on disk, newest first, because the library is opened right after an import went wrong. `q` matches the item a picture belongs to rather than the picture: a photograph has no name of its own, and "which item was this" is the question people ask.
          */
         get: operations["listLibraryPhotos"];
         put?: never;
@@ -1394,542 +1930,6 @@ export interface paths {
         patch: operations["updateSearchEngine"];
         trace?: never;
     };
-    "/api/tools": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List tool cards
-         * @description A page of cards for the grid. Every item carries two things the card itself does not: `primaryPhotoUrl` for the thumbnail, and `organizer` saying where the tool lies — both fetched for the whole page in one query rather than per row, because this list is read on a phone.
-         *
-         *     A bad value in the query string is clamped or dropped rather than refused: a link somebody pasted with `?limit=banana` should still show the catalog. The one exception is `condition`, where a value naming no condition is a 400 — silently listing every tool would look like an answer rather than a typo.
-         */
-        get: operations["listTools"];
-        put?: never;
-        /**
-         * Create a tool card
-         * @description A new card arrives with no parameters, and `attributes` comes back as an empty array rather than absent — saying so beats leaving the client to work out whether the field is missing or empty.
-         */
-        post: operations["createTool"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * One tool card
-         * @description The card with its whole spec sheet. The list answers with the card alone: a grid shows a name, a maker and a condition, and sending every card’s parameters to draw that would be paying for what nobody reads.
-         */
-        get: operations["getTool"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a tool card
-         * @description The pictures and documents no other card uses go with it; one that another card still shows stays, which is the whole point of storing them as links.
-         *
-         *     Deleting a card that is already gone answers 404 rather than 200. It is the outcome the caller wanted either way, but two people clearing the same row from two phones should not both be told they did it.
-         */
-        delete: operations["deleteTool"];
-        options?: never;
-        head?: never;
-        /**
-         * Edit a tool card
-         * @description Only the fields present in the body are touched. `""` and absent are different on purpose: clearing the brand is a real edit, and a PATCH that could not express it would force the client to resend the whole card. A body with no editable field at all is a 400 rather than a no-op that looks to the screen like it saved something.
-         */
-        patch: operations["updateTool"];
-        trace?: never;
-    };
-    "/api/tools/{id}/attributes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Add a parameter to a card
-         * @description One line off a rating plate: mains voltage, speed, chuck, weight. Both halves are required and neither may be blank — a parameter with no name says nothing, and one with no value is a question rather than an answer.
-         *
-         *     Runs of whitespace inside either half collapse to a single space, because the index that keeps names unique folds case and trims the ends; without it "napięcie  sieciowe" would sit on the card beside "napięcie sieciowe".
-         */
-        post: operations["addToolAttribute"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/attributes/{attributeId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a parameter
-         * @description Answers with the card, so the screen holding the spec sheet can redraw it whole.
-         */
-        delete: operations["deleteToolAttribute"];
-        options?: never;
-        head?: never;
-        /**
-         * Edit a parameter
-         * @description A typo in the name, or a value read off the plate again. Sending neither is refused rather than answered with the row unchanged. A parameter that is not this card’s reads the same as one that never existed.
-         */
-        patch: operations["updateToolAttribute"];
-        trace?: never;
-    };
-    "/api/tools/{id}/duplicate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Duplicate a tool card
-         * @description Everything is copied except the serial number, which identifies one physical machine: the copy starts blank there, so the person filling it in is the one who read the plate.
-         *
-         *     The photographs and the documents come along as links to the same files — two of the same model look alike and read the same manual, and a link costs a row rather than a second 7 MB PDF.
-         */
-        post: operations["duplicateTool"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Read the page again into an existing card
-         * @description Reads the page again into a card that already exists. What a product page knows, it overwrites: the maker, the model, the category, the description, the whole spec sheet and the documents.
-         *
-         *     What it cannot know, it leaves alone — the name somebody gave this card, the serial number of this particular machine, its condition, and the photographs, which somebody may well have taken themselves. `imported.photos` is therefore always 0 here, and saying so beats a client wondering whether they were quietly replaced.
-         *
-         *     The parameters and the documents are cleared and written again rather than merged: the page is the source of truth for what a machine is, so a parameter the maker has dropped should leave the card.
-         */
-        post: operations["refreshToolFromPage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/manuals": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The documents on a card
-         * @description What this tool comes with: the manual, maybe a parts diagram, maybe a safety sheet.
-         */
-        get: operations["listToolManuals"];
-        put?: never;
-        /**
-         * Add a document to a card
-         * @description Two request shapes on one route, like the photographs.
-         *
-         *     With `application/pdf` (or `application/octet-stream`) the body is the file, and `?name=` carries the file name to take a title from.
-         *
-         *     With `application/json` the body is an address this server fetches.
-         *
-         *     Either way the bytes are checked before anything is stored: an empty body is a 400, one over the size limit a 413, and anything whose first bytes are not a PDF a 415 — whatever the content-type or the `.pdf` on the end of the address claimed.
-         */
-        post: operations["addToolManual"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/manuals/{manualId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Take a document off a card
-         * @description Off this card. The file stays as long as another card keeps it — to take a document out of the catalog entirely, use `POST /api/manuals/delete`.
-         */
-        delete: operations["removeToolManual"];
-        options?: never;
-        head?: never;
-        /**
-         * Rename a document on a card
-         * @description Renaming as this card calls it. The title is the only thing about a document anybody edits — everything else is a fact about the file.
-         */
-        patch: operations["renameToolManual"];
-        trace?: never;
-    };
-    "/api/tools/{id}/manuals/attach": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Put existing documents on a card
-         * @description Documents the catalog already has. The same PDF belongs on every card of that model, and attaching costs a row rather than a second copy of a 7 MB file.
-         */
-        post: operations["attachToolManuals"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/manuals/from-page": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Take the documents a product page publishes
-         * @description The documents a product page offers, read by the same scripts that import a whole card — so a shop this server cannot read is refused here in the same words, and at most eight are taken (a page offering thirty is listing somebody’s whole catalogue).
-         *
-         *     Only sources that publish documents at all are accepted. Fetching a shop’s page to say afterwards that it has no manuals is a round trip nobody needed, which is what `manuals` on `GET /api/tools/import/sources` is for.
-         *
-         *     One document that will not download does not lose the others; `failed` reports each. When every one fails the status is 422 and nothing was stored.
-         */
-        post: operations["addToolManualsFromPage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photo-suggestions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Where a picture of this card could come from
-         * @description Links and thumbnails, nothing downloaded: the client shows them, somebody ticks the ones that are actually this machine, and `POST …/photos` with those addresses is what puts bytes on our disk. It needs `catalog.write` for that reason — it is the first half of an edit.
-         *
-         *     Without `q` the query is built from the card: a tool by its maker and model, a case by who makes it and what it is called.
-         *
-         *     Every engine enabled for this account is asked in parallel and contributes its own share; one failing costs its results rather than the search, and `failed` says which. With no engine enabled at all the answer is 503 — the catalog is fine, this one integration is not.
-         *
-         *     `?source=page` reads the product page this card was imported from instead of the engines. Not a search: the address is written on the card, so it is the one source that cannot return somebody else’s machine.
-         */
-        get: operations["suggestToolPhotos"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List the photographs on a card
-         * @description `?exclusive=1` narrows it to the pictures this card is the only home of — what a delete confirmation needs, because "and its photographs" is not something anybody can weigh without a number, and that number is not the length of the gallery when another card shows half of it.
-         */
-        get: operations["listToolPhotos"];
-        put?: never;
-        /**
-         * Upload a photograph, or fetch one from an address
-         * @description Two requests in one, told apart by the content-type.
-         *
-         *     With an `image/*` body the bytes are the file: they are converted to PNG and stored, and the answer is `{ photo }`.
-         *
-         *     With `application/json` the body carries addresses this server fetches on the caller’s behalf, and the answer is `{ photos, failed }` — one bad link out of ten must not lose the other nine, so each failure is reported next to the address that caused it. When every link fails the status is 422 and nothing was stored.
-         */
-        post: operations["addToolPhoto"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/{photoId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Remove a photograph from a card
-         * @description Off this card, and off the disk if no other card shows it.
-         */
-        delete: operations["removeToolPhoto"];
-        options?: never;
-        head?: never;
-        /**
-         * Make a photograph the main one
-         * @description Promoting is the only edit a photograph has: everything else about it — its size, its type, where it came from — is a fact about the file rather than a decision. Being the main one is a property of the pairing, so the same photograph can head one card and sit fourth on another.
-         */
-        patch: operations["promoteToolPhoto"];
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/{photoId}/cutout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Cut the subject out of a photograph
-         * @description The one-click edit: the thing alone, without the bench it was photographed on.
-         *
-         *     It **adds** a photograph rather than replacing one. The original stays and the two are linked by `derivedFrom`, so a cutout that mangled the tool is one delete away from undone. The new photograph does not become the main one on its own — whether the cutout is better than the photograph is a judgement, and the person looking at both makes it.
-         *
-         *     The default method needs no key and no service, and refuses with a 422 rather than returning half a cut-out workbench.
-         */
-        post: operations["cutoutToolPhoto"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/{photoId}/cutout/commit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Keep a previewed cutout
-         * @description Keeps a preview. The bytes are already on disk; this is the row that turns them into a photograph of this card. Both stores are addressed by content, so the checksum — and the client’s idea of what it accepted — does not change.
-         *
-         *     A preview that has expired, or comes from a tab left open since yesterday, is a 409: asked for again rather than half-saved.
-         */
-        post: operations["commitToolCutout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/{photoId}/cutout/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Try a cutout without keeping it
-         * @description Runs the cutout and hands back somewhere to look at it, without writing a photograph. The result goes into a cache that expires on its own, and `preview.checksum` is what `…/cutout/commit` takes to keep it.
-         */
-        post: operations["previewToolCutout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/{photoId}/cutout/preview/{checksum}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The preview image
-         * @description Addressed by checksum, so nothing here can serve a file that was not produced by a cutout somebody just ran. `cache-control` carries what is left of this preview’s life rather than a fresh TTL on every request: a browser holding a picture the server has already swept is how a save fails after a preview that still looked fine.
-         */
-        get: operations["getToolCutoutPreview"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/{photoId}/file": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The photograph itself
-         * @description The bytes. Content-addressed behind a row id, so this response can never change and is served `immutable` for a year — but `private`, because the catalog is behind a login and a shared cache must not hold it. A row whose file is missing is a 404: a broken photograph, not a broken server.
-         */
-        get: operations["getToolPhotoFile"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/{id}/photos/attach": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Put existing photographs on a card
-         * @description The way out of the library’s unassigned shelf, and the other half of being able to upload a picture before deciding what it is. A photograph that belongs to nothing is moved onto this card, keeping its id; one that already belongs elsewhere is copied, which costs a row rather than a second file.
-         *
-         *     Nothing attached at all is a 409 — some of them failing is normal and reported per photograph.
-         */
-        post: operations["attachToolPhotos"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/attributes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The parameter names in use
-         * @description What the form offers while somebody types a parameter name, most used first. Read from the cards for the same reason the category list is: the names in use are the vocabulary, and "napięcie sieciowe" typed the same way on every card is what makes the catalog answerable later. Names differing only in case or spacing count as one.
-         */
-        get: operations["listToolAttributeNames"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The categories in use
-         * @description Read from the cards themselves rather than from a table of categories, so the list is what is actually in use. That is the list to offer in a filter.
-         */
-        get: operations["listToolCategories"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import a card from a product page
-         * @description The address decides which script reads the page, and an address from a host this server has never been taught to read is refused rather than guessed at — a page nobody has written a reader for would produce a card full of empty fields.
-         *
-         *     The card is the thing being asked for, so a parameter or a photograph that fails does not fail the import: what could not be read is reported beside the card in `imported` rather than instead of it. The serial number is deliberately left blank, because the page describes a model and a serial number is one physical machine.
-         *
-         *     Every imported card carries a `referenceUrl` holding the address it was read from, with any analytics tail removed. A field on the card rather than a parameter on its sheet: a card has exactly one, and the analytics tail a shop adds to a shared link is not part of it.
-         */
-        post: operations["importTool"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/tools/import/sources": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The sources that can be imported from
-         * @description What the import dialog lists before asking for an address. `manuals` says whether that source publishes documents at all: a shop sells the tool and leaves the manual to the maker, so a screen asking for one offers only the sources that have any.
-         */
-        get: operations["listImportSources"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/users": {
         parameters: {
             query?: never;
@@ -1962,7 +1962,7 @@ export interface paths {
         post?: never;
         /**
          * Delete an account
-         * @description The tool cards they created stay, with `createdBy` set to null. Losing the catalog because somebody left is not an outcome anybody would ask for.
+         * @description The item cards they created stay, with `createdBy` set to null. Losing the catalog because somebody left is not an outcome anybody would ask for.
          */
         delete: operations["deleteUser"];
         options?: never;
@@ -2034,7 +2034,7 @@ export interface components {
              *     - `INVALID_CREDENTIALS` — The e-mail and password do not match an account.
              *     - `TOO_MANY_ATTEMPTS` — Too many failed sign-ins from this address, or against this e-mail. See Retry-After.
              *     - `NOT_FOUND` — No such record, or none this account may see.
-             *     - `TOOL_NOT_FOUND` — No such tool card.
+             *     - `ITEM_NOT_FOUND` — No such item card.
              *     - `CASE_NOT_FOUND` — No such case.
              *     - `ORGANIZER_NOT_FOUND` — No such organizer.
              *     - `BRAND_NOT_FOUND` — No such maker.
@@ -2046,7 +2046,7 @@ export interface components {
              *     - `LABEL_NOT_FOUND` — No such label, or its file is gone.
              *     - `SEARCH_ENGINE_NOT_FOUND` — No search engine or cutout method by that name.
              *     - `LABEL_SLOT_NOT_FOUND` — This case has no such label slot.
-             *     - `TOOL_NOT_IN_ORGANIZER` — That tool is not in this organizer.
+             *     - `ITEM_NOT_IN_ORGANIZER` — That item is not in this organizer.
              *     - `EMAIL_TAKEN` — An account with that e-mail already exists.
              *     - `ADDRESS_NAME_TAKEN` — Another place is already called that.
              *     - `SERIAL_NUMBER_TAKEN` — Another card already carries that serial number.
@@ -2055,7 +2055,9 @@ export interface components {
              *     - `LOGO_TAKEN` — That picture is already another maker’s logo.
              *     - `LABEL_SLOT_TAKEN` — This case already has a slot that size.
              *     - `ORGANIZER_NUMBER_TAKEN` — Another organizer already has that number.
-             *     - `TOOL_ALREADY_IN_ORGANIZER` — That tool is in another organizer already.
+             *     - `ITEM_IS_NOT_A_TOOL` — Only tools go in an organizer. This card is an appliance or a case.
+             *     - `ITEM_IN_ORGANIZER` — This card is in an organizer, so it cannot stop being a tool until it is taken out.
+             *     - `ITEM_ALREADY_IN_ORGANIZER` — That item is in another organizer already.
              *     - `PHOTO_ALREADY_ON_CARD` — That photograph is already on this card.
              *     - `MANUAL_ALREADY_ON_CARD` — That document is already on this card.
              *     - `LAST_ACTIVE_ADMIN` — The change would leave the installation with no admin.
@@ -2078,7 +2080,7 @@ export interface components {
              *     - `INTERNAL` — Something went wrong that the caller cannot act on.
              * @enum {string}
              */
-            code: "INVALID_BODY" | "INVALID_QUERY" | "BODY_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "METHOD_NOT_ALLOWED" | "CLIENT_TOO_OLD" | "UNAUTHENTICATED" | "FORBIDDEN" | "ACCOUNT_DISABLED" | "INVALID_CREDENTIALS" | "TOO_MANY_ATTEMPTS" | "NOT_FOUND" | "TOOL_NOT_FOUND" | "CASE_NOT_FOUND" | "ORGANIZER_NOT_FOUND" | "BRAND_NOT_FOUND" | "USER_NOT_FOUND" | "ADDRESS_NOT_FOUND" | "SESSION_NOT_FOUND" | "PHOTO_NOT_FOUND" | "MANUAL_NOT_FOUND" | "LABEL_NOT_FOUND" | "SEARCH_ENGINE_NOT_FOUND" | "LABEL_SLOT_NOT_FOUND" | "TOOL_NOT_IN_ORGANIZER" | "EMAIL_TAKEN" | "ADDRESS_NAME_TAKEN" | "SERIAL_NUMBER_TAKEN" | "ATTRIBUTE_NAME_TAKEN" | "BRAND_NAME_TAKEN" | "LOGO_TAKEN" | "LABEL_SLOT_TAKEN" | "ORGANIZER_NUMBER_TAKEN" | "TOOL_ALREADY_IN_ORGANIZER" | "PHOTO_ALREADY_ON_CARD" | "MANUAL_ALREADY_ON_CARD" | "LAST_ACTIVE_ADMIN" | "SELF_ROLE_CHANGE" | "PAGE_UNREACHABLE" | "NOT_A_PRODUCT_PAGE" | "UNSUPPORTED_SOURCE" | "NO_SOURCE_PAGE" | "SOURCE_HAS_NO_MANUALS" | "DOWNLOAD_FAILED" | "IMAGE_UNREADABLE" | "NOT_A_PDF" | "CUTOUT_UNSUITABLE" | "CUTOUT_UNAVAILABLE" | "PREVIEW_EXPIRED" | "LABEL_UNDRAWABLE" | "SEARCH_UNAVAILABLE" | "ATTACH_FAILED" | "DATABASE_UNAVAILABLE" | "INTERNAL";
+            code: "INVALID_BODY" | "INVALID_QUERY" | "BODY_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "METHOD_NOT_ALLOWED" | "CLIENT_TOO_OLD" | "UNAUTHENTICATED" | "FORBIDDEN" | "ACCOUNT_DISABLED" | "INVALID_CREDENTIALS" | "TOO_MANY_ATTEMPTS" | "NOT_FOUND" | "ITEM_NOT_FOUND" | "CASE_NOT_FOUND" | "ORGANIZER_NOT_FOUND" | "BRAND_NOT_FOUND" | "USER_NOT_FOUND" | "ADDRESS_NOT_FOUND" | "SESSION_NOT_FOUND" | "PHOTO_NOT_FOUND" | "MANUAL_NOT_FOUND" | "LABEL_NOT_FOUND" | "SEARCH_ENGINE_NOT_FOUND" | "LABEL_SLOT_NOT_FOUND" | "ITEM_NOT_IN_ORGANIZER" | "EMAIL_TAKEN" | "ADDRESS_NAME_TAKEN" | "SERIAL_NUMBER_TAKEN" | "ATTRIBUTE_NAME_TAKEN" | "BRAND_NAME_TAKEN" | "LOGO_TAKEN" | "LABEL_SLOT_TAKEN" | "ORGANIZER_NUMBER_TAKEN" | "ITEM_IS_NOT_A_TOOL" | "ITEM_IN_ORGANIZER" | "ITEM_ALREADY_IN_ORGANIZER" | "PHOTO_ALREADY_ON_CARD" | "MANUAL_ALREADY_ON_CARD" | "LAST_ACTIVE_ADMIN" | "SELF_ROLE_CHANGE" | "PAGE_UNREACHABLE" | "NOT_A_PRODUCT_PAGE" | "UNSUPPORTED_SOURCE" | "NO_SOURCE_PAGE" | "SOURCE_HAS_NO_MANUALS" | "DOWNLOAD_FAILED" | "IMAGE_UNREADABLE" | "NOT_A_PDF" | "CUTOUT_UNSUITABLE" | "CUTOUT_UNAVAILABLE" | "PREVIEW_EXPIRED" | "LABEL_UNDRAWABLE" | "SEARCH_UNAVAILABLE" | "ATTACH_FAILED" | "DATABASE_UNAVAILABLE" | "INTERNAL";
             /** @description What went wrong, written for a person and translated to the language of the Accept-Language header. Not a stable identifier. */
             error: string;
         };
@@ -2117,11 +2119,12 @@ export interface components {
             id: number;
             lastSeenAt: string;
         };
-        ToolDetail: {
+        ItemDetail: {
             attributes: components["schemas"]["Attribute"][];
-            brand: string;
+            brand: null | components["schemas"]["ItemBrand"];
             category: string;
-            condition: components["schemas"]["ToolCondition"];
+            kind: components["schemas"]["ItemKind"];
+            condition: components["schemas"]["ItemCondition"];
             createdAt: string;
             createdBy: null | number;
             id: number;
@@ -2139,14 +2142,22 @@ export interface components {
             name: string;
             value: string;
         };
+        ItemBrand: {
+            color: string;
+            id: number;
+            name: string;
+        };
         /** @enum {string} */
-        ToolCondition: "new" | "good" | "worn" | "needs_repair" | "retired";
-        ToolListItem: {
-            organizer: null | components["schemas"]["ToolPlacement"];
+        ItemKind: "tool" | "appliance" | "case";
+        /** @enum {string} */
+        ItemCondition: "new" | "good" | "worn" | "needs_repair" | "retired";
+        ItemSummary: {
+            organizer: null | components["schemas"]["OrganizerPlacement"];
             primaryPhotoUrl: null | string;
-            brand: string;
+            brand: null | components["schemas"]["ItemBrand"];
             category: string;
-            condition: components["schemas"]["ToolCondition"];
+            kind: components["schemas"]["ItemKind"];
+            condition: components["schemas"]["ItemCondition"];
             createdAt: string;
             createdBy: null | number;
             id: number;
@@ -2159,15 +2170,15 @@ export interface components {
             updatedAt: string;
             updatedBy: null | number;
         };
-        ToolPlacement: {
+        OrganizerPlacement: {
             caseId: number;
             caseName: string;
             casePhotoUrl: null | string;
             number: number;
             organizerId: number;
         };
-        ToolListPage: {
-            items: components["schemas"]["ToolListItem"][];
+        ItemListPage: {
+            items: components["schemas"]["ItemSummary"][];
             limit: number;
             offset: number;
             total: number;
@@ -2194,7 +2205,7 @@ export interface components {
         ManualSource: "upload" | "url" | "import";
         ManualLibraryPage: {
             items: {
-                tools: {
+                items: {
                     id: number;
                     model: string;
                     name: string;
@@ -2269,7 +2280,7 @@ export interface components {
             name: string;
         };
         /** @enum {string} */
-        PhotoOwnerKind: "case" | "tool";
+        PhotoOwnerKind: "case" | "item";
         LibraryPage: {
             items: components["schemas"]["LibraryPhoto"][];
             limit: number;
@@ -2292,7 +2303,7 @@ export interface components {
             organizerCount: number;
             postalCode: string;
             street: string;
-            toolCount: number;
+            itemCount: number;
             unit: string;
             updatedAt: string;
             updatedBy: null | number;
@@ -2312,7 +2323,7 @@ export interface components {
             logoUrl: null | string;
             name: string;
             notes: string;
-            toolCount: number;
+            itemCount: number;
             updatedAt: string;
             updatedBy: null | number;
         };
@@ -2403,7 +2414,7 @@ export interface components {
             labels: components["schemas"]["OrganizerLabel"][];
             name: string;
             number: number;
-            tools: components["schemas"]["OrganizerTool"][];
+            items: components["schemas"]["OrganizerItem"][];
             updatedAt: string;
             updatedBy: null | number;
         };
@@ -2421,7 +2432,7 @@ export interface components {
             url: string;
             widthMm: number;
         };
-        OrganizerTool: {
+        OrganizerItem: {
             brand: string;
             id: number;
             model: string;
@@ -2515,7 +2526,7 @@ export interface components {
         };
         ImportResponse: {
             imported: components["schemas"]["ImportOutcome"];
-            tool: null | components["schemas"]["ToolDetail"];
+            item: null | components["schemas"]["ItemDetail"];
         };
         LabelRefreshResponse: {
             failed: components["schemas"]["FailedId"][];
@@ -2531,7 +2542,7 @@ export interface components {
         };
         ManualDeleteResponse: {
             deleted: number;
-            tools: {
+            items: {
                 id: number;
                 name: string;
             }[];
@@ -2758,7 +2769,7 @@ export interface components {
             description?: string;
             name: string;
             number?: number | string | null;
-            toolIds?: unknown[];
+            itemIds?: unknown[];
         };
         OrganizerPatchBody: {
             addressId?: number | string | null;
@@ -2796,27 +2807,31 @@ export interface components {
             password: string;
             device?: string;
         };
-        ToolCreateBody: {
+        ItemCreateBody: {
             addressId?: number | string | null;
-            brand?: string;
+            brandId?: number | string | null;
             category?: string;
             /** @enum {string} */
             condition?: "new" | "good" | "worn" | "needs_repair" | "retired";
+            /** @enum {string} */
+            kind?: "tool" | "appliance" | "case";
             model?: string;
             name: string;
             notes?: string;
             referenceUrl?: string;
             serialNumber?: string;
         };
-        ToolIdsBody: {
-            toolIds: unknown[];
+        ItemIdsBody: {
+            itemIds: unknown[];
         };
-        ToolPatchBody: {
+        ItemPatchBody: {
             addressId?: number | string | null;
-            brand?: string;
+            brandId?: number | string | null;
             category?: string;
             /** @enum {string} */
             condition?: "new" | "good" | "worn" | "needs_repair" | "retired";
+            /** @enum {string} */
+            kind?: "tool" | "appliance" | "case";
             model?: string;
             name?: string;
             notes?: string;
@@ -2936,7 +2951,7 @@ export interface operations {
                 /** @description Free-text over name, city, street, postcode and notes. */
                 q?: string;
                 /** @description By name, by city, or by how much is kept there. */
-                sort?: "name" | "city" | "tools";
+                sort?: "name" | "city" | "items";
                 /** @description Direction. */
                 order?: "asc" | "desc";
                 /**
@@ -3099,7 +3114,7 @@ export interface operations {
                     "application/json": {
                         cleared: {
                             organizers: number;
-                            tools: number;
+                            items: number;
                         };
                         ok: boolean;
                     };
@@ -3525,8 +3540,8 @@ export interface operations {
             query?: {
                 /** @description Free-text search over the maker. */
                 q?: string;
-                /** @description By name, or by how many tools name it. */
-                sort?: "name" | "tools";
+                /** @description By name, or by how many items name it. */
+                sort?: "name" | "items";
                 /** @description Direction. */
                 order?: "asc" | "desc";
                 /**
@@ -5287,6 +5302,1636 @@ export interface operations {
             };
         };
     };
+    listItems: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Free-text search over the card.
+                 * @example młot
+                 */
+                q?: string;
+                /** @description Exact category, as the cards spell it. */
+                category?: string;
+                /** @description Only cards in this condition. */
+                condition?: "new" | "good" | "worn" | "needs_repair" | "retired";
+                /** @description Absent lists everything. `false` lists only items that are in no organizer, which is what the organizer wizard offers. */
+                inOrganizer?: boolean;
+                /** @description Newest edit first by default: the catalog is used most right after somebody changed something in it. */
+                sort?: "updatedAt" | "createdAt" | "name";
+                /** @description Direction. */
+                order?: "desc" | "asc";
+                /**
+                 * @description How many records to return. A value above the maximum is clamped rather than refused.
+                 * @example 50
+                 */
+                limit?: number;
+                /**
+                 * @description How many records to skip, for paging.
+                 * @example 0
+                 */
+                offset?: number;
+            };
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of cards. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemListPage"];
+                };
+            };
+            /** @description `condition` names no condition this catalog has. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    createItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Only `name` is required; the rest default to blank. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemCreateBody"];
+            };
+        };
+        responses: {
+            /** @description The new card. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            /** @description Another card already carries that serial number. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    getItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The card, with its parameters. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    deleteItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card to delete. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        ok: true;
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    updateItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card to edit. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description The fields to change, and only those. At least one. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemPatchBody"];
+            };
+        };
+        responses: {
+            /** @description The card, with its parameters. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description Another card already carries that serial number. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    addItemAttribute: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card to add the parameter to. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    /** @description Carries its unit — "230 V" rather than 230. */
+                    value: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The card, with its parameters. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description This card already carries a parameter with that name. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    deleteItemAttribute: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card the parameter is on. */
+                id: number;
+                /** @description The parameter, which must belong to this card. */
+                attributeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The card, with its parameters. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    updateItemAttribute: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card the parameter is on. */
+                id: number;
+                /** @description The parameter, which must belong to this card. */
+                attributeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string;
+                    value?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The card, with its parameters. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description This card already carries a parameter with that name. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    duplicateItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card to copy. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The copy. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        item: components["schemas"]["ItemDetail"];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    refreshItemFromPage: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The card to read the page into. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description The address of the page to read. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportUrlBody"];
+            };
+        };
+        responses: {
+            /** @description The card as it now stands, and what the page changed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResponse"];
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    listItemManuals: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The documents on this card. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        manuals: components["schemas"]["Manual"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    addItemManual: {
+        parameters: {
+            query?: {
+                /**
+                 * @description The file name, for a title. Only read when the body is the file itself.
+                 * @example GBH-2-26.pdf
+                 */
+                name?: string;
+            };
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description The PDF itself, or the address to fetch it from. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualUrlBody"];
+                "application/octet-stream": string;
+                "application/pdf": string;
+            };
+        };
+        responses: {
+            /** @description Stored and put on the card. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        manual: components["schemas"]["Manual"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description That document is already on this card. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The file is larger than this server keeps. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The bytes are not a PDF. */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The address would not download. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    removeItemManual: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The document, which must be on this card. */
+                manualId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        ok: true;
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    renameItemManual: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The document, which must be on this card. */
+                manualId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualTitleBody"];
+            };
+        };
+        responses: {
+            /** @description The document, renamed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        manual: components["schemas"]["Manual"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    attachItemManuals: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualIdsBody"];
+            };
+        };
+        responses: {
+            /** @description How many were newly attached, and the card’s documents as they now stand. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualAttachResponse"];
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    addItemManualsFromPage: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description The product page to read. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualUrlBody"];
+            };
+        };
+        responses: {
+            /** @description At least one document was stored. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualImportResponse"];
+                };
+            };
+            /** @description The body did not parse, or the address is from a source this server cannot read — or can read but which publishes no documents. The message names the ones that do. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description The page would not load, is not a product page, publishes no documents, or every one of them failed to download. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        failed?: {
+                            error: string;
+                            url: string;
+                        }[];
+                    };
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    suggestItemPhotos: {
+        parameters: {
+            query?: {
+                /** @description What to search for. Defaults to a query built from the card. */
+                q?: string;
+                /** @description Set to `page` for the product page instead of the engines. */
+                source?: "page";
+            };
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What was found. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoSearchResult"];
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description There is no product page to read: the card was not imported, or its address is from a source this server cannot read. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        providers: string[];
+                    };
+                };
+            };
+            426: components["responses"]["426"];
+            /** @description No search engine is configured and enabled for this account. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        providers: string[];
+                    };
+                };
+            };
+        };
+    };
+    listItemPhotos: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Set to `1` for only the pictures no other card shows.
+                 * @example 1
+                 */
+                exclusive?: "1";
+            };
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The gallery, main photograph first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        photos: components["schemas"]["CardPhoto"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    addItemPhoto: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description The file itself, or the addresses to fetch. */
+        requestBody: {
+            content: {
+                "image/png": string;
+                "image/jpeg": string;
+                "image/gif": string;
+                "image/webp": string;
+                "application/json": {
+                    /** @description Author and licence, carried through to the stored photo. */
+                    attribution?: string;
+                    /** Format: uri */
+                    url: string;
+                } | {
+                    items: {
+                        attribution?: string;
+                        /** Format: uri */
+                        url: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Stored. An upload answers with `photo`; links answer with `photos` and whatever `failed`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        photo: components["schemas"]["CardPhoto"];
+                    } | {
+                        failed: {
+                            error: string;
+                            url: string;
+                        }[];
+                        photos: components["schemas"]["CardPhoto"][];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description That photograph is already on this card. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            413: components["responses"]["413"];
+            /** @description The bytes are not an image this server can decode, whatever the content-type claimed. */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Every address failed. `failed` says what happened to each. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        failed?: {
+                            error: string;
+                            url: string;
+                        }[];
+                    };
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    removeItemPhoto: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        ok: true;
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    promoteItemPhoto: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @constant */
+                    isPrimary: true;
+                };
+            };
+        };
+        responses: {
+            /** @description The photograph, now the main one. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        photo: components["schemas"]["CardPhoto"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    cutoutItemPhoto: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The cutout, and which method produced it. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CutoutResponse"];
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description The picture is not one this method can cut out — too busy a background, or nothing that reads as a single object. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    commitItemCutout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        /** @description The checksum of a preview this server produced. Nothing else — naming the bytes by content is what makes a save unable to invent a photograph that was never previewed. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CutoutCommitBody"];
+            };
+        };
+        responses: {
+            /** @description Kept. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        photo: components["schemas"]["CardPhoto"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description The preview has expired or is damaged, or that cutout is already on this card. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    previewItemCutout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        /** @description Optional. Omit it entirely to use the configured settings. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CutoutRunBody"];
+            };
+        };
+        responses: {
+            /** @description The cutout, cached rather than stored. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CutoutPreviewResponse"];
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description The picture is not one this method can cut out. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    getItemCutoutPreview: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+                /** @description The `preview.checksum` the preview call answered with. */
+                checksum: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The preview image. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            /** @description No such preview, or it has expired. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+        };
+    };
+    getItemPhotoFile: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+                /** @description The photograph, which must be on this card. */
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            426: components["responses"]["426"];
+        };
+    };
+    attachItemPhotos: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The item card. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoAttachBody"];
+            };
+        };
+        responses: {
+            /** @description At least one was attached. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoAttachResponse"];
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description None of them could be attached. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        failed?: {
+                            id: number;
+                            reason: string;
+                        }[];
+                    };
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    listItemAttributeNames: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every parameter name in use, with how many cards carry it. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        names: components["schemas"]["AttributeNameCount"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    listItemCategories: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every category in use, with how many cards carry it. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: components["schemas"]["CategoryCount"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    importItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The address of the page to read. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportUrlBody"];
+            };
+        };
+        responses: {
+            /** @description The card, and what came with it. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResponse"];
+                };
+            };
+            /** @description The body did not parse, or the address is from a host this server cannot read. The message names the ones it can. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            422: components["responses"]["422"];
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    listImportSources: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pages this server can read. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        sources: components["schemas"]["ImportSource"][];
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            426: components["responses"]["426"];
+        };
+    };
     listLabels: {
         parameters: {
             query?: {
@@ -5470,7 +7115,7 @@ export interface operations {
     listManualLibrary: {
         parameters: {
             query?: {
-                /** @description Matches the document and the tools that keep it. */
+                /** @description Matches the document and the items that keep it. */
                 q?: string;
                 /**
                  * @description How many records to return. A value above the maximum is clamped rather than refused.
@@ -5828,7 +7473,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description That number is taken, or one of the tools is already in another arrangement. */
+            /** @description That number is taken, or one of the items is already in another arrangement. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -5864,7 +7509,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The arrangement as it now stands, with its tools and its labels. */
+            /** @description The arrangement as it now stands, with its items and its labels. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5952,7 +7597,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description The arrangement as it now stands, with its tools and its labels. */
+            /** @description The arrangement as it now stands, with its items and its labels. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5984,6 +7629,105 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    addOrganizerItems: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The arrangement. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemIdsBody"];
+            };
+        };
+        responses: {
+            /** @description The arrangement as it now stands, with its items and its labels. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        organizer: components["schemas"]["Organizer"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description One of the items is already in another arrangement. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    removeOrganizerItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The arrangement. */
+                id: number;
+                /** @description The item, which must be in this arrangement. */
+                itemId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        ok: true;
+                    };
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
             426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
@@ -6056,7 +7800,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description The arrangement as it now stands, with its tools and its labels. */
+            /** @description The arrangement as it now stands, with its items and its labels. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -6108,7 +7852,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The arrangement as it now stands, with its tools and its labels. */
+            /** @description The arrangement as it now stands, with its items and its labels. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6254,105 +7998,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    addOrganizerTools: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The arrangement. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ToolIdsBody"];
-            };
-        };
-        responses: {
-            /** @description The arrangement as it now stands, with its tools and its labels. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        organizer: components["schemas"]["Organizer"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description One of the tools is already in another arrangement. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    removeOrganizerTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The arrangement. */
-                id: number;
-                /** @description The tool, which must be in this arrangement. */
-                toolId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @constant */
-                        ok: true;
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
             426: components["responses"]["426"];
             503: components["responses"]["503"];
         };
@@ -6787,1636 +8432,6 @@ export interface operations {
             };
             426: components["responses"]["426"];
             503: components["responses"]["503"];
-        };
-    };
-    listTools: {
-        parameters: {
-            query?: {
-                /**
-                 * @description Free-text search over the card.
-                 * @example młot
-                 */
-                q?: string;
-                /** @description Exact category, as the cards spell it. */
-                category?: string;
-                /** @description Only cards in this condition. */
-                condition?: "new" | "good" | "worn" | "needs_repair" | "retired";
-                /** @description Absent lists everything. `false` lists only tools that are in no organizer, which is what the organizer wizard offers. */
-                inOrganizer?: boolean;
-                /** @description Newest edit first by default: the catalog is used most right after somebody changed something in it. */
-                sort?: "updatedAt" | "createdAt" | "name";
-                /** @description Direction. */
-                order?: "desc" | "asc";
-                /**
-                 * @description How many records to return. A value above the maximum is clamped rather than refused.
-                 * @example 50
-                 */
-                limit?: number;
-                /**
-                 * @description How many records to skip, for paging.
-                 * @example 0
-                 */
-                offset?: number;
-            };
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description A page of cards. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ToolListPage"];
-                };
-            };
-            /** @description `condition` names no condition this catalog has. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    createTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Only `name` is required; the rest default to blank. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ToolCreateBody"];
-            };
-        };
-        responses: {
-            /** @description The new card. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            /** @description Another card already carries that serial number. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    getTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The card, with its parameters. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    deleteTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card to delete. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @constant */
-                        ok: true;
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    updateTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card to edit. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** @description The fields to change, and only those. At least one. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ToolPatchBody"];
-            };
-        };
-        responses: {
-            /** @description The card, with its parameters. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description Another card already carries that serial number. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    addToolAttribute: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card to add the parameter to. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name: string;
-                    /** @description Carries its unit — "230 V" rather than 230. */
-                    value: string;
-                };
-            };
-        };
-        responses: {
-            /** @description The card, with its parameters. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description This card already carries a parameter with that name. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    deleteToolAttribute: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card the parameter is on. */
-                id: number;
-                /** @description The parameter, which must belong to this card. */
-                attributeId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The card, with its parameters. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    updateToolAttribute: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card the parameter is on. */
-                id: number;
-                /** @description The parameter, which must belong to this card. */
-                attributeId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name?: string;
-                    value?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description The card, with its parameters. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description This card already carries a parameter with that name. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    duplicateTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card to copy. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The copy. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        tool: components["schemas"]["ToolDetail"];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    refreshToolFromPage: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The card to read the page into. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** @description The address of the page to read. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImportUrlBody"];
-            };
-        };
-        responses: {
-            /** @description The card as it now stands, and what the page changed. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportResponse"];
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            422: components["responses"]["422"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    listToolManuals: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The documents on this card. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        manuals: components["schemas"]["Manual"][];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    addToolManual: {
-        parameters: {
-            query?: {
-                /**
-                 * @description The file name, for a title. Only read when the body is the file itself.
-                 * @example GBH-2-26.pdf
-                 */
-                name?: string;
-            };
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** @description The PDF itself, or the address to fetch it from. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualUrlBody"];
-                "application/octet-stream": string;
-                "application/pdf": string;
-            };
-        };
-        responses: {
-            /** @description Stored and put on the card. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        manual: components["schemas"]["Manual"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description That document is already on this card. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description The file is larger than this server keeps. */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description The bytes are not a PDF. */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description The address would not download. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    removeToolManual: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The document, which must be on this card. */
-                manualId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @constant */
-                        ok: true;
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    renameToolManual: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The document, which must be on this card. */
-                manualId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualTitleBody"];
-            };
-        };
-        responses: {
-            /** @description The document, renamed. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        manual: components["schemas"]["Manual"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    attachToolManuals: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualIdsBody"];
-            };
-        };
-        responses: {
-            /** @description How many were newly attached, and the card’s documents as they now stand. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ManualAttachResponse"];
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    addToolManualsFromPage: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** @description The product page to read. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualUrlBody"];
-            };
-        };
-        responses: {
-            /** @description At least one document was stored. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ManualImportResponse"];
-                };
-            };
-            /** @description The body did not parse, or the address is from a source this server cannot read — or can read but which publishes no documents. The message names the ones that do. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description The page would not load, is not a product page, publishes no documents, or every one of them failed to download. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        error: string;
-                        failed?: {
-                            error: string;
-                            url: string;
-                        }[];
-                    };
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    suggestToolPhotos: {
-        parameters: {
-            query?: {
-                /** @description What to search for. Defaults to a query built from the card. */
-                q?: string;
-                /** @description Set to `page` for the product page instead of the engines. */
-                source?: "page";
-            };
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description What was found. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PhotoSearchResult"];
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description There is no product page to read: the card was not imported, or its address is from a source this server cannot read. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        error: string;
-                        providers: string[];
-                    };
-                };
-            };
-            426: components["responses"]["426"];
-            /** @description No search engine is configured and enabled for this account. */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        error: string;
-                        providers: string[];
-                    };
-                };
-            };
-        };
-    };
-    listToolPhotos: {
-        parameters: {
-            query?: {
-                /**
-                 * @description Set to `1` for only the pictures no other card shows.
-                 * @example 1
-                 */
-                exclusive?: "1";
-            };
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The gallery, main photograph first. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        photos: components["schemas"]["CardPhoto"][];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    addToolPhoto: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        /** @description The file itself, or the addresses to fetch. */
-        requestBody: {
-            content: {
-                "image/png": string;
-                "image/jpeg": string;
-                "image/gif": string;
-                "image/webp": string;
-                "application/json": {
-                    /** @description Author and licence, carried through to the stored photo. */
-                    attribution?: string;
-                    /** Format: uri */
-                    url: string;
-                } | {
-                    items: {
-                        attribution?: string;
-                        /** Format: uri */
-                        url: string;
-                    }[];
-                };
-            };
-        };
-        responses: {
-            /** @description Stored. An upload answers with `photo`; links answer with `photos` and whatever `failed`. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        photo: components["schemas"]["CardPhoto"];
-                    } | {
-                        failed: {
-                            error: string;
-                            url: string;
-                        }[];
-                        photos: components["schemas"]["CardPhoto"][];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description That photograph is already on this card. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            413: components["responses"]["413"];
-            /** @description The bytes are not an image this server can decode, whatever the content-type claimed. */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Every address failed. `failed` says what happened to each. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        error: string;
-                        failed?: {
-                            error: string;
-                            url: string;
-                        }[];
-                    };
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    removeToolPhoto: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @constant */
-                        ok: true;
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    promoteToolPhoto: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** @constant */
-                    isPrimary: true;
-                };
-            };
-        };
-        responses: {
-            /** @description The photograph, now the main one. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        photo: components["schemas"]["CardPhoto"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    cutoutToolPhoto: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The cutout, and which method produced it. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CutoutResponse"];
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description The picture is not one this method can cut out — too busy a background, or nothing that reads as a single object. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    commitToolCutout: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-            };
-            cookie?: never;
-        };
-        /** @description The checksum of a preview this server produced. Nothing else — naming the bytes by content is what makes a save unable to invent a photograph that was never previewed. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CutoutCommitBody"];
-            };
-        };
-        responses: {
-            /** @description Kept. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        photo: components["schemas"]["CardPhoto"];
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description The preview has expired or is damaged, or that cutout is already on this card. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    previewToolCutout: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-            };
-            cookie?: never;
-        };
-        /** @description Optional. Omit it entirely to use the configured settings. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CutoutRunBody"];
-            };
-        };
-        responses: {
-            /** @description The cutout, cached rather than stored. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CutoutPreviewResponse"];
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description The picture is not one this method can cut out. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    getToolCutoutPreview: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-                /** @description The `preview.checksum` the preview call answered with. */
-                checksum: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The preview image. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/png": string;
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            /** @description No such preview, or it has expired. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            426: components["responses"]["426"];
-        };
-    };
-    getToolPhotoFile: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-                /** @description The photograph, which must be on this card. */
-                photoId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The image. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "image/png": string;
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            426: components["responses"]["426"];
-        };
-    };
-    attachToolPhotos: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path: {
-                /** @description The tool card. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PhotoAttachBody"];
-            };
-        };
-        responses: {
-            /** @description At least one was attached. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PhotoAttachResponse"];
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            404: components["responses"]["404"];
-            /** @description None of them could be attached. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        error: string;
-                        failed?: {
-                            id: number;
-                            reason: string;
-                        }[];
-                    };
-                };
-            };
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    listToolAttributeNames: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Every parameter name in use, with how many cards carry it. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        names: components["schemas"]["AttributeNameCount"][];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    listToolCategories: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Every category in use, with how many cards carry it. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        categories: components["schemas"]["CategoryCount"][];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    importTool: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        /** @description The address of the page to read. */
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImportUrlBody"];
-            };
-        };
-        responses: {
-            /** @description The card, and what came with it. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportResponse"];
-                };
-            };
-            /** @description The body did not parse, or the address is from a host this server cannot read. The message names the ones it can. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            422: components["responses"]["422"];
-            426: components["responses"]["426"];
-            503: components["responses"]["503"];
-        };
-    };
-    listImportSources: {
-        parameters: {
-            query?: never;
-            header?: {
-                /**
-                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
-                 * @example pl
-                 */
-                "Accept-Language"?: "pl" | "en";
-                /**
-                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
-                 * @example mobile/1.4.2
-                 */
-                "X-ToolTrack-Client"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The pages this server can read. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        sources: components["schemas"]["ImportSource"][];
-                    };
-                };
-            };
-            401: components["responses"]["401"];
-            403: components["responses"]["403"];
-            426: components["responses"]["426"];
         };
     };
     listUsers: {

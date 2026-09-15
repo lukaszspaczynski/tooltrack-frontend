@@ -2,18 +2,22 @@ import { request } from './client'
 import type {
   AttributeNameCount,
   CategoryCount,
+  ItemKind,
   ImportSource,
-  ToolDetail,
-  ToolFields,
-  ToolImportResult,
-  ToolPage,
+  ItemDetail,
+  ItemFields,
+  ItemImportResult,
+  ItemPage,
 } from './types'
 
-export type ToolQuery = {
+export type ItemQuery = {
   category: null | string
   condition: null | string
+  // Which sort to list, or null for all of them. The catalog holds tools and
+  // appliances on the same card; a screen shows one at a time when asked.
+  kind?: ItemKind | null
   direction: 'asc' | 'desc'
-  // false: only tools that are in no organizer, which is what the organizer
+  // false: only items that are in no organizer, which is what the organizer
   // wizard offers. Absent means "do not filter".
   inOrganizer?: boolean
   limit: number
@@ -25,8 +29,9 @@ export type ToolQuery = {
 // The query object is turned into the exact parameters documented in
 // Backend/docs/api.md. Empty filters are left out entirely rather than sent as
 // blank, so the request URL says what is actually being asked.
-export function toolSearchParams(query: ToolQuery): URLSearchParams {
+export function itemSearchParams(query: ItemQuery): URLSearchParams {
   const params = new URLSearchParams()
+  if (query.kind) params.set('kind', query.kind)
 
   if (query.search) params.set('q', query.search)
   if (query.category) params.set('category', query.category)
@@ -40,86 +45,86 @@ export function toolSearchParams(query: ToolQuery): URLSearchParams {
   return params
 }
 
-export function fetchTools(query: ToolQuery): Promise<ToolPage> {
-  return request('/tools', { search: toolSearchParams(query) })
+export function fetchItems(query: ItemQuery): Promise<ItemPage> {
+  return request('/items', { search: itemSearchParams(query) })
 }
 
-export function fetchTool(id: number): Promise<{ tool: ToolDetail }> {
-  return request(`/tools/${id}`)
+export function fetchItem(id: number): Promise<{ item: ItemDetail }> {
+  return request(`/items/${id}`)
 }
 
 export function fetchCategories(): Promise<{ categories: CategoryCount[] }> {
-  return request('/tools/categories')
+  return request('/items/categories')
 }
 
-export function createTool(fields: ToolFields): Promise<{ tool: ToolDetail }> {
-  return request('/tools', { body: fields, method: 'POST' })
+export function createItem(fields: ItemFields): Promise<{ item: ItemDetail }> {
+  return request('/items', { body: fields, method: 'POST' })
 }
 
-export function updateTool(id: number, patch: Partial<ToolFields>): Promise<{ tool: ToolDetail }> {
-  return request(`/tools/${id}`, { body: patch, method: 'PATCH' })
+export function updateItem(id: number, patch: Partial<ItemFields>): Promise<{ item: ItemDetail }> {
+  return request(`/items/${id}`, { body: patch, method: 'PATCH' })
 }
 
 // Another card just like this one. The server copies the fields and the
 // photo links; the serial number starts blank, because it identifies one
 // physical machine.
-export function duplicateTool(id: number): Promise<{ tool: ToolDetail }> {
-  return request(`/tools/${id}/duplicate`, { method: 'POST' })
+export function duplicateItem(id: number): Promise<{ item: ItemDetail }> {
+  return request(`/items/${id}/duplicate`, { method: 'POST' })
 }
 
-// The parameters of one tool. Each call answers with the whole card rather
+// The parameters of one item. Each call answers with the whole card rather
 // than the row that changed, so the screen replaces what it holds instead of
 // merging one row into it.
 export function addAttribute(
-  toolId: number,
+  itemId: number,
   attribute: { name: string; value: string },
-): Promise<{ tool: ToolDetail }> {
-  return request(`/tools/${toolId}/attributes`, { body: attribute, method: 'POST' })
+): Promise<{ item: ItemDetail }> {
+  return request(`/items/${itemId}/attributes`, { body: attribute, method: 'POST' })
 }
 
 export function updateAttribute(
-  toolId: number,
+  itemId: number,
   attributeId: number,
   patch: { name?: string; value?: string },
-): Promise<{ tool: ToolDetail }> {
-  return request(`/tools/${toolId}/attributes/${attributeId}`, { body: patch, method: 'PATCH' })
+): Promise<{ item: ItemDetail }> {
+  return request(`/items/${itemId}/attributes/${attributeId}`, { body: patch, method: 'PATCH' })
 }
 
 export function deleteAttribute(
-  toolId: number,
+  itemId: number,
   attributeId: number,
-): Promise<{ tool: ToolDetail }> {
-  return request(`/tools/${toolId}/attributes/${attributeId}`, { method: 'DELETE' })
+): Promise<{ item: ItemDetail }> {
+  return request(`/items/${itemId}/attributes/${attributeId}`, { method: 'DELETE' })
 }
 
 // What other cards already call the same thing, most used first. Offered while
 // somebody types a parameter name, so the catalog ends up with one spelling of
 // "napięcie sieciowe" rather than four.
 export function fetchAttributeNames(): Promise<{ names: AttributeNameCount[] }> {
-  return request('/tools/attributes')
+  return request('/items/attributes')
 }
 
 // Making a card out of a shop's product page. The answer carries the card and
 // a tally of what came with it, because "imported" is a thing worth saying out
 // loud: sixteen photographs and twelve parameters is the difference between
 // this and typing the card by hand.
-export function importTool(url: string): Promise<ToolImportResult> {
-  return request('/tools/import', { body: { url }, method: 'POST' })
+export function importItem(url: string): Promise<ItemImportResult> {
+  return request('/items/import', { body: { url }, method: 'POST' })
 }
 
 // Reading the page again into a card that exists: the maker, the model, the
 // category, the description, the spec sheet and the documents are overwritten;
 // the name, the serial number, the condition and the photographs are not.
-export function refreshToolFromPage(toolId: number, url: string): Promise<ToolImportResult> {
-  return request(`/tools/${toolId}/import`, { body: { url }, method: 'POST' })
+export function refreshToolFromPage(itemId: number, url: string): Promise<ItemImportResult> {
+  return request(`/items/${itemId}/import`, { body: { url }, method: 'POST' })
 }
 
 // Which shops the server can read. Asked before the dialog offers to read one,
 // so the screen never names a source this installation does not have.
 export function fetchImportSources(): Promise<{ sources: ImportSource[] }> {
-  return request('/tools/import/sources')
+  return request('/items/import/sources')
 }
 
-export function deleteTool(id: number): Promise<{ ok: true }> {
-  return request(`/tools/${id}`, { method: 'DELETE' })
+export function deleteItem(id: number): Promise<{ ok: true }> {
+  return request(`/items/${id}`, { method: 'DELETE' })
 }

@@ -1,5 +1,5 @@
 // The shelf view's state lives in the URL, not in a useState — the same rule
-// as the tool list, and for the same reason: a filtered view should be
+// as the item list, and for the same reason: a filtered view should be
 // something you can send to someone and reach again with the back button.
 
 import type { CaseQuery } from '../../api/cases'

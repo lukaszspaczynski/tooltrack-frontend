@@ -47,7 +47,7 @@ import { useSession } from '../../../session/SessionContext'
 import { LogoPicker } from '../components/LogoPicker'
 
 // The makers. A small screen on purpose: a brand is a name, a logo and a count
-// of the tools that carry it, and the count is the reason to look.
+// of the items that carry it, and the count is the reason to look.
 export function BrandsPage() {
   const queryClient = useQueryClient()
   const { can } = useSession()
@@ -70,8 +70,8 @@ export function BrandsPage() {
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['brands'] })
-    // A rename rewrites the maker on its tools, so the catalog is stale too.
-    await queryClient.invalidateQueries({ queryKey: ['tools'] })
+    // A rename rewrites the maker on its items, so the catalog is stale too.
+    await queryClient.invalidateQueries({ queryKey: ['items'] })
   }
 
   const save = useMutation({
@@ -236,7 +236,7 @@ export function BrandsPage() {
                   size="sm"
                   style={{ cursor: 'pointer', width: 'fit-content' }}
                 >
-                  {toolCountLabel(brand.toolCount)}
+                  {itemCountLabel(brand.itemCount)}
                 </Badge>
 
                 {brand.notes ? (
@@ -280,10 +280,10 @@ export function BrandsPage() {
         <Stack gap="md">
           <Text size="sm">
             Marka „{pendingDelete?.name}" zniknie z listy.{' '}
-            {pendingDelete && pendingDelete.toolCount > 0
+            {pendingDelete && pendingDelete.itemCount > 0
               ? t(
-                  '{tools} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.',
-                  { tools: toolCountLabel(pendingDelete.toolCount) },
+                  '{items} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.',
+                  { items: itemCountLabel(pendingDelete.itemCount) },
                 )
               : t('Żadne narzędzie jej nie używa.')}
           </Text>
@@ -354,10 +354,10 @@ function BrandForm({
           onChange={(event) => setNotes(event.currentTarget.value)}
         />
 
-        {brand && brand.toolCount > 0 ? (
+        {brand && brand.itemCount > 0 ? (
           <Text size="xs" c="dimmed">
-            {t('Zmiana nazwy poprawi ją też na {tools}.', {
-              tools: toolCountLabel(brand.toolCount),
+            {t('Zmiana nazwy poprawi ją też na {items}.', {
+              items: itemCountLabel(brand.itemCount),
             })}
           </Text>
         ) : null}
@@ -380,6 +380,6 @@ function BrandForm({
 }
 
 // Nothing at all reads better as a word than as "0 narzędzi".
-function toolCountLabel(count: number): string {
-  return count === 0 ? t('brak narzędzi') : tCount(COUNTS.tool, count)
+function itemCountLabel(count: number): string {
+  return count === 0 ? t('brak narzędzi') : tCount(COUNTS.item, count)
 }

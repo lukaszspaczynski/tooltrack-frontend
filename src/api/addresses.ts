@@ -5,7 +5,7 @@ export type AddressQuery = {
   limit: number
   offset: number
   search: null | string
-  sort: 'city' | 'name' | 'tools'
+  sort: 'city' | 'name' | 'items'
 }
 
 export function fetchAddresses(query: AddressQuery): Promise<AddressPage> {
@@ -14,7 +14,7 @@ export function fetchAddresses(query: AddressQuery): Promise<AddressPage> {
   search.set('sort', query.sort)
   // Most-used first is the only useful direction for that one; alphabetical is
   // the only useful direction for the other two.
-  if (query.sort === 'tools') search.set('order', 'desc')
+  if (query.sort === 'items') search.set('order', 'desc')
   search.set('limit', String(query.limit))
   if (query.offset > 0) search.set('offset', String(query.offset))
 
@@ -36,12 +36,12 @@ export function updateAddress(
   return request(`/addresses/${id}`, { body: patch, method: 'PATCH' })
 }
 
-// The tools and arrangements that were there stay in the catalog and lose only
+// The items and arrangements that were there stay in the catalog and lose only
 // their location, which is why the answer counts them: a confirmation that says
 // "delete" and not "and forty cards stop saying where they are" is a
 // confirmation somebody agrees to without knowing what they agreed to.
 export function deleteAddress(
   id: number,
-): Promise<{ cleared: { organizers: number; tools: number }; ok: true }> {
+): Promise<{ cleared: { organizers: number; items: number }; ok: true }> {
   return request(`/addresses/${id}`, { method: 'DELETE' })
 }

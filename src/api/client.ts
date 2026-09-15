@@ -54,7 +54,7 @@ export function hasCode(error: unknown, ...codes: ApiErrorCode[]): error is ApiE
   return error instanceof ApiError && error.code !== null && codes.includes(error.code)
 }
 
-// The API hands back paths like /api/tools/7/photos/3/file. Same-origin (the
+// The API hands back paths like /api/items/7/photos/3/file. Same-origin (the
 // dev proxy, or one reverse proxy in front of both) that is already the right
 // src for an <img>. When the API lives elsewhere it has to be rebased, and
 // this is the one place that knows where it lives.

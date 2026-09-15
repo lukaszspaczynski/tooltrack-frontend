@@ -6,7 +6,7 @@
 // something else.
 
 import type { LabelRequest } from '../../api/organizers'
-import type { OrganizerLabelSlot, OrganizerTool } from '../../api/types'
+import type { OrganizerLabelSlot, OrganizerItem } from '../../api/types'
 
 export type LabelPhoto = { id: number; name: string; url: string }
 
@@ -28,22 +28,22 @@ export function maxPhotosFor(slot: null | OrganizerLabelSlot): number {
 
 // The pictures the contents template may show, each offered once.
 //
-// Two identical batteries are two tools sharing one photograph, so the same
+// Two identical batteries are two items sharing one photograph, so the same
 // picture would otherwise appear twice — and ticking both would spend two of
 // the three places on one image.
 //
-// The first tool to carry it gives it a name, which is why this is a loop and
+// The first item to carry it gives it a name, which is why this is a loop and
 // not a Map built from pairs: building it from pairs keeps the first position
 // but the last value, so the caption came from whichever duplicate happened to
 // be last in the catalog's order.
-export function labelPhotos(tools: OrganizerTool[]): LabelPhoto[] {
+export function labelPhotos(items: OrganizerItem[]): LabelPhoto[] {
   const byId = new Map<number, LabelPhoto>()
 
-  for (const tool of tools) {
-    if (tool.primaryPhotoUrl === null) continue
+  for (const item of items) {
+    if (item.primaryPhotoUrl === null) continue
 
-    const id = photoIdFromUrl(tool.primaryPhotoUrl)
-    if (!byId.has(id)) byId.set(id, { id, name: tool.name, url: tool.primaryPhotoUrl })
+    const id = photoIdFromUrl(item.primaryPhotoUrl)
+    if (!byId.has(id)) byId.set(id, { id, name: item.name, url: item.primaryPhotoUrl })
   }
 
   return [...byId.values()]
@@ -52,15 +52,15 @@ export function labelPhotos(tools: OrganizerTool[]): LabelPhoto[] {
 // What is written on the machine, and what a spare part is ordered by. Shown
 // in the wizard's own option, because "POF 1200 F5" means nothing until you
 // see it.
-export function toolModels(tools: OrganizerTool[]): string {
-  return [...new Set(tools.map((tool) => tool.model.trim()).filter(Boolean))].join(', ')
+export function toolModels(items: OrganizerItem[]): string {
+  return [...new Set(items.map((item) => item.model.trim()).filter(Boolean))].join(', ')
 }
 
 // The models where there are any: they fit a 30 mm band, which a list of
-// catalog names does not. An organizer whose tools carry no model has nothing
+// catalog names does not. An organizer whose items carry no model has nothing
 // to print from them, and the wizard does not even offer the option.
-export function defaultCaptionSource(tools: OrganizerTool[]): 'models' | 'tools' {
-  return toolModels(tools) ? 'models' : 'tools'
+export function defaultCaptionSource(items: OrganizerItem[]): 'models' | 'items' {
+  return toolModels(items) ? 'models' : 'items'
 }
 
 // Every label a case could carry that it does not carry yet: each place on the
@@ -91,7 +91,7 @@ export function missingLabels(
 // left empty, which is how the server is told to work them out from the catalog
 // itself, and the number template gets the logos it offers.
 export function defaultLabelRequest(
-  tools: OrganizerTool[],
+  items: OrganizerItem[],
   slot: OrganizerLabelSlot,
   template: LabelTemplate,
 ): LabelRequest {
@@ -100,9 +100,9 @@ export function defaultLabelRequest(
   }
 
   return {
-    namesSource: defaultCaptionSource(tools),
+    namesSource: defaultCaptionSource(items),
     namesText: '',
-    photoIds: labelPhotos(tools)
+    photoIds: labelPhotos(items)
       .slice(0, maxPhotosFor(slot))
       .map((photo) => photo.id),
     printReady: true,

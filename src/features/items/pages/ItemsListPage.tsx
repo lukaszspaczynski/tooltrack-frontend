@@ -18,28 +18,29 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
-import { fetchCategories, fetchTools } from '../../../api/tools'
+import { fetchCategories, fetchItems } from '../../../api/items'
 import { useSession } from '../../../session/SessionContext'
-import { ImportToolModal } from '../components/ImportToolModal'
-import { ToolCard } from '../components/ToolCard'
+import { ImportItemModal } from '../components/ImportItemModal'
+import { ItemCard } from '../components/ItemCard'
 import {
   offsetFromPage,
   PAGE_SIZE,
   pageFromOffset,
-  readToolParams,
+  readItemParams,
   SORT_OPTIONS,
   withFilter,
-  writeToolParams,
+  writeItemParams,
 } from '../listParams'
+import type { ItemKind } from '../../../api/types'
 import { t } from '../../../i18n'
-import { conditionOptions, toolCountLabel } from '../presentation'
+import { conditionOptions, itemCountLabel } from '../presentation'
 
-export function ToolsListPage() {
+export function ItemsListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { can } = useSession()
   const [importingOpen, importing] = useDisclosure(false)
 
-  const query = readToolParams(searchParams)
+  const query = readItemParams(searchParams)
 
   // The text input is the one control that cannot be driven straight from the
   // URL: writing a history entry per keystroke would make the back button
@@ -47,38 +48,38 @@ export function ToolsListPage() {
   const [searchText, setSearchText] = useState(query.search ?? '')
 
   const apply = (next: Parameters<typeof withFilter>[1]) => {
-    setSearchParams(writeToolParams(withFilter(query, next)), { replace: true })
+    setSearchParams(writeItemParams(withFilter(query, next)), { replace: true })
   }
 
   const applySearch = useDebouncedCallback((value: string) => {
     apply({ search: value.trim() || null })
   }, 300)
 
-  const tools = useQuery({
-    queryKey: ['tools', query],
-    queryFn: () => fetchTools(query),
+  const items = useQuery({
+    queryKey: ['items', query],
+    queryFn: () => fetchItems(query),
     // The grid keeps the previous page while the next one loads, instead of
     // collapsing to a spinner every time a filter changes.
     placeholderData: keepPreviousData,
   })
 
   const categories = useQuery({
-    queryKey: ['tool-categories'],
+    queryKey: ['item-categories'],
     queryFn: fetchCategories,
     staleTime: 60_000,
   })
 
-  const total = tools.data?.total ?? 0
+  const total = items.data?.total ?? 0
   const pages = Math.max(Math.ceil(total / PAGE_SIZE), 1)
 
   return (
     <Stack gap="md">
       <Group justify="space-between" align="center">
         <Stack gap={0}>
-          <Title order={2}>{t('Narzędzia')}</Title>
-          {tools.data ? (
+          <Title order={2}>{t('Katalog')}</Title>
+          {items.data ? (
             <Text c="dimmed" size="sm">
-              {toolCountLabel(total)}
+              {itemCountLabel(total)}
             </Text>
           ) : null}
         </Stack>
@@ -94,7 +95,7 @@ export function ToolsListPage() {
             >
               {t('Importuj')}
             </Button>
-            <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />}>
+            <Button component={Link} to="/items/new" leftSection={<IconPlus size={18} />}>
               {t('Dodaj')}
             </Button>
           </Group>
@@ -113,6 +114,21 @@ export function ToolsListPage() {
           }}
           miw={220}
           style={{ flexGrow: 2 }}
+        />
+        {/* Which sort of thing, which is not the category: the category is
+            somebody's own word for a shelf and there are dozens, this is the
+            two the catalog itself behaves differently about. */}
+        <Select
+          label={t('Rodzaj')}
+          placeholder={t('Wszystkie')}
+          clearable
+          data={[
+            { label: t('Narzędzie'), value: 'tool' },
+            { label: t('RTV/AGD'), value: 'appliance' },
+          ]}
+          value={query.kind ?? null}
+          onChange={(value) => apply({ kind: (value as ItemKind) ?? null })}
+          miw={150}
         />
         <Select
           label={t('Kategoria')}
@@ -145,27 +161,27 @@ export function ToolsListPage() {
         />
       </Group>
 
-      {tools.isError ? (
+      {items.isError ? (
         <Alert color="red" variant="light" title={t('Nie udało się wczytać katalogu')}>
-          {(tools.error as Error).message}
+          {(items.error as Error).message}
         </Alert>
       ) : null}
 
-      {tools.isPending ? (
+      {items.isPending ? (
         <Center py="xl">
           <Loader />
         </Center>
       ) : null}
 
-      {tools.data && tools.data.items.length === 0 ? (
+      {items.data && items.data.items.length === 0 ? (
         <EmptyState filtered={Boolean(query.search || query.category || query.condition)} />
       ) : null}
 
-      {tools.data && tools.data.items.length > 0 ? (
+      {items.data && items.data.items.length > 0 ? (
         <>
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="md">
-            {tools.data.items.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+            {items.data.items.map((item) => (
+              <ItemCard key={item.id} item={item} />
             ))}
           </SimpleGrid>
 
@@ -175,7 +191,7 @@ export function ToolsListPage() {
                 total={pages}
                 value={pageFromOffset(query.offset)}
                 onChange={(page) => {
-                  setSearchParams(writeToolParams({ ...query, offset: offsetFromPage(page) }))
+                  setSearchParams(writeItemParams({ ...query, offset: offsetFromPage(page) }))
                   window.scrollTo({ top: 0 })
                 }}
               />
@@ -183,7 +199,7 @@ export function ToolsListPage() {
           ) : null}
         </>
       ) : null}
-      <ImportToolModal opened={importingOpen} onClose={importing.close} />
+      <ImportItemModal opened={importingOpen} onClose={importing.close} />
     </Stack>
   )
 }
@@ -202,7 +218,7 @@ function EmptyState({ filtered }: { filtered: boolean }) {
             : t('Nikt jeszcze nie dodał żadnego narzędzia.')}
       </Text>
       {!filtered && can('catalog.write') ? (
-        <Button component={Link} to="/tools/new" leftSection={<IconPlus size={18} />} mt="sm">
+        <Button component={Link} to="/items/new" leftSection={<IconPlus size={18} />} mt="sm">
           {t('Dodaj narzędzie')}
         </Button>
       ) : null}

@@ -37,7 +37,7 @@ export function PhotoSuggestionsModal({
   owner,
   saving,
 }: {
-  // What to search for before anyone types. A tool is identified by its brand
+  // What to search for before anyone types. An item is identified by its brand
   // and model, a case by its maker and name, and the caller knows which it is.
   defaultQuery: string
   // Whether this card knows where it came from. When it does, the page it was

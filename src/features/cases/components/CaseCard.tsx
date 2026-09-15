@@ -7,7 +7,7 @@ import type { CaseListItem } from '../../../api/types'
 import { t } from '../../../i18n'
 import { caseSubtitle, formatNumber, outerDimensions } from '../presentation'
 
-// One case, as it appears in the grid. The same card shape as a tool, because
+// One case, as it appears in the grid. The same card shape as an item, because
 // it is read in the same place under the same conditions: on a phone, in a
 // van, by somebody looking for the box rather than the drill.
 export function CaseCard({ item }: { item: CaseListItem }) {

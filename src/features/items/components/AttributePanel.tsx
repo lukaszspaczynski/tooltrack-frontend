@@ -21,10 +21,10 @@ import { t } from '../../../i18n'
 //
 // Outside the editing form for the same reason the photos are: a parameter is
 // added and removed one at a time and immediately, while the fields of the
-// card are edited and then saved. Every call answers with the whole tool, so
+// card are edited and then saved. Every call answers with the whole item, so
 // the screen replaces what it holds rather than merging a row into it.
 // What one kind of thing has to supply to get this panel: the four calls and
-// the two cache keys. A tool and a case keep identical spec sheets — both
+// the two cache keys. An item and a case keep identical spec sheets — both
 // halves free text, one name each, edited a row at a time — so the form, the
 // suggestions and the refusals are written once and the wiring is passed in.
 export type AttributeApi<T> = {
@@ -53,7 +53,7 @@ export function AttributePanel<T>({
   api: AttributeApi<T>
   attributes: ToolAttribute[]
   canEdit: boolean
-  // What a sheet with nothing on it says. A tool points at the rating plate; a
+  // What a sheet with nothing on it says. An item points at the rating plate; a
   // case has no plate to point at.
   emptyText: string
   referenceId: number

@@ -1,20 +1,20 @@
 import { request } from './client'
 import type { Manual, ManualLibraryPage } from './types'
 
-// The manuals of one tool. Three ways in, because that is how a PDF actually
+// The manuals of one item. Three ways in, because that is how a PDF actually
 // reaches somebody: the file is on this laptop, it is one link away on the
 // maker's website, or it is on the product page the card came from.
 
-export function fetchManuals(toolId: number): Promise<{ manuals: Manual[] }> {
-  return request(`/tools/${toolId}/manuals`)
+export function fetchManuals(itemId: number): Promise<{ manuals: Manual[] }> {
+  return request(`/items/${itemId}/manuals`)
 }
 
 // The file as the body of the request, like a photo upload: no FormData, no
 // multipart. The name rides along in the query so the card can call it
 // something before anybody types a title.
-export async function uploadManual(toolId: number, file: File): Promise<{ manual: Manual }> {
+export async function uploadManual(itemId: number, file: File): Promise<{ manual: Manual }> {
   const search = new URLSearchParams({ name: file.name })
-  const response = await fetch(`/api/tools/${toolId}/manuals?${search}`, {
+  const response = await fetch(`/api/items/${itemId}/manuals?${search}`, {
     body: file,
     credentials: 'include',
     headers: { 'content-type': 'application/pdf' },
@@ -28,36 +28,36 @@ export async function uploadManual(toolId: number, file: File): Promise<{ manual
 }
 
 export function importManualFromUrl(
-  toolId: number,
+  itemId: number,
   url: string,
   title?: string,
 ): Promise<{ manual: Manual }> {
-  return request(`/tools/${toolId}/manuals`, { body: { title, url }, method: 'POST' })
+  return request(`/items/${itemId}/manuals`, { body: { title, url }, method: 'POST' })
 }
 
 // Everything a product page offers, at once. The card usually knows the
 // address already — it is the card's own referenceUrl, which an import fills
 // in and a form can be typed into.
 export function importManualsFromPage(
-  toolId: number,
+  itemId: number,
   url: string,
 ): Promise<{ failed: { error: string; url: string }[]; manuals: Manual[] }> {
-  return request(`/tools/${toolId}/manuals/from-page`, { body: { url }, method: 'POST' })
+  return request(`/items/${itemId}/manuals/from-page`, { body: { url }, method: 'POST' })
 }
 
 export function renameManual(
-  toolId: number,
+  itemId: number,
   manualId: number,
   title: string,
 ): Promise<{ manual: Manual }> {
-  return request(`/tools/${toolId}/manuals/${manualId}`, { body: { title }, method: 'PATCH' })
+  return request(`/items/${itemId}/manuals/${manualId}`, { body: { title }, method: 'PATCH' })
 }
 
-export function deleteManual(toolId: number, manualId: number): Promise<{ ok: true }> {
-  return request(`/tools/${toolId}/manuals/${manualId}`, { method: 'DELETE' })
+export function deleteManual(itemId: number, manualId: number): Promise<{ ok: true }> {
+  return request(`/items/${itemId}/manuals/${manualId}`, { method: 'DELETE' })
 }
 
-// Every manual there is, whichever tool keeps it. The shelf rather than the
+// Every manual there is, whichever item keeps it. The shelf rather than the
 // drawer, the same split the photo library makes.
 export function fetchManualLibrary(query: {
   limit: number
@@ -82,13 +82,13 @@ export function retitleManual(manualId: number, title: string): Promise<{ manual
 // one off a card, which is what the panel's bin does.
 export function deleteManuals(
   ids: number[],
-): Promise<{ deleted: number; tools: { id: number; name: string }[] }> {
+): Promise<{ deleted: number; items: { id: number; name: string }[] }> {
   return request('/manuals/delete', { body: { ids }, method: 'POST' })
 }
 
 export function attachManuals(
-  toolId: number,
+  itemId: number,
   ids: number[],
 ): Promise<{ attached: number; manuals: Manual[] }> {
-  return request(`/tools/${toolId}/manuals/attach`, { body: { ids }, method: 'POST' })
+  return request(`/items/${itemId}/manuals/attach`, { body: { ids }, method: 'POST' })
 }

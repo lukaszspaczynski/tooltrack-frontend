@@ -42,7 +42,7 @@ import type {
   Organizer,
   OrganizerLabel,
   OrganizerPage,
-  OrganizerTool,
+  OrganizerItem,
   Photo,
   PhotoLibraryPage,
   PhotoOwner,
@@ -59,12 +59,12 @@ import type {
   SystemCount,
   ToolAttribute,
   ToolCase,
-  ToolCondition,
-  ToolDetail,
-  ToolImportResult,
-  ToolListItem,
-  ToolPage,
-  ToolPlacement,
+  ItemCondition,
+  ItemDetail,
+  ItemImportResult,
+  ItemSummary,
+  ItemPage,
+  OrganizerPlacement,
   User,
 } from './types'
 
@@ -107,7 +107,7 @@ export type _ManualLibraryPage = Assert<Same<ManualLibraryPage, Schemas['ManualL
 export type _Organizer = Assert<Same<Organizer, Schemas['Organizer']>>
 export type _OrganizerLabel = Assert<Same<OrganizerLabel, Schemas['OrganizerLabel']>>
 export type _OrganizerPage = Assert<Same<OrganizerPage, Schemas['OrganizerPage']>>
-export type _OrganizerTool = Assert<Same<OrganizerTool, Schemas['OrganizerTool']>>
+export type _OrganizerItem = Assert<Same<OrganizerItem, Schemas['OrganizerItem']>>
 export type _Photo = Assert<Same<Photo, Schemas['Photo']>>
 export type _PhotoLibraryPage = Assert<Same<PhotoLibraryPage, Schemas['LibraryPage']>>
 export type _PhotoOwner = Assert<Same<PhotoOwner, Schemas['PhotoOwner']>>
@@ -124,12 +124,12 @@ export type _SuggestionProvider = Assert<Same<SuggestionProvider, Schemas['Sugge
 export type _SystemCount = Assert<Same<SystemCount, Schemas['SystemCount']>>
 export type _ToolAttribute = Assert<Same<ToolAttribute, Schemas['Attribute']>>
 export type _ToolCase = Assert<Same<ToolCase, Schemas['ToolCase']>>
-export type _ToolCondition = Assert<Same<ToolCondition, Schemas['ToolCondition']>>
-export type _ToolDetail = Assert<Same<ToolDetail, Schemas['ToolDetail']>>
-export type _ToolImportResult = Assert<Same<ToolImportResult, Schemas['ImportResponse']>>
-export type _ToolListItem = Assert<Same<ToolListItem, Schemas['ToolListItem']>>
-export type _ToolPage = Assert<Same<ToolPage, Schemas['ToolListPage']>>
-export type _ToolPlacement = Assert<Same<ToolPlacement, Schemas['ToolPlacement']>>
+export type _ItemCondition = Assert<Same<ItemCondition, Schemas['ItemCondition']>>
+export type _ItemDetail = Assert<Same<ItemDetail, Schemas['ItemDetail']>>
+export type _ItemImportResult = Assert<Same<ItemImportResult, Schemas['ImportResponse']>>
+export type _ItemSummary = Assert<Same<ItemSummary, Schemas['ItemSummary']>>
+export type _ItemPage = Assert<Same<ItemPage, Schemas['ItemListPage']>>
+export type _OrganizerPlacement = Assert<Same<OrganizerPlacement, Schemas['OrganizerPlacement']>>
 export type _User = Assert<Same<User, Schemas['User']>>
 
 // The case import, whose shapes the contract states inline on the operations

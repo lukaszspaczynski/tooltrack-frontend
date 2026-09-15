@@ -26,7 +26,7 @@ import { deleteUser, fetchUsers, updateUser } from '../../../api/users'
 import type { ManagedUser, Role } from '../../../api/types'
 import { t } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
-import { ROLE_DESCRIPTIONS, roleOptions } from '../../tools/presentation'
+import { ROLE_DESCRIPTIONS, roleOptions } from '../../items/presentation'
 
 export function UsersPage() {
   const queryClient = useQueryClient()

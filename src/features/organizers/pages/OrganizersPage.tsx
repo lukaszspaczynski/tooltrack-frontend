@@ -48,7 +48,7 @@ export function OrganizersPage() {
     mutationFn: (fields: OrganizerFields) => createOrganizer(fields),
     onSuccess: async ({ organizer }) => {
       await queryClient.invalidateQueries({ queryKey: ['organizers'] })
-      await queryClient.invalidateQueries({ queryKey: ['organizer-tool-picker'] })
+      await queryClient.invalidateQueries({ queryKey: ['organizer-item-picker'] })
       wizard.close()
       notifications.show({ color: 'teal', message: `Utworzono organizer ${organizer.number}` })
       // Straight to the new one: the reason to create it is to look at it.

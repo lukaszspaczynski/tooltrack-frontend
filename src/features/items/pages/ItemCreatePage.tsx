@@ -5,23 +5,23 @@ import { IconChevronLeft } from '@tabler/icons-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { hasCode } from '../../../api/client'
-import { createTool } from '../../../api/tools'
-import type { ToolFields } from '../../../api/types'
+import { createItem } from '../../../api/items'
+import type { ItemFields } from '../../../api/types'
 import { t } from '../../../i18n'
-import { ToolForm } from '../components/ToolForm'
+import { ItemForm } from '../components/ItemForm'
 
-export function ToolCreatePage() {
+export function ItemCreatePage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: (fields: ToolFields) => createTool(fields),
-    onSuccess: async ({ tool }) => {
+    mutationFn: (fields: ItemFields) => createItem(fields),
+    onSuccess: async ({ item }) => {
       // The list and the category list both changed.
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
-      notifications.show({ color: 'teal', message: `Dodano „${tool.name}"` })
-      navigate(`/tools/${tool.id}`, { replace: true })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-categories'] })
+      notifications.show({ color: 'teal', message: `Dodano „${item.name}"` })
+      navigate(`/items/${item.id}`, { replace: true })
     },
     onError: (error) => {
       // A taken serial number is shown on the field instead; anything else is a
@@ -51,7 +51,7 @@ export function ToolCreatePage() {
       <Title order={2}>{t('Nowe narzędzie')}</Title>
 
       <Paper withBorder p="lg" radius="md">
-        <ToolForm
+        <ItemForm
           onCancel={() => navigate('/')}
           onSubmit={(fields) => mutation.mutate(fields)}
           pending={mutation.isPending}

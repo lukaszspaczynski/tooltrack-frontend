@@ -21,24 +21,24 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ApiError, hasCode } from '../../../api/client'
-import { deleteTool, duplicateTool, fetchTool, updateTool } from '../../../api/tools'
-import type { Tool, ToolFields } from '../../../api/types'
+import { deleteItem, duplicateItem, fetchItem, updateItem } from '../../../api/items'
+import type { Item, ItemFields } from '../../../api/types'
 import { AddressField } from '../../addresses/components/AddressField'
 import { ReferenceField } from '../../../components/ReferenceField'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import { useSession } from '../../../session/SessionContext'
 import { AttributePanel } from '../components/AttributePanel'
-import { TOOL_ATTRIBUTE_API } from '../toolAttributeApi'
+import { ITEM_ATTRIBUTE_API } from '../itemAttributeApi'
 import { RefreshFromPageModal } from '../components/RefreshFromPageModal'
 import { ManualPanel } from '../components/ManualPanel'
-import { ToolForm } from '../components/ToolForm'
+import { ItemForm } from '../components/ItemForm'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime } from '../presentation'
 
-export function ToolDetailPage() {
+export function ItemDetailPage() {
   const { id } = useParams()
-  const toolId = Number(id)
+  const itemId = Number(id)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { can } = useSession()
@@ -48,26 +48,26 @@ export function ToolDetailPage() {
   const [refreshingOpen, refreshing] = useDisclosure(false)
 
   const query = useQuery({
-    queryKey: ['tool', toolId],
-    queryFn: () => fetchTool(toolId),
-    enabled: Number.isInteger(toolId),
+    queryKey: ['item', itemId],
+    queryFn: () => fetchItem(itemId),
+    enabled: Number.isInteger(itemId),
   })
 
   // Only while the confirmation is open: it is a question about a delete
   // nobody has agreed to yet.
   const doomedPhotos = useQuery({
-    queryKey: ['tool-photos-exclusive', toolId],
-    queryFn: () => fetchExclusivePhotos({ id: toolId, kind: 'tool' }),
+    queryKey: ['item-photos-exclusive', itemId],
+    queryFn: () => fetchExclusivePhotos({ id: itemId, kind: 'item' }),
     enabled: confirmOpen,
     staleTime: 0,
   })
 
   const save = useMutation({
-    mutationFn: (fields: ToolFields) => updateTool(toolId, fields),
-    onSuccess: async ({ tool }) => {
-      queryClient.setQueryData(['tool', toolId], { tool })
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
+    mutationFn: (fields: ItemFields) => updateItem(itemId, fields),
+    onSuccess: async ({ item }) => {
+      queryClient.setQueryData(['item', itemId], { item })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-categories'] })
       notifications.show({ color: 'teal', message: t('Zapisano zmiany') })
       setEditing(false)
     },
@@ -85,23 +85,23 @@ export function ToolDetailPage() {
   // duplicate is to change something — usually the serial number, which the
   // server deliberately leaves blank.
   const duplicate = useMutation({
-    mutationFn: () => duplicateTool(toolId),
-    onSuccess: async ({ tool: copy }) => {
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
+    mutationFn: () => duplicateItem(itemId),
+    onSuccess: async ({ item: copy }) => {
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
       notifications.show({
         color: 'teal',
         message: t('Utworzono kopię „{name}”', { name: copy.name }),
       })
-      navigate(`/tools/${copy.id}`)
+      navigate(`/items/${copy.id}`)
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   const remove = useMutation({
-    mutationFn: () => deleteTool(toolId),
+    mutationFn: () => deleteItem(itemId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-categories'] })
       notifications.show({ color: 'teal', message: t('Karta usunięta') })
       navigate('/', { replace: true })
     },
@@ -135,13 +135,13 @@ export function ToolDetailPage() {
     )
   }
 
-  const tool = query.data.tool
+  const item = query.data.item
   // Where this card was read from, when it was read from anywhere: what the
   // update starts with, and what tells the manuals panel whether the maker
   // publishes documents. A field on the card since it stopped being a
   // parameter called Referencja, which three screens looked for by name and
   // any edit to the spec sheet could rename out from under them.
-  const reference = tool.referenceUrl
+  const reference = item.referenceUrl
   const serialConflict = hasCode(save.error, 'SERIAL_NUMBER_TAKEN') ? save.error.message : null
 
   return (
@@ -155,12 +155,12 @@ export function ToolDetailPage() {
 
       <Group justify="space-between" align="flex-start" gap="sm">
         <Stack gap={4}>
-          <Title order={2}>{tool.name}</Title>
+          <Title order={2}>{item.name}</Title>
           <Group gap="xs">
-            <Badge color={CONDITION_COLORS[tool.condition]} variant="light">
-              {t(CONDITION_LABELS[tool.condition])}
+            <Badge color={CONDITION_COLORS[item.condition]} variant="light">
+              {t(CONDITION_LABELS[item.condition])}
             </Badge>
-            {tool.category ? <Badge variant="default">{tool.category}</Badge> : null}
+            {item.category ? <Badge variant="default">{item.category}</Badge> : null}
           </Group>
         </Stack>
 
@@ -207,8 +207,8 @@ export function ToolDetailPage() {
 
       <Paper withBorder p="lg" radius="md">
         {editing ? (
-          <ToolForm
-            initialValues={toFields(tool)}
+          <ItemForm
+            initialValues={toFields(item)}
             onCancel={() => {
               save.reset()
               setEditing(false)
@@ -219,7 +219,7 @@ export function ToolDetailPage() {
             submitLabel={t('Zapisz zmiany')}
           />
         ) : (
-          <ToolDetails tool={tool} />
+          <ToolDetails item={item} />
         )}
       </Paper>
 
@@ -227,19 +227,19 @@ export function ToolDetailPage() {
           reason the photos are: one parameter at a time, immediately. */}
       <Paper withBorder p="lg" radius="md">
         <AttributePanel
-          api={TOOL_ATTRIBUTE_API}
-          attributes={tool.attributes}
+          api={ITEM_ATTRIBUTE_API}
+          attributes={item.attributes}
           canEdit={can('catalog.write')}
           emptyText={t('Nikt nie zapisał jeszcze parametrów tego narzędzia.')}
-          referenceId={tool.id}
+          referenceId={item.id}
         />
       </Paper>
 
-      {/* The documents that belong beside the tool. The address the card was
+      {/* The documents that belong beside the item. The address the card was
           imported from is one of its parameters, so fetching the maker's PDFs
           is one press rather than a hunt. */}
       <Paper withBorder p="lg" radius="md">
-        <ManualPanel canEdit={can('catalog.write')} reference={reference} toolId={tool.id} />
+        <ManualPanel canEdit={can('catalog.write')} reference={reference} itemId={item.id} />
       </Paper>
 
       {/* Outside the editing form on purpose: photos are added and removed one
@@ -247,12 +247,12 @@ export function ToolDetailPage() {
       <Paper withBorder p="lg" radius="md">
         <PhotoPanel
           canEdit={can('catalog.write')}
-          label={tool.name}
-          owner={{ id: tool.id, kind: 'tool' }}
+          label={item.name}
+          owner={{ id: item.id, kind: 'item' }}
           reference={reference}
           // Brand and model identify a machine; the name alone would find a
           // category. The server falls back to the same thing.
-          searchQuery={[tool.brand, tool.model].filter(Boolean).join(' ') || tool.name}
+          searchQuery={[item.brand?.name, item.model].filter(Boolean).join(' ') || item.name}
         />
       </Paper>
 
@@ -260,14 +260,14 @@ export function ToolDetailPage() {
         opened={refreshingOpen}
         onClose={refreshing.close}
         reference={reference}
-        toolId={tool.id}
+        itemId={item.id}
       />
 
       <Modal opened={confirmOpen} onClose={confirm.close} title={t('Usunąć kartę?')} centered>
         <Stack gap="md">
           <Text size="sm">
             {t('Karta „{name}” zniknie z katalogu. Tej operacji nie da się cofnąć.', {
-              name: tool.name,
+              name: item.name,
             })}
           </Text>
           {/* Asked while the modal is open, the way the case screen asks what
@@ -296,30 +296,45 @@ export function ToolDetailPage() {
   )
 }
 
-function ToolDetails({ tool }: { tool: Tool }) {
+function ToolDetails({ item }: { item: Item }) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        <Field label={t('Marka')} value={tool.brand} />
-        <Field label={t('Model')} value={tool.model} />
-        <Field label={t('Numer seryjny')} value={tool.serialNumber} />
-        <Field label={t('Kategoria')} value={tool.category} />
+        {/* The maker's own colour beside its name, which the catalog has had
+            for months and never shown. */}
+        <Field label={t('Marka')} value={item.brand?.name ?? ''} swatch={item.brand?.color} />
+        <Field label={t('Model')} value={item.model} />
+        <Field label={t('Numer seryjny')} value={item.serialNumber} />
+        <Field label={t('Kategoria')} value={item.category} />
       </SimpleGrid>
 
-      <Field label={t('Notatki')} value={tool.notes} multiline />
+      <Field label={t('Notatki')} value={item.notes} multiline />
 
-      <AddressField addressId={tool.addressId} />
+      <AddressField addressId={item.addressId} />
 
-      <ReferenceField url={tool.referenceUrl} />
+      <ReferenceField url={item.referenceUrl} />
 
       <Text size="xs" c="dimmed">
-        Dodano {formatDateTime(tool.createdAt)} · ostatnia zmiana {formatDateTime(tool.updatedAt)}
+        Dodano {formatDateTime(item.createdAt)} · ostatnia zmiana {formatDateTime(item.updatedAt)}
       </Text>
     </Stack>
   )
 }
 
-function Field({ label, multiline, value }: { label: string; multiline?: boolean; value: string }) {
+function Field({
+  label,
+  multiline,
+  swatch,
+  value,
+}: {
+  label: string
+  multiline?: boolean
+  // The maker's colour, when this field is a maker. A dot rather than a
+  // coloured name: the colour identifies, it does not decorate, and coloured
+  // text on a card is unreadable in half the palette.
+  swatch?: string
+  value: string
+}) {
   return (
     <Stack gap={2}>
       <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
@@ -327,26 +342,43 @@ function Field({ label, multiline, value }: { label: string; multiline?: boolean
       </Text>
       {/* An empty field says so, rather than leaving a gap that reads as a
           rendering bug. */}
-      <Text
-        style={multiline ? { whiteSpace: 'pre-wrap' } : undefined}
-        c={value ? undefined : 'dimmed'}
-      >
-        {value || '—'}
-      </Text>
+      <Group gap={6} wrap="nowrap" align="center">
+        {swatch ? (
+          <span
+            aria-hidden
+            style={{
+              backgroundColor: swatch,
+              borderRadius: '50%',
+              flexShrink: 0,
+              height: 12,
+              outline: '1px solid rgba(0, 0, 0, 0.18)',
+              outlineOffset: -1,
+              width: 12,
+            }}
+          />
+        ) : null}
+        <Text
+          style={multiline ? { whiteSpace: 'pre-wrap' } : undefined}
+          c={value ? undefined : 'dimmed'}
+        >
+          {value || '—'}
+        </Text>
+      </Group>
     </Stack>
   )
 }
 
-function toFields(tool: Tool): ToolFields {
+function toFields(item: Item): ItemFields {
   return {
-    brand: tool.brand,
-    category: tool.category,
-    condition: tool.condition,
-    model: tool.model,
-    addressId: tool.addressId,
-    name: tool.name,
-    notes: tool.notes,
-    referenceUrl: tool.referenceUrl,
-    serialNumber: tool.serialNumber,
+    brandId: item.brand?.id ?? null,
+    kind: item.kind,
+    category: item.category,
+    condition: item.condition,
+    model: item.model,
+    addressId: item.addressId,
+    name: item.name,
+    notes: item.notes,
+    referenceUrl: item.referenceUrl,
+    serialNumber: item.serialNumber,
   }
 }

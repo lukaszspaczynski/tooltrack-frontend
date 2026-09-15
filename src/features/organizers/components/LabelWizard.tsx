@@ -60,7 +60,7 @@ export function LabelWizard({
   const [titleSource, setTitleSource] = useState<'custom' | 'organizer'>('organizer')
   // Null until somebody chooses, so the default can depend on what this
   // organizer actually has to say.
-  const [chosenNamesSource, setChosenNamesSource] = useState<null | 'models' | 'text' | 'tools'>(
+  const [chosenNamesSource, setChosenNamesSource] = useState<null | 'models' | 'text' | 'items'>(
     null,
   )
   const [titleText, setTitleText] = useState('')
@@ -78,12 +78,12 @@ export function LabelWizard({
     enabled: opened,
   })
 
-  const photos = labelPhotos(organizer.tools)
+  const photos = labelPhotos(organizer.items)
 
   const maxPhotos = maxPhotosFor(slot)
 
   // A label with empty picture places is a label nobody wanted: the template
-  // draws as many as it holds, and the tools of this organizer are what it is
+  // draws as many as it holds, and the items of this organizer are what it is
   // for. The first ones, in the order the catalog lists them — somebody who
   // wants other ones says so, and from then on the choice is theirs.
   const photoIds = pickedPhotos ?? photos.slice(0, maxPhotos).map((photo) => photo.id)
@@ -99,12 +99,12 @@ export function LabelWizard({
 
   // What the label would say on its own, and what a custom field starts from:
   // editing down from the real answer is easier than typing it out.
-  const automaticNames = organizer.tools.map((tool) => tool.name).join(', ')
-  const automaticModels = toolModels(organizer.tools)
-  const namesSource = chosenNamesSource ?? defaultCaptionSource(organizer.tools)
+  const automaticNames = organizer.items.map((item) => item.name).join(', ')
+  const automaticModels = toolModels(organizer.items)
+  const namesSource = chosenNamesSource ?? defaultCaptionSource(organizer.items)
 
   const startTyping = (
-    source: 'custom' | 'models' | 'organizer' | 'text' | 'tools',
+    source: 'custom' | 'models' | 'organizer' | 'text' | 'items',
     current: string,
     automatic: string,
     set: (value: string) => void,
@@ -121,7 +121,7 @@ export function LabelWizard({
         ? { printReady, slotId: slot.id, template, withLogos }
         : {
             // Empty means "work it out": the server puts the organizer's name
-            // and the tool names on. Only a typed line travels as text.
+            // and the item names on. Only a typed line travels as text.
             namesSource,
             namesText: withNames && namesSource === 'text' ? namesText.trim() : '',
             photoIds,
@@ -302,14 +302,14 @@ export function LabelWizard({
                   <Radio.Group
                     value={namesSource}
                     onChange={(value) => {
-                      const source = value as 'models' | 'text' | 'tools'
+                      const source = value as 'models' | 'text' | 'items'
                       setChosenNamesSource(source)
                       startTyping(source, namesText, automaticNames, setNamesText)
                     }}
                   >
                     <Group gap="lg">
                       <Radio
-                        value="tools"
+                        value="items"
                         label={t('Nazwy narzędzi')}
                         description={t(
                           'Jeśli nie mieszczą się wszystkie, etykieta pokaże ile zostało',

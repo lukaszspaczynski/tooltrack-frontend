@@ -15,9 +15,9 @@ import { OrganizerDetailPage } from './features/organizers/pages/OrganizerDetail
 import { OrganizersPage } from './features/organizers/pages/OrganizersPage'
 import { PhotoLibraryPage } from './features/media/pages/PhotoLibraryPage'
 import { SettingsPage } from './features/settings/pages/SettingsPage'
-import { ToolCreatePage } from './features/tools/pages/ToolCreatePage'
-import { ToolDetailPage } from './features/tools/pages/ToolDetailPage'
-import { ToolsListPage } from './features/tools/pages/ToolsListPage'
+import { ItemCreatePage } from './features/items/pages/ItemCreatePage'
+import { ItemDetailPage } from './features/items/pages/ItemDetailPage'
+import { ItemsListPage } from './features/items/pages/ItemsListPage'
 import { UsersPage } from './features/users/pages/UsersPage'
 import { t } from './i18n'
 import { RequireCapability } from './session/RequireCapability'
@@ -40,23 +40,23 @@ export function App() {
             index
             element={
               <RequireCapability capability="catalog.read">
-                <ToolsListPage />
+                <ItemsListPage />
               </RequireCapability>
             }
           />
           <Route
-            path="tools/new"
+            path="items/new"
             element={
               <RequireCapability capability="catalog.write">
-                <ToolCreatePage />
+                <ItemCreatePage />
               </RequireCapability>
             }
           />
           {/* Before the :id route, as on the server and as the labels screen
             sits under the organizers: "manuals" must not be read as the id of
-            a tool. */}
+            an item. */}
           <Route
-            path="tools/manuals"
+            path="items/manuals"
             element={
               <RequireCapability capability="catalog.read">
                 <ManualLibraryPage />
@@ -64,10 +64,10 @@ export function App() {
             }
           />
           <Route
-            path="tools/:id"
+            path="items/:id"
             element={
               <RequireCapability capability="catalog.read">
-                <ToolDetailPage />
+                <ItemDetailPage />
               </RequireCapability>
             }
           />

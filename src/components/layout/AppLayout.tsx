@@ -29,7 +29,7 @@ import {
 } from '@tabler/icons-react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import { ROLE_LABELS } from '../../features/tools/presentation'
+import { ROLE_LABELS } from '../../features/items/presentation'
 import { t } from '../../i18n'
 import { LanguageMenu } from '../../i18n/LanguageMenu'
 import { useSession } from '../../session/SessionContext'
@@ -40,11 +40,11 @@ export function AppLayout() {
   const location = useLocation()
   const toolsSection =
     location.pathname === '/' ||
-    location.pathname.startsWith('/tools') ||
+    location.pathname.startsWith('/items') ||
     location.pathname.startsWith('/brands')
-  // The documents have their own path under the tools, so the catalog must not
+  // The documents have their own path under the items, so the catalog must not
   // light up while they are showing — the same rule the labels screen needs.
-  const manualsShowing = location.pathname.startsWith('/tools/manuals')
+  const manualsShowing = location.pathname.startsWith('/items/manuals')
   const organizerSection = location.pathname.startsWith('/organizers')
   // The labels screen has its own path under the organizers, so the list of
   // arrangements must not light up while it is showing.
@@ -87,15 +87,15 @@ export function AppLayout() {
       </AppShell.Header>
 
       <AppShell.Navbar p="sm">
-        {/* Producers hang under the tools rather than beside them: a maker is
-            something a tool has, and the submenu says so. Open whenever either
+        {/* Producers hang under the items rather than beside them: a maker is
+            something an item has, and the submenu says so. Open whenever either
             of the two is showing, so the current screen is never hidden behind
             a collapsed parent. */}
         <NavLink
-          label={t('Narzędzia')}
+          label={t('Katalog')}
           leftSection={<IconTool size={18} />}
           defaultOpened={toolsSection}
-          active={location.pathname === '/' || location.pathname.startsWith('/tools')}
+          active={location.pathname === '/' || location.pathname.startsWith('/items')}
           childrenOffset={28}
         >
           <NavLink
@@ -104,15 +104,15 @@ export function AppLayout() {
             label={t('Katalog')}
             active={
               location.pathname === '/' ||
-              (location.pathname.startsWith('/tools') && !manualsShowing)
+              (location.pathname.startsWith('/items') && !manualsShowing)
             }
             onClick={close}
           />
-          {/* The documents, under the tools: a manual is something a tool comes
+          {/* The documents, under the items: a manual is something an item comes
               with, the same way a maker is something it has. */}
           <NavLink
             component={Link}
-            to="/tools/manuals"
+            to="/items/manuals"
             label={t('Instrukcje')}
             leftSection={<IconFileTypePdf size={16} />}
             active={manualsShowing}
@@ -135,7 +135,7 @@ export function AppLayout() {
           onClick={close}
         />
         {/* Labels hang under the organizer for the same reason producers hang
-            under the tools: a label is something an arrangement produces, and
+            under the items: a label is something an arrangement produces, and
             the submenu says so. Open whenever either of the two is showing. */}
         <NavLink
           label={t('Organizer')}
@@ -160,8 +160,8 @@ export function AppLayout() {
             onClick={close}
           />
         </NavLink>
-        {/* Top level rather than under the tools, because a place is where an
-            arrangement stands as much as where a tool does. Under either of
+        {/* Top level rather than under the items, because a place is where an
+            arrangement stands as much as where an item does. Under either of
             them it would read as belonging to that one. */}
         <NavLink
           component={Link}

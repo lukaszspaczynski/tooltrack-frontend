@@ -38,7 +38,7 @@ function phrasesInSource(): Map<string, string[]> {
     }
 
     // A lookup table holds the Polish phrase and the screen translates it by
-    // key — `t(CONDITION_LABELS[tool.condition])`. The phrase is never a
+    // key — `t(CONDITION_LABELS[item.condition])`. The phrase is never a
     // literal argument, so it has to be read out of the table itself.
     for (const table of source.matchAll(
       /(?:const|export const) \w*(?:LABELS|HINTS|OPTIONS|DESCRIPTIONS)\b[^\n]*\n([\s\S]*?)\n(?:\}|\])/g,
@@ -75,23 +75,23 @@ test('the catalog holds nothing the screens no longer say', () => {
 })
 
 test('Polish counts by the last two digits, English only by one', () => {
-  const tools = {
-    en: ['tool', 'tools', 'tools'],
+  const items = {
+    en: ['item', 'items', 'items'],
     pl: ['narzędzie', 'narzędzia', 'narzędzi'],
   } as const
 
-  assert.equal(countLabel('pl', tools, 1), '1 narzędzie')
-  assert.equal(countLabel('pl', tools, 3), '3 narzędzia')
-  assert.equal(countLabel('pl', tools, 5), '5 narzędzi')
-  assert.equal(countLabel('pl', tools, 0), '0 narzędzi')
+  assert.equal(countLabel('pl', items, 1), '1 narzędzie')
+  assert.equal(countLabel('pl', items, 3), '3 narzędzia')
+  assert.equal(countLabel('pl', items, 5), '5 narzędzi')
+  assert.equal(countLabel('pl', items, 0), '0 narzędzi')
   // The teens are the exception: 12 is "narzędzi", 22 is "narzędzia".
-  assert.equal(countLabel('pl', tools, 12), '12 narzędzi')
-  assert.equal(countLabel('pl', tools, 22), '22 narzędzia')
-  assert.equal(countLabel('pl', tools, 112), '112 narzędzi')
+  assert.equal(countLabel('pl', items, 12), '12 narzędzi')
+  assert.equal(countLabel('pl', items, 22), '22 narzędzia')
+  assert.equal(countLabel('pl', items, 112), '112 narzędzi')
 
-  assert.equal(countLabel('en', tools, 1), '1 tool')
-  assert.equal(countLabel('en', tools, 0), '0 tools')
-  assert.equal(countLabel('en', tools, 22), '22 tools')
+  assert.equal(countLabel('en', items, 1), '1 item')
+  assert.equal(countLabel('en', items, 0), '0 items')
+  assert.equal(countLabel('en', items, 22), '22 items')
 
   assert.equal(pluralIndex('pl', 2), 1)
   assert.equal(pluralIndex('en', 2), 1)

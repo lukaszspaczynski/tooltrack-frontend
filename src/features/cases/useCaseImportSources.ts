@@ -5,12 +5,12 @@ import type { CaseImportSource } from '../../api/types'
 
 // Which pages this server can read a case from.
 //
-// A different list from the tool one, and a shorter one: a page that sells
+// A different list from the item one, and a shorter one: a page that sells
 // drills has nothing to say about a box, so the server keeps two registries and
 // a dialog asking where this case is from never offers one of the wrong kind.
 //
 // Asked again whenever a screen that offers them opens, for the same reason the
-// tool list is: it changes when the server learns a new maker, and a tab left
+// item list is: it changes when the server learns a new maker, and a tab left
 // open since before that would go on offering the old one.
 export function useCaseImportSources(enabled: boolean): { sources: CaseImportSource[] } {
   const query = useQuery({

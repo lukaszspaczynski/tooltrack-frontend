@@ -81,7 +81,7 @@ export function OrganizerForm({
           />
         </Group>
 
-        {/* Where the box stands. The tools inside carry one of their own and
+        {/* Where the box stands. The items inside carry one of their own and
             the two may disagree — a drill on a site while its box is in the
             workshop is genuinely two places. */}
         <AddressSelect value={addressId} onChange={setAddressId} />

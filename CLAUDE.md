@@ -1,6 +1,6 @@
 # ToolTrack Frontend — working notes
 
-The web client for ToolTrack, the construction tool catalog. It is read on a
+The web client for ToolTrack, the construction item catalog. It is read on a
 phone, on site, by people wearing gloves: mobile-first, large controls, no
 screen that needs a horizontal scroll.
 
@@ -14,7 +14,7 @@ src/
 ├── api/                 The whole HTTP surface. Nothing else calls fetch.
 │   ├── client.ts            request(), ApiError, the base URL
 │   ├── types.ts             The contract, mirroring Backend/docs/api.md
-│   └── auth.ts cases.ts photos.ts settings.ts tools.ts users.ts
+│   └── auth.ts cases.ts photos.ts settings.ts items.ts users.ts
 ├── i18n/                What the interface says, in Polish and English
 │   ├── lang.ts              Plural rules, dates, the language itself. Pure.
 │   ├── catalog.ts           The English side, keyed by the Polish phrase
@@ -38,37 +38,37 @@ src/
 
 - **Capabilities, never roles.** `GET /api/auth/me` returns
   `capabilities: ['catalog.read', ...]`, and every guard, menu item and button
-  asks `can('catalog.write')`. One capability covers the whole catalog — tools,
-  cases and the photos of both — because a viewer who could read a tool but not
+  asks `can('catalog.write')`. One capability covers the whole catalog — items,
+  cases and the photos of both — because a viewer who could read an item but not
   the case it lives in would be looking at half a shelf. Comparing `user.role === 'admin'` anywhere would
   be a second answer to a question the server's route policy already answers,
   and the two would drift.
 - **The UI only decides what is worth rendering.** The API refuses the same
   calls on its own, so a stale capability list can produce a worse screen, not
   a permission.
-- **List state lives in the URL.** `features/tools/listParams.ts` is the only
+- **List state lives in the URL.** `features/items/listParams.ts` is the only
   translation between the address bar and the API query, so a filtered view can
   be sent as a link and the back button works.
 - **One fetch wrapper.** `api/client.ts` sends the cookie, parses errors and
   throws `ApiError` with the status. Screens branch on the status: 401 means
   log in, 403 means ask an admin, 409 means a conflict with an existing row.
-- **Server state is TanStack Query, not useState.** Cache keys: `['tools',
-query]`, `['tool', id]`, `['tool-categories']`, `['users']`, `['session']`.
-  A mutation invalidates what it changed — a new tool changes the list _and_
+- **Server state is TanStack Query, not useState.** Cache keys: `['items',
+query]`, `['item', id]`, `['item-categories']`, `['users']`, `['session']`.
+  A mutation invalidates what it changed — a new item changes the list _and_
   the category list. Photo keys carry the owner's kind as well as its id
-  (`['card-photos', 'case', 4]`): tool 4 and case 4 are different cards that
+  (`['card-photos', 'case', 4]`): item 4 and case 4 are different cards that
   happen to share a number.
 
 ## Importing from a shop
 
-`features/tools/components/ImportToolModal.tsx` is the other way a card starts:
+`features/items/components/ImportToolModal.tsx` is the other way a card starts:
 paste the address of a product page and it arrives with its parameters and its
 photographs already on it. The button sits beside **Dodaj** on the catalog
-screen, because typing from the plate and reading off the page the tool was
+screen, because typing from the plate and reading off the page the item was
 bought from are the same errand.
 
 The dialog names the shops it can read before asking for anything —
-`GET /api/tools/import/sources`, through `useImportSources`, which every screen
+`GET /api/items/import/sources`, through `useImportSources`, which every screen
 that offers them shares. It is asked again each time one opens: the list grows
 whenever the server learns a new shop, and it was once cached for an hour,
 which meant a tab left open since before that went on offering the old two. So
@@ -86,17 +86,17 @@ to look at what came in and correct the one field the shop had wrong.
 
 The library screen, `features/manuals/`, is to that panel what the photo
 library is to a gallery: every document the catalog holds, with the cards that
-keep each one, searchable by the tool as well as by the title — a file called
+keep each one, searchable by the item as well as by the title — a file called
 "Instrukcja obsługi" is findable only by the machine it is for. It hangs under
-**Narzędzia** in the menu, because a manual is something a tool comes with, the
+**Narzędzia** in the menu, because a manual is something an item comes with, the
 same way a maker is something it has.
 
 Deleting there is deliberately not the bin on a card. The panel's bin means
-"not on this tool"; the library's means "not in the catalog", so it takes the
+"not on this item"; the library's means "not in the catalog", so it takes the
 file off every card at once and the confirmation names them.
 
-Adding works from either place. On the library screen it asks **which tool**
-first and will not send anything without one: a document with no tool is one
+Adding works from either place. On the library screen it asks **which item**
+first and will not send anything without one: a document with no item is one
 nobody will ever look for, and the rule that clears unused files would treat it
 as an orphan. The picker shows the model beside the name, because a shelf of
 cards called "Sekator akumulatorowy" is told apart by that and nothing else.
@@ -109,7 +109,28 @@ and written again rather than merged, a hand-typed parameter included. What it
 will not touch is listed beside it: the name, the serial number, the condition
 and the photographs.
 
-## Tool parameters
+## One card for everything owned
+
+`features/items/` was `features/tools/`. The catalog began as a tool shed and
+is not only one: a drill and a washing machine want the same card, so they are
+one screen and `kind` says which sort each row is — `tool`, `appliance`, and
+`case` reserved for the day the boxes fold in.
+
+The filter for it lives in the URL like every other one, so "show me the
+appliances" is a link somebody can send. It is deliberately **not** the
+category: a category is your own word for a shelf and there are dozens of them,
+this is the two the catalog itself behaves differently about. Only a tool goes
+in an organizer, and the server refuses the rest with `ITEM_IS_NOT_A_TOOL`.
+
+The **maker is an object** now — `{ id, name, color }`, or null. It used to be
+a string on the card beside a pointer at a row, and a form typed the string.
+Now the form picks an id, because a typo in free text would otherwise become a
+maker, and the colour arrives with the name: a field the makers have had for
+months that no card ever showed. It is drawn as a dot beside the name rather
+than as coloured text, because the colour identifies and half a palette is
+unreadable as type.
+
+## Item parameters
 
 `components/AttributePanel.tsx` is what a particular machine is: mains voltage,
 speed, chuck, weight — a name and a value per row, `n` rows per card. It sits
@@ -117,19 +138,19 @@ outside the editing form for the same reason `PhotoPanel` does: a parameter is
 added, corrected and removed one at a time and immediately, while the fields of
 the card are edited and then saved together.
 
-Every call answers with the whole tool, so the panel replaces `['tool', id]`
+Every call answers with the whole item, so the panel replaces `['item', id]`
 rather than merging a row into what it holds — there is no local list to drift
 from the server's. The name input is an `Autocomplete` over
-`GET /api/tools/attributes`, the names other cards already use, because a
+`GET /api/items/attributes`, the names other cards already use, because a
 catalog with four spellings of "napięcie sieciowe" cannot be read across.
 
 The value is typed with its unit. "230 V", not 230 with a unit picker: half
 these parameters have no unit anybody agrees on — "SDS-plus", "3 tryby" — and
 the plate on the machine already says it the right way.
 
-The catalog grid does not show parameters, and `GET /api/tools` does not send
+The catalog grid does not show parameters, and `GET /api/items` does not send
 them. A card in a grid says a name, a maker and a condition; the spec sheet is
-what somebody reads one tool at a time.
+what somebody reads one item at a time.
 
 The address the card was imported from is **not** one of these. It was a
 parameter called `Referencja` and it is a field on the card now: every imported
@@ -140,8 +161,8 @@ is what lets a card written by hand have the update button too.
 
 ## Cases
 
-`features/cases/` is the second half of the catalog: the boxes the tools live
-in. Same shapes as `features/tools/` — URL-driven list, card grid, detail page
+`features/cases/` is the second half of the catalog: the boxes the items live
+in. Same shapes as `features/items/` — URL-driven list, card grid, detail page
 with an inline form — because it is read in the same place under the same
 conditions.
 
@@ -154,10 +175,10 @@ sheets these get copied from are written with.
 
 ## Photos
 
-`features/photos/` holds the photo components, and they are not under `tools/`
+`features/photos/` holds the photo components, and they are not under `items/`
 because a case carries pictures on exactly the same terms. Every one of them
-takes a `PhotoOwner` — `{ kind: 'tool' | 'case', id }` — which `api/photos.ts`
-turns into `/api/tools/7/…` or `/api/cases/7/…`. `PhotoPanel` is the gallery,
+takes a `PhotoOwner` — `{ kind: 'item' | 'case', id }` — which `api/photos.ts`
+turns into `/api/items/7/…` or `/api/cases/7/…`. `PhotoPanel` is the gallery,
 and it is the same component on both detail pages.
 
 A `Photo` is a picture and has no owner; a `CardPhoto` is a picture as one card
@@ -176,7 +197,7 @@ not same-origin.
 `features/media/` is the library: every photo in the system, with selection and
 a batch delete. Its confirmation modal is the point of the screen, not a
 formality — it names the cards the selection belongs to, says which are cases
-and which are tools, and calls out the main photos, because those change what
+and which are items, and calls out the main photos, because those change what
 the grids show.
 
 `CutoutStudio.tsx` is the wand: method, its parameters, original and result
@@ -193,12 +214,12 @@ The backend still has the old one-click cutout endpoint. `api/photos.ts` no
 longer mirrors it: the preview-then-commit pair replaced it, and an unused
 wrapper is one more thing to keep true.
 
-`ExistingPhotoPicker.tsx` is the fourth way a photo reaches a tool, after
+`ExistingPhotoPicker.tsx` is the fourth way a photo reaches an item, after
 upload, URL and search: picking one that already exists. It opens on the
 unassigned shelf, because that is what the shelf is for, and offers everything
-else behind a toggle — the same picture on two tools is allowed and costs a row
+else behind a toggle — the same picture on two items is allowed and costs a row
 rather than a file. The search box applies to the whole library only: an
-unattached photo has no tool, brand or model to match, so searching the shelf
+unattached photo has no item, brand or model to match, so searching the shelf
 could only ever empty it. Selection is cleared whenever the list underneath it
 changes, and the grid is paginated, because the newest two dozen photos are not
 the only ones worth attaching.
@@ -208,7 +229,7 @@ in, and a form can be typed into — the suggestions modal offers that page besi
 the engines. It is usually the
 better answer: the maker's own photographs of this exact machine rather than
 ten plausible pictures of something like it, and the one source that cannot
-come back with the wrong tool. A button rather than a second search box,
+come back with the wrong item. A button rather than a second search box,
 because there is nothing to type.
 
 The suggestions modal searches only when its button is pressed. It costs the
@@ -220,24 +241,24 @@ different trust.
 
 ## Organizer
 
-`features/organizers/` answers "what is in box 4". The same division as tools
+`features/organizers/` answers "what is in box 4". The same division as items
 and cases — a list of cards, a detail page behind each, and a wizard for making
 one — plus the label screen described below.
 
 The card is a link and nothing else. Everything that changes an arrangement —
-the fields, adding a tool, taking one out, deleting it — lives on the detail
+the fields, adding an item, taking one out, deleting it — lives on the detail
 page, so a gloved thumb scrolling the list cannot press any of it. Its picture
 area is four tiles across, wrapping downwards: the case first, outlined, then
-every tool. Not a scrolling strip, because a card that hides half its contents
+every item. Not a scrolling strip, because a card that hides half its contents
 sideways hides them for good.
 
-`CasePicker` and `ToolPicker` are shared by the wizard and the detail page, so
-the two cannot drift apart about what a case or a tool looks like. The tool
-picker lists only `inOrganizer=false` — a tool lies in exactly one place, and
+`CasePicker` and `ItemPicker` are shared by the wizard and the detail page, so
+the two cannot drift apart about what a case or an item looks like. The item
+picker lists only `inOrganizer=false` — an item lies in exactly one place, and
 the server refuses a second with a 409 rather than moving it, so offering one
 that is taken would be offering to fail.
 
-On the detail page the fields are a form with Save, while tools go in and out
+On the detail page the fields are a form with Save, while items go in and out
 immediately — a link is its own fact and the server has no draft to hold it in.
 The number may be left empty when creating, and then the server takes the next
 free one.
@@ -258,7 +279,7 @@ that changes is the file behind the tile.
 
 `labelDefaults.ts` is what a label says when nobody has said otherwise: both
 contents lines left empty so the server works them out, the models as the
-caption where any tool has one, as many pictures as the shape holds, and the
+caption where any item has one, as many pictures as the shape holds, and the
 logos on a number label. The wizard starts from it and the **Uzupełnij
 brakujące** button sends it unchanged.
 
@@ -301,7 +322,7 @@ would be a queue on the server disguised as parallelism.
 
 ## Duplicating
 
-The **Duplikuj** button on a tool card calls one endpoint and navigates to the
+The **Duplikuj** button on an item card calls one endpoint and navigates to the
 copy, because the reason to duplicate is to change something — usually the
 serial number, which the server leaves blank on purpose. The copy shows the
 same photos, which costs no upload.
@@ -364,12 +385,12 @@ one rule worth remembering:
 > evaluated is frozen at import: the tree remounts, the module does not run
 > twice, and that screen keeps the old language. A lookup table holds the
 > Polish phrase and the screen translates it by key —
-> `t(CONDITION_LABELS[tool.condition])`.
+> `t(CONDITION_LABELS[item.condition])`.
 
 **Numbers, names and counts.** A phrase carrying a value takes it as a
 placeholder: `t('Usunięto {n} z {asked}', { n, asked })`. Word order is not the
 same in both languages, and a sentence glued together from fragments can only
-be right in one of them. A counted noun goes through `tCount(COUNTS.tool, n)`:
+be right in one of them. A counted noun goes through `tCount(COUNTS.item, n)`:
 Polish picks one of three forms by the last two digits, English one of two.
 Dates are `tDate()`, which formats in the current locale.
 

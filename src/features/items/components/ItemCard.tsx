@@ -3,17 +3,17 @@ import { IconPhotoOff } from '@tabler/icons-react'
 import { Link } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
-import type { ToolListItem } from '../../../api/types'
+import type { ItemSummary } from '../../../api/types'
 import { AddressBadge } from '../../addresses/components/AddressBadge'
 import { useAddresses } from '../../addresses/useAddresses'
 import { t } from '../../../i18n'
-import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime, toolSubtitle } from '../presentation'
+import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime, itemSubtitle } from '../presentation'
 
-// One tool, as it appears in the grid. A card rather than a table row on
+// One item, as it appears in the grid. A card rather than a table row on
 // purpose: this list is read on a phone held in one hand, and a row that has to
 // scroll sideways is a row nobody reads.
-export function ToolCard({ tool }: { tool: ToolListItem }) {
-  const subtitle = toolSubtitle(tool)
+export function ItemCard({ item }: { item: ItemSummary }) {
+  const subtitle = itemSubtitle(item)
   // One query for the whole grid, shared with the picker and the detail pages.
   const { addressById } = useAddresses()
 
@@ -25,15 +25,15 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
             packs that is the fact somebody is actually looking for. */}
         {/* Two stickers on the picture, at opposite ends of the same row:
             where it lives on the right, where it stands on the left. */}
-        <AddressBadge address={addressById(tool.addressId)} />
-        {tool.organizer ? <PlacementBadge placement={tool.organizer} /> : null}
+        <AddressBadge address={addressById(item.addressId)} />
+        {item.organizer ? <PlacementBadge placement={item.organizer} /> : null}
 
         {/* Fixed height whether or not there is a photo: a grid where every
             other card is shorter is a grid nobody can scan. */}
-        {tool.primaryPhotoUrl ? (
+        {item.primaryPhotoUrl ? (
           <Image
-            src={apiFileUrl(tool.primaryPhotoUrl)}
-            alt={tool.name}
+            src={apiFileUrl(item.primaryPhotoUrl)}
+            alt={item.name}
             h={140}
             fit="contain"
             bg="var(--mantine-color-default-hover)"
@@ -53,21 +53,21 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
                 rather than inside it. */}
             <Text
               component={Link}
-              to={`/tools/${tool.id}`}
+              to={`/items/${item.id}`}
               className="stretched-link"
               fw={600}
               lineClamp={2}
               c="var(--mantine-color-text)"
               style={{ textDecoration: 'none' }}
             >
-              {tool.name}
+              {item.name}
             </Text>
             <Badge
-              color={CONDITION_COLORS[tool.condition]}
+              color={CONDITION_COLORS[item.condition]}
               variant="light"
               style={{ flexShrink: 0 }}
             >
-              {t(CONDITION_LABELS[tool.condition])}
+              {t(CONDITION_LABELS[item.condition])}
             </Badge>
           </Group>
 
@@ -79,9 +79,9 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
         </Stack>
 
         <Group justify="space-between" gap="xs" wrap="nowrap">
-          {tool.category ? (
+          {item.category ? (
             <Badge variant="default" size="sm">
-              {tool.category}
+              {item.category}
             </Badge>
           ) : (
             <Text size="xs" c="dimmed">
@@ -89,7 +89,7 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
             </Text>
           )}
           <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
-            {formatDateTime(tool.updatedAt)}
+            {formatDateTime(item.updatedAt)}
           </Text>
         </Group>
       </Stack>
@@ -97,7 +97,7 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
   )
 }
 
-function PlacementBadge({ placement }: { placement: NonNullable<ToolListItem['organizer']> }) {
+function PlacementBadge({ placement }: { placement: NonNullable<ItemSummary['organizer']> }) {
   return (
     <Tooltip label={`Organizer ${placement.number} · ${placement.caseName}`}>
       <Link

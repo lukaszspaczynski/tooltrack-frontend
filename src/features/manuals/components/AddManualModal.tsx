@@ -18,10 +18,10 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useState } from 'react'
 
 import { importManualFromUrl, importManualsFromPage, uploadManual } from '../../../api/manuals'
-import { fetchTools } from '../../../api/tools'
+import { fetchItems } from '../../../api/items'
 import { COUNTS, tCount } from '../../../i18n'
 import { t } from '../../../i18n'
-import { useImportSources } from '../../tools/useImportSources'
+import { useImportSources } from '../../items/useImportSources'
 
 // Where the file comes from. A shop's product page is the third way because it
 // is how a document actually arrives for an imported card: the maker publishes
@@ -30,9 +30,9 @@ type Way = 'file' | 'page' | 'url'
 
 // Adding a document from the library rather than from a card.
 //
-// It asks which tool first, and it is not being polite about it: a manual with
-// no tool is a document nobody will ever look for, and the rule that clears
-// unused files would treat it as one. So the tool is the first field and
+// It asks which item first, and it is not being polite about it: a manual with
+// no item is a document nobody will ever look for, and the rule that clears
+// unused files would treat it as one. So the item is the first field and
 // nothing can be sent without it.
 export function AddManualModal({ onClose, opened }: { onClose: () => void; opened: boolean }) {
   const queryClient = useQueryClient()
@@ -40,7 +40,7 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
   // for the person rather than for the screen, so it is asked once instead of
   // being guessed from which of three fields was filled in.
   const [way, setWay] = useState<Way>('file')
-  const [toolId, setToolId] = useState<null | string>(null)
+  const [itemId, setToolId] = useState<null | string>(null)
   const [searchText, setSearchText] = useState('')
   const [search, setSearch] = useState<null | string>(null)
   const [url, setUrl] = useState('')
@@ -54,14 +54,14 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
   // the answer to "why was my link refused" belongs on the screen that refused
   // it.
   // Only the pages that publish documents. Offering a shop here would be
-  // promising a file it does not have: most shops sell the tool and leave the
+  // promising a file it does not have: most shops sell the item and leave the
   // manual to the maker.
   const { manualSources: pages } = useImportSources(opened && way === 'page')
 
-  const tools = useQuery({
-    queryKey: ['manual-tool-picker', search],
+  const items = useQuery({
+    queryKey: ['manual-item-picker', search],
     queryFn: () =>
-      fetchTools({
+      fetchItems({
         category: null,
         condition: null,
         direction: 'asc',
@@ -76,7 +76,7 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
 
   const done = async (message: string) => {
     await queryClient.invalidateQueries({ queryKey: ['manual-library'] })
-    await queryClient.invalidateQueries({ queryKey: ['tool-manuals'] })
+    await queryClient.invalidateQueries({ queryKey: ['item-manuals'] })
     notifications.show({ color: 'teal', message })
     setUrl('')
     setPageUrl('')
@@ -88,15 +88,15 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
     notifications.show({ color: 'red', message: (error as Error).message })
 
   const upload = useMutation({
-    mutationFn: (chosen: { file: File; toolId: number }) =>
-      uploadManual(chosen.toolId, chosen.file),
+    mutationFn: (chosen: { file: File; itemId: number }) =>
+      uploadManual(chosen.itemId, chosen.file),
     onSuccess: () => done(t('Instrukcja dodana')),
     onError: failed,
   })
 
   const fromUrl = useMutation({
-    mutationFn: (chosen: { toolId: number; url: string }) =>
-      importManualFromUrl(chosen.toolId, chosen.url),
+    mutationFn: (chosen: { itemId: number; url: string }) =>
+      importManualFromUrl(chosen.itemId, chosen.url),
     onSuccess: () => done(t('Instrukcja dodana')),
     onError: failed,
   })
@@ -104,8 +104,8 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
   // Everything a product page publishes, at once — the same call the card's
   // panel makes, which is why it refuses an unreadable shop in the same words.
   const fromPage = useMutation({
-    mutationFn: (chosen: { toolId: number; url: string }) =>
-      importManualsFromPage(chosen.toolId, chosen.url),
+    mutationFn: (chosen: { itemId: number; url: string }) =>
+      importManualsFromPage(chosen.itemId, chosen.url),
     onSuccess: ({ failed: refused, manuals }) => {
       if (refused.length > 0) {
         notifications.show({
@@ -122,7 +122,7 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
     onError: failed,
   })
 
-  const chosen = Number(toolId)
+  const chosen = Number(itemId)
   const ready = Number.isInteger(chosen) && chosen > 0
   const working = upload.isPending || fromUrl.isPending || fromPage.isPending
 
@@ -136,9 +136,9 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
   const submit = () => {
     if (!ready || !given) return
 
-    if (way === 'file' && file) upload.mutate({ file, toolId: chosen })
-    if (way === 'url') fromUrl.mutate({ toolId: chosen, url: url.trim() })
-    if (way === 'page') fromPage.mutate({ toolId: chosen, url: pageUrl.trim() })
+    if (way === 'file' && file) upload.mutate({ file, itemId: chosen })
+    if (way === 'url') fromUrl.mutate({ itemId: chosen, url: url.trim() })
+    if (way === 'page') fromPage.mutate({ itemId: chosen, url: pageUrl.trim() })
   }
 
   return (
@@ -147,15 +147,15 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
         {/* The model beside the name, because a shelf of cards called "Sekator
             akumulatorowy" is told apart by it and by nothing else. */}
         <Select
-          label={t('Narzędzie')}
+          label={t('Pozycja')}
           description={t('Do którego narzędzia należy ten plik')}
           placeholder={t('Szukaj narzędzia')}
           searchable
-          data={(tools.data?.items ?? []).map((tool) => ({
-            label: tool.model ? `${tool.name} · ${tool.model}` : tool.name,
-            value: String(tool.id),
+          data={(items.data?.items ?? []).map((item) => ({
+            label: item.model ? `${item.name} · ${item.model}` : item.name,
+            value: String(item.id),
           }))}
-          value={toolId}
+          value={itemId}
           onChange={setToolId}
           searchValue={searchText}
           onSearchChange={(value) => {

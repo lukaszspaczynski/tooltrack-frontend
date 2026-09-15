@@ -24,11 +24,11 @@ export function addressLine(address: Address): string {
 export function addressContents(address: Address): {
   empty: boolean
   organizers: number
-  tools: number
+  items: number
 } {
   return {
-    empty: address.toolCount === 0 && address.organizerCount === 0,
+    empty: address.itemCount === 0 && address.organizerCount === 0,
     organizers: address.organizerCount,
-    tools: address.toolCount,
+    items: address.itemCount,
   }
 }

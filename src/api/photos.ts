@@ -10,10 +10,10 @@ import type {
   PhotoSearchResult,
 } from './types'
 
-// /api/tools/7/photos or /api/cases/7/photos — the same routes, the same
+// /api/items/7/photos or /api/cases/7/photos — the same routes, the same
 // server handler, and the only place this app turns an owner into a path.
 function ownerPath(owner: PhotoOwner): string {
-  return `/${owner.kind === 'case' ? 'cases' : 'tools'}/${owner.id}`
+  return `/${owner.kind === 'case' ? 'cases' : 'items'}/${owner.id}`
 }
 
 export type PhotoImportItem = {
@@ -87,7 +87,7 @@ export function previewCutout(
 }
 
 // Keeps a preview. The bytes are already on the server; this is what turns
-// them into a photo of the tool.
+// them into a photo of the item.
 export function commitCutout(
   owner: PhotoOwner,
   photoId: number,
@@ -141,7 +141,7 @@ export type LibraryQuery = {
 }
 
 // Every photo in the system, not one card's. Its own endpoint because it is
-// its own question: what did we import, rather than what does this tool or
+// its own question: what did we import, rather than what does this item or
 // this case look like.
 export function fetchPhotoLibrary(query: LibraryQuery): Promise<PhotoLibraryPage> {
   const search = new URLSearchParams()

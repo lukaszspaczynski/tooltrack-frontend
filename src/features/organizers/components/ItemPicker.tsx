@@ -16,33 +16,33 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { apiFileUrl } from '../../../api/client'
-import { fetchTools } from '../../../api/tools'
-import type { ToolListItem } from '../../../api/types'
+import { fetchItems } from '../../../api/items'
+import type { ItemSummary } from '../../../api/types'
 import { t } from '../../../i18n'
 
-// Picking tools for an organizer. Only those in no organizer are offered: a
-// tool lies in exactly one place, and the server refuses a second with a 409
+// Picking items for an organizer. Only those in no organizer are offered: a
+// item lies in exactly one place, and the server refuses a second with a 409
 // rather than moving it, so offering one would be offering to fail.
 //
 // Tiles rather than a list of labels — on a shelf of near-identical black
 // packs the picture tells them apart faster than the model number does.
-export function ToolPicker({
+export function ItemPicker({
   onToggle,
   selected,
 }: {
-  // The whole tool, not just its id: the wizard names an arrangement after the
+  // The whole item, not just its id: the wizard names an arrangement after the
   // single machine in it, and the picker is the only place that has the name.
-  onToggle: (tool: ToolListItem) => void
+  onToggle: (item: ItemSummary) => void
   selected: number[]
 }) {
   const [searchText, setSearchText] = useState('')
   const [search, setSearch] = useState<null | string>(null)
   const applySearch = useDebouncedCallback((value: string) => setSearch(value.trim() || null), 300)
 
-  const tools = useQuery({
-    queryKey: ['organizer-tool-picker', search],
+  const query = useQuery({
+    queryKey: ['organizer-item-picker', search],
     queryFn: () =>
-      fetchTools({
+      fetchItems({
         category: null,
         condition: null,
         direction: 'asc',
@@ -55,7 +55,7 @@ export function ToolPicker({
     placeholderData: keepPreviousData,
   })
 
-  const items = tools.data?.items ?? []
+  const items = query.data?.items ?? []
 
   return (
     <Stack gap="sm">
@@ -70,7 +70,7 @@ export function ToolPicker({
         }}
       />
 
-      {tools.data && items.length === 0 ? (
+      {query.data && items.length === 0 ? (
         <Alert color="gray" variant="light">
           {search
             ? t('Nic nie pasuje — albo te narzędzia są już w innych organizerach.')
@@ -80,12 +80,12 @@ export function ToolPicker({
 
       <ScrollArea.Autosize mah={340}>
         <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
-          {items.map((tool) => (
+          {items.map((item) => (
             <ToolTile
-              key={tool.id}
-              checked={selected.includes(tool.id)}
-              onToggle={() => onToggle(tool)}
-              tool={tool}
+              key={item.id}
+              checked={selected.includes(item.id)}
+              onToggle={() => onToggle(item)}
+              item={item}
             />
           ))}
         </SimpleGrid>
@@ -99,13 +99,13 @@ export function ToolPicker({
 function ToolTile({
   checked,
   onToggle,
-  tool,
+  item,
 }: {
   checked: boolean
   onToggle: () => void
-  tool: ToolListItem
+  item: ItemSummary
 }) {
-  const subtitle = [tool.brand, tool.model].filter(Boolean).join(' ')
+  const subtitle = [item.brand, item.model].filter(Boolean).join(' ')
 
   return (
     <Card
@@ -120,8 +120,8 @@ function ToolTile({
     >
       <Stack gap={6}>
         <div style={{ position: 'relative' }}>
-          {tool.primaryPhotoUrl ? (
-            <Image src={apiFileUrl(tool.primaryPhotoUrl)} alt={tool.name} h={84} fit="contain" />
+          {item.primaryPhotoUrl ? (
+            <Image src={apiFileUrl(item.primaryPhotoUrl)} alt={item.name} h={84} fit="contain" />
           ) : (
             <Group h={84} justify="center">
               <IconPhotoOff size={20} color="var(--mantine-color-dimmed)" />
@@ -131,13 +131,13 @@ function ToolTile({
             checked={checked}
             onChange={onToggle}
             onClick={(event) => event.stopPropagation()}
-            aria-label={`Wybierz ${tool.name}`}
+            aria-label={`Wybierz ${item.name}`}
             style={{ left: 4, position: 'absolute', top: 4 }}
           />
         </div>
 
-        <Text size="xs" fw={500} lineClamp={2} title={tool.name}>
-          {tool.name}
+        <Text size="xs" fw={500} lineClamp={2} title={item.name}>
+          {item.name}
         </Text>
         {subtitle ? (
           <Text size="xs" c="dimmed" lineClamp={1} title={subtitle}>

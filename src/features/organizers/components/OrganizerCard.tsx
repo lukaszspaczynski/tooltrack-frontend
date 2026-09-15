@@ -9,7 +9,7 @@ import { AddressBadge } from '../../addresses/components/AddressBadge'
 import { useAddresses } from '../../addresses/useAddresses'
 
 // One arrangement, as it appears in the list. The whole card opens it, the
-// same as a tool or a case card — everything that changes anything lives on
+// same as an item or a case card — everything that changes anything lives on
 // the page behind it, so nothing here can be pressed by accident while
 // scrolling with a gloved thumb.
 export function OrganizerCard({ item }: { item: Organizer }) {
@@ -28,7 +28,7 @@ export function OrganizerCard({ item }: { item: Organizer }) {
           scrolling strip: this is read on a phone by somebody in gloves, and a
           card that hides half its contents sideways hides them for good. */}
       <Card.Section p="xs" bg="var(--mantine-color-default-hover)" pos="relative">
-        {/* Where the box stands, in the corner, the same sticker a tool card
+        {/* Where the box stands, in the corner, the same sticker an item card
             carries — so one mark means one thing across both grids. */}
         <AddressBadge address={addressById(item.addressId)} />
         <SimpleGrid cols={4} spacing={6} verticalSpacing={6}>
@@ -38,8 +38,8 @@ export function OrganizerCard({ item }: { item: Organizer }) {
             label={`${item.case.name} (skrzynka)`}
             url={item.case.primaryPhotoUrl}
           />
-          {item.tools.map((tool) => (
-            <Thumbnail key={tool.id} alt={tool.name} label={tool.name} url={tool.primaryPhotoUrl} />
+          {item.items.map((item) => (
+            <Thumbnail key={item.id} alt={item.name} label={item.name} url={item.primaryPhotoUrl} />
           ))}
         </SimpleGrid>
       </Card.Section>
@@ -65,7 +65,7 @@ export function OrganizerCard({ item }: { item: Organizer }) {
         ) : null}
 
         <Text size="xs" c="dimmed">
-          {toolCountLabel(item.tools.length)}
+          {itemCountLabel(item.items.length)}
         </Text>
       </Stack>
     </Card>
@@ -106,6 +106,6 @@ function Thumbnail({
 }
 
 // An arrangement with nothing in it is empty rather than "0 narzędzi".
-function toolCountLabel(count: number): string {
-  return count === 0 ? t('pusty') : tCount(COUNTS.tool, count)
+function itemCountLabel(count: number): string {
+  return count === 0 ? t('pusty') : tCount(COUNTS.item, count)
 }

@@ -11,7 +11,7 @@ import { isKnownCaseSource, useCaseImportSources } from '../useCaseImportSources
 
 // Reading the product page again into a case that already exists.
 //
-// The dialog says what it will overwrite before it does. Unlike the tool one it
+// The dialog says what it will overwrite before it does. Unlike the item one it
 // has nothing destructive to warn about — what a page knows about a box it
 // simply restates — but it does have something to promise: the label slots stay.
 // A slot is where a sticker goes on this box in this van, and somebody who

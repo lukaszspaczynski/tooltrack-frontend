@@ -6,7 +6,7 @@ import { useAddresses } from '../useAddresses'
 import { AddressDot } from './AddressDot'
 
 // Choosing where a thing is kept. A select rather than the search-and-grid
-// pickers a case or a tool gets: a workshop has a handful of places and they
+// pickers a case or an item gets: a workshop has a handful of places and they
 // are read whole, so a dialog to find one among five would be ceremony.
 //
 // Clearable, and that clears to null rather than to an empty string — "nobody

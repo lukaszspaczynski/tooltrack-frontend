@@ -31,7 +31,7 @@ const PAGE_SIZE = 24
 //
 // It opens on the unassigned ones, because that is what the shelf is for: a
 // photo uploaded before anyone decided what it was. "Wszystkie" is there for
-// the other case — the same picture illustrating a tool and the case it lives
+// the other case — the same picture illustrating an item and the case it lives
 // in, which is allowed and costs a row rather than a second file.
 export function ExistingPhotoPicker({
   onClose,
@@ -60,7 +60,7 @@ export function ExistingPhotoPicker({
     setSelected([])
   }, 300)
 
-  // The search matches the tool a photo belongs to, so it means nothing on the
+  // The search matches the item a photo belongs to, so it means nothing on the
   // unassigned shelf — and sending it there would return an empty screen with
   // a disabled input and no way to clear it.
   const effectiveSearch = assigned === 'all' ? search : null
@@ -80,7 +80,7 @@ export function ExistingPhotoPicker({
   })
 
   // A picture already on this card cannot be added again, so it is not
-  // offered. Tool 4 and case 4 are different cards, hence both halves of the
+  // offered. Item 4 and case 4 are different cards, hence both halves of the
   // check — and a picture on three other cards is still offered, because that
   // is now allowed.
   const items = (library.data?.items ?? []).filter(

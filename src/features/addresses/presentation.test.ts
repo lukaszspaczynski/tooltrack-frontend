@@ -17,7 +17,7 @@ function address(overrides: Partial<Address> = {}): Address {
     organizerCount: 0,
     postalCode: '02-566',
     street: 'Puławska',
-    toolCount: 0,
+    itemCount: 0,
     unit: '3',
     updatedAt: '2026-01-01T00:00:00.000Z',
     updatedBy: 1,
@@ -55,8 +55,8 @@ test('a place with nothing but a name is just its name', () => {
 
 test('empty is both counts at zero, not either', () => {
   // It is what says a place can be tidied away, so an arrangement standing
-  // there with no loose tools still counts as occupied.
+  // there with no loose items still counts as occupied.
   assert.equal(addressContents(address()).empty, true)
-  assert.equal(addressContents(address({ toolCount: 3 })).empty, false)
+  assert.equal(addressContents(address({ itemCount: 3 })).empty, false)
   assert.equal(addressContents(address({ organizerCount: 1 })).empty, false)
 })

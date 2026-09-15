@@ -6,7 +6,7 @@ import type { Address } from '../../api/types'
 // The short list of places, and a way to look one up by id.
 //
 // Every screen that shows a place needs the same two things a card does not
-// carry: the name and the colour. A tool answers with `addressId` and nothing
+// carry: the name and the colour. An item answers with `addressId` and nothing
 // else, and widening the list so each row could show a place without a lookup
 // would put a whole address — seven fields and two counts — on every row of
 // every list, to draw a dot and five letters.

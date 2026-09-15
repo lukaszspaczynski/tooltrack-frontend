@@ -53,12 +53,12 @@ import {
 import type { Organizer } from '../../../api/types'
 import { AddressField } from '../../addresses/components/AddressField'
 import { t } from '../../../i18n'
-import { formatDateTime } from '../../tools/presentation'
+import { formatDateTime } from '../../items/presentation'
 import { useSession } from '../../../session/SessionContext'
 import { defaultLabelRequest, missingLabels } from '../labelDefaults'
 import { LabelWizard } from '../components/LabelWizard'
 import { OrganizerForm, type OrganizerFormValues } from '../components/OrganizerForm'
-import { ToolPicker } from '../components/ToolPicker'
+import { ItemPicker } from '../components/ItemPicker'
 
 export function OrganizerDetailPage() {
   const { id } = useParams()
@@ -90,8 +90,8 @@ export function OrganizerDetailPage() {
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['organizer', organizerId] })
     await queryClient.invalidateQueries({ queryKey: ['organizers'] })
-    // The pickers offer tools that are in no organizer, so their list changed.
-    await queryClient.invalidateQueries({ queryKey: ['organizer-tool-picker'] })
+    // The pickers offer items that are in no organizer, so their list changed.
+    await queryClient.invalidateQueries({ queryKey: ['organizer-item-picker'] })
   }
 
   const save = useMutation({
@@ -105,7 +105,7 @@ export function OrganizerDetailPage() {
   })
 
   const addTools = useMutation({
-    mutationFn: (toolIds: number[]) => addToolsToOrganizer(organizerId, toolIds),
+    mutationFn: (itemIds: number[]) => addToolsToOrganizer(organizerId, itemIds),
     onSuccess: async () => {
       await refresh()
       setPicked([])
@@ -115,7 +115,7 @@ export function OrganizerDetailPage() {
   })
 
   const takeOut = useMutation({
-    mutationFn: (toolId: number) => removeToolFromOrganizer(organizerId, toolId),
+    mutationFn: (itemId: number) => removeToolFromOrganizer(organizerId, itemId),
     onSuccess: refresh,
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -315,13 +315,13 @@ export function OrganizerDetailPage() {
         )}
       </Paper>
 
-      {/* Outside the editing form on purpose: tools go in and out one at a
+      {/* Outside the editing form on purpose: items go in and out one at a
           time, immediately, while the fields are edited and then saved. */}
       <Paper withBorder p="lg" radius="md">
         <Stack gap="md">
           <Group justify="space-between" align="center">
             <Text fw={600}>
-              {t('Narzędzia')} ({organizer.tools.length})
+              {t('Narzędzia')} ({organizer.items.length})
             </Text>
             {canEdit ? (
               <Button
@@ -335,20 +335,20 @@ export function OrganizerDetailPage() {
             ) : null}
           </Group>
 
-          {organizer.tools.length === 0 ? (
+          {organizer.items.length === 0 ? (
             <Text c="dimmed" size="sm">
               {t('Nic tu jeszcze nie leży.')}
             </Text>
           ) : (
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
-              {organizer.tools.map((tool) => (
-                <Card key={tool.id} withBorder padding="xs" radius="md">
+              {organizer.items.map((item) => (
+                <Card key={item.id} withBorder padding="xs" radius="md">
                   <Stack gap={6}>
-                    <Link to={`/tools/${tool.id}`} style={{ lineHeight: 0 }}>
-                      {tool.primaryPhotoUrl ? (
+                    <Link to={`/items/${item.id}`} style={{ lineHeight: 0 }}>
+                      {item.primaryPhotoUrl ? (
                         <Image
-                          src={apiFileUrl(tool.primaryPhotoUrl)}
-                          alt={tool.name}
+                          src={apiFileUrl(item.primaryPhotoUrl)}
+                          alt={item.name}
                           h={84}
                           fit="contain"
                         />
@@ -360,8 +360,8 @@ export function OrganizerDetailPage() {
                     </Link>
 
                     <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
-                      <Text size="xs" fw={500} lineClamp={2} title={tool.name}>
-                        {tool.name}
+                      <Text size="xs" fw={500} lineClamp={2} title={item.name}>
+                        {item.name}
                       </Text>
                       {canEdit ? (
                         <Tooltip label={t('Wyjmij z organizera')}>
@@ -369,9 +369,9 @@ export function OrganizerDetailPage() {
                             size="sm"
                             variant="subtle"
                             color="gray"
-                            aria-label={`Wyjmij ${tool.name}`}
-                            loading={takeOut.isPending && takeOut.variables === tool.id}
-                            onClick={() => takeOut.mutate(tool.id)}
+                            aria-label={`Wyjmij ${item.name}`}
+                            loading={takeOut.isPending && takeOut.variables === item.id}
+                            onClick={() => takeOut.mutate(item.id)}
                           >
                             <IconX size={14} />
                           </ActionIcon>
@@ -387,15 +387,15 @@ export function OrganizerDetailPage() {
           {canEdit ? (
             <Collapse expanded={toolsOpen}>
               <Stack gap="sm">
-                {/* Only the id matters here: this page adds tools to an
+                {/* Only the id matters here: this page adds items to an
                     arrangement that already has a name. */}
-                <ToolPicker
+                <ItemPicker
                   selected={picked}
-                  onToggle={(tool) =>
+                  onToggle={(item) =>
                     setPicked((current) =>
-                      current.includes(tool.id)
-                        ? current.filter((entry) => entry !== tool.id)
-                        : [...current, tool.id],
+                      current.includes(item.id)
+                        ? current.filter((entry) => entry !== item.id)
+                        : [...current, item.id],
                     )
                   }
                 />
@@ -477,7 +477,7 @@ export function OrganizerDetailPage() {
                   onClick={() =>
                     fillGaps.mutate(
                       gaps.map(({ slot, template }) => ({
-                        request: defaultLabelRequest(organizer.tools, slot, template),
+                        request: defaultLabelRequest(organizer.items, slot, template),
                         size: `${slot.widthMm} × ${slot.heightMm} mm (${
                           template === 'number' ? 'numer' : t('zawartość')
                         })`,

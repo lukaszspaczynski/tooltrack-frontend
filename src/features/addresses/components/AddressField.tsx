@@ -9,7 +9,7 @@ import { AddressDot } from './AddressDot'
 // Where a thing is, on the reading side of a detail page.
 //
 // It reads the same short list the picker does, off the same cache key, rather
-// than taking an expanded address from the card: a tool answer carries
+// than taking an expanded address from the card: an item answer carries
 // `addressId` and nothing else, and widening it so that one line could be shown
 // without a lookup would put a whole place on every row of every list.
 //

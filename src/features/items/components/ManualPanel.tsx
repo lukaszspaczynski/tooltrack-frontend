@@ -37,7 +37,7 @@ import type { Manual } from '../../../api/types'
 import { COUNTS, t, tCount, tDate } from '../../../i18n'
 import { useImportSources } from '../useImportSources'
 
-// The PDFs that belong beside a tool: the manual from the box, a parts
+// The PDFs that belong beside an item: the manual from the box, a parts
 // diagram, a safety sheet.
 //
 // Three ways in, and they are three because that is how a document actually
@@ -47,38 +47,38 @@ import { useImportSources } from '../useImportSources'
 export function ManualPanel({
   canEdit,
   reference,
-  toolId,
+  itemId,
 }: {
   canEdit: boolean
   // The address this card was read from, when it was imported. What "fetch the
   // manuals from the product page" starts with, so the common case is one
   // press rather than a paste.
   reference: string
-  toolId: number
+  itemId: number
 }) {
   const queryClient = useQueryClient()
   const [editing, setEditing] = useState<null | number>(null)
   const [url, setUrl] = useState('')
 
   const manuals = useQuery({
-    queryKey: ['tool-manuals', toolId],
-    queryFn: () => fetchManuals(toolId),
+    queryKey: ['item-manuals', itemId],
+    queryFn: () => fetchManuals(itemId),
   })
 
   // Whether the page this card came from publishes documents at all. Most
-  // shops do not: the tool is theirs to sell and the manual is the maker's to
+  // shops do not: the item is theirs to sell and the manual is the maker's to
   // publish, and a button promising a file that cannot arrive is worse than no
   // button.
   const { manualSources } = useImportSources(canEdit && reference.length > 0)
 
   const pageHasManuals = manualSources.some((source) => hostOf(reference).endsWith(source.host))
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['tool-manuals', toolId] })
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['item-manuals', itemId] })
   const failed = (error: unknown) =>
     notifications.show({ color: 'red', message: (error as Error).message })
 
   const upload = useMutation({
-    mutationFn: (file: File) => uploadManual(toolId, file),
+    mutationFn: (file: File) => uploadManual(itemId, file),
     onSuccess: async () => {
       await refresh()
       notifications.show({ color: 'teal', message: t('Instrukcja dodana') })
@@ -87,7 +87,7 @@ export function ManualPanel({
   })
 
   const fromUrl = useMutation({
-    mutationFn: (address: string) => importManualFromUrl(toolId, address),
+    mutationFn: (address: string) => importManualFromUrl(itemId, address),
     onSuccess: async () => {
       setUrl('')
       await refresh()
@@ -97,7 +97,7 @@ export function ManualPanel({
   })
 
   const fromPage = useMutation({
-    mutationFn: (address: string) => importManualsFromPage(toolId, address),
+    mutationFn: (address: string) => importManualsFromPage(itemId, address),
     onSuccess: async ({ manuals: added }) => {
       await refresh()
       notifications.show({
@@ -109,7 +109,7 @@ export function ManualPanel({
   })
 
   const rename = useMutation({
-    mutationFn: ({ id, title }: { id: number; title: string }) => renameManual(toolId, id, title),
+    mutationFn: ({ id, title }: { id: number; title: string }) => renameManual(itemId, id, title),
     onSuccess: async () => {
       setEditing(null)
       await refresh()
@@ -118,7 +118,7 @@ export function ManualPanel({
   })
 
   const drop = useMutation({
-    mutationFn: (id: number) => deleteManual(toolId, id),
+    mutationFn: (id: number) => deleteManual(itemId, id),
     onSuccess: refresh,
     onError: failed,
   })

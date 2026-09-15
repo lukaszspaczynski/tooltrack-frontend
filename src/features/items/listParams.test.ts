@@ -1,23 +1,25 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
+import type { ItemQuery } from '../../api/items'
 import {
   offsetFromPage,
   PAGE_SIZE,
   pageFromOffset,
-  readToolParams,
+  readItemParams,
   withFilter,
-  writeToolParams,
+  writeItemParams,
 } from './listParams'
 
 function read(search: string) {
-  return readToolParams(new URLSearchParams(search))
+  return readItemParams(new URLSearchParams(search))
 }
 
 test('an empty address bar is the default view', () => {
   assert.deepEqual(read(''), {
     category: null,
     condition: null,
+    kind: null,
     direction: 'desc',
     limit: PAGE_SIZE,
     offset: 0,
@@ -58,12 +60,12 @@ test('blank filters read as no filter', () => {
 })
 
 test('the default view writes an empty query string', () => {
-  assert.equal(writeToolParams(read('')).toString(), '')
+  assert.equal(writeItemParams(read('')).toString(), '')
 })
 
 test('what is written can be read back', () => {
   const original = read('q=makita&category=Wiertarki&condition=worn&sort=name&page=2')
-  const roundTripped = readToolParams(writeToolParams(original))
+  const roundTripped = readItemParams(writeItemParams(original))
 
   assert.deepEqual(roundTripped, original)
 })
@@ -86,3 +88,20 @@ test('pages and offsets convert both ways', () => {
   assert.equal(offsetFromPage(3), 2 * PAGE_SIZE)
   assert.equal(offsetFromPage(0), 0)
 })
+
+test('the kind travels in the address bar, and nonsense in it does not', () => {
+  // Same rule as the condition: a link somebody shared should still show the
+  // catalog rather than an error about a parameter nobody typed on purpose.
+  assert.equal(readItemParams(new URLSearchParams('kind=appliance')).kind, 'appliance')
+  assert.equal(readItemParams(new URLSearchParams('kind=furniture')).kind, null)
+  assert.equal(readItemParams(new URLSearchParams('')).kind, null)
+
+  // And only what differs from the default is written back, so the plain
+  // catalog stays at a clean address.
+  assert.equal(writeItemParams(query({ kind: 'tool' })).get('kind'), 'tool')
+  assert.equal(writeItemParams(query({ kind: null })).has('kind'), false)
+})
+
+function query(overrides: Partial<ItemQuery>): ItemQuery {
+  return { ...readItemParams(new URLSearchParams('')), ...overrides }
+}

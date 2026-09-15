@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { ApiError } from '../../../api/client'
-import { importTool } from '../../../api/tools'
+import { importItem } from '../../../api/items'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useImportSources } from '../useImportSources'
 
@@ -18,7 +18,7 @@ import { useImportSources } from '../useImportSources'
 // it. An address from anywhere else is stopped here as well as on the server —
 // here so nobody waits for a round trip to be told, there because that is
 // where it is true.
-export function ImportToolModal({ onClose, opened }: { onClose: () => void; opened: boolean }) {
+export function ImportItemModal({ onClose, opened }: { onClose: () => void; opened: boolean }) {
   const [url, setUrl] = useState('')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -27,12 +27,12 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
   const unsupported = url.trim().length > 0 && known.length > 0 && !isKnown(url, known)
 
   const run = useMutation({
-    mutationFn: importTool,
-    onSuccess: async ({ imported, tool }) => {
+    mutationFn: importItem,
+    onSuccess: async ({ imported, item }) => {
       // The contract allows a null card: the server reads it back after writing
       // it, and says so rather than pretending it cannot fail. Nothing useful
       // to show without one, so this is the same refusal as any other.
-      if (!tool) {
+      if (!item) {
         notifications.show({
           color: 'red',
           message: t('Nie udało się odczytać zaimportowanej karty'),
@@ -40,10 +40,10 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
         return
       }
 
-      queryClient.setQueryData(['tool', tool.id], { tool })
-      await queryClient.invalidateQueries({ queryKey: ['tools'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-categories'] })
-      await queryClient.invalidateQueries({ queryKey: ['tool-attribute-names'] })
+      queryClient.setQueryData(['item', item.id], { item })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-categories'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-attribute-names'] })
 
       notifications.show({
         color: 'teal',
@@ -63,7 +63,7 @@ export function ImportToolModal({ onClose, opened }: { onClose: () => void; open
       // in and correct the one field the shop had wrong.
       setUrl('')
       onClose()
-      navigate(`/tools/${tool.id}`)
+      navigate(`/items/${item.id}`)
     },
     onError: (error) =>
       notifications.show({

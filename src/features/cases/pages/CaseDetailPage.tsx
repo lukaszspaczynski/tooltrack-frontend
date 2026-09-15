@@ -44,13 +44,13 @@ import { fetchOrganizersOfCase } from '../../../api/organizers'
 import { fetchExclusivePhotos } from '../../../api/photos'
 import type { CaseFields, ToolCase } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
-import { AttributePanel } from '../../tools/components/AttributePanel'
+import { AttributePanel } from '../../items/components/AttributePanel'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
 import { CASE_ATTRIBUTE_API } from '../caseAttributeApi'
 import { useSession } from '../../../session/SessionContext'
 import { RefreshCaseModal } from '../components/RefreshCaseModal'
 import { CaseForm } from '../components/CaseForm'
-import { formatDateTime } from '../../tools/presentation'
+import { formatDateTime } from '../../items/presentation'
 import { formatNumber, innerDimensions, outerDimensions } from '../presentation'
 
 export function CaseDetailPage() {
@@ -92,8 +92,8 @@ export function CaseDetailPage() {
   })
 
   // And the other thing that goes with it. The pictures this box is the only
-  // home of are deleted with it; one that a tool card shows, or that a maker
-  // uses as its logo, stays. Same question the tool card asks.
+  // home of are deleted with it; one that an item card shows, or that a maker
+  // uses as its logo, stays. Same question the item card asks.
   const doomedPhotos = useQuery({
     queryKey: ['case-photos-exclusive', caseId],
     queryFn: () => fetchExclusivePhotos({ id: caseId, kind: 'case' }),
@@ -163,7 +163,7 @@ export function CaseDetailPage() {
 
   const item = query.data.case
   // Where this case was read from, when it was read from anywhere: the same
-  // field a tool card carries. It has been a line in the note and a parameter
+  // field an item card carries. It has been a line in the note and a parameter
   // called Referencja on the way here; the migration moved both into the
   // column, so there is one place to read and no fallback to keep in step.
   const reference = item.referenceUrl
@@ -390,10 +390,10 @@ export function CaseDetailPage() {
                 {organizers.data.items.map((organizer) => (
                   <List.Item key={organizer.id}>
                     {organizer.number}. {organizer.name}
-                    {organizer.tools.length > 0 ? (
+                    {organizer.items.length > 0 ? (
                       <Text span size="xs" c="dimmed">
                         {' '}
-                        ({tCount(COUNTS.tool, organizer.tools.length)})
+                        ({tCount(COUNTS.item, organizer.items.length)})
                       </Text>
                     ) : null}
                   </List.Item>

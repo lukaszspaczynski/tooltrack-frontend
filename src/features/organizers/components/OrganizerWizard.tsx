@@ -11,15 +11,15 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
-import type { CaseListItem, OrganizerFields, ToolListItem } from '../../../api/types'
+import type { CaseListItem, OrganizerFields, ItemSummary } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { CasePicker } from './CasePicker'
-import { ToolPicker } from './ToolPicker'
+import { ItemPicker } from './ItemPicker'
 
-// The wizard: the case first, then the tools, then the name.
+// The wizard: the case first, then the items, then the name.
 //
-// The case comes first because it is what the arrangement is *of*. The tool
-// step offers only tools in no organizer, which is the picker's own rule.
+// The case comes first because it is what the arrangement is *of*. The item
+// step offers only items in no organizer, which is the picker's own rule.
 export function OrganizerWizard({
   onClose,
   onCreate,
@@ -33,9 +33,9 @@ export function OrganizerWizard({
 }) {
   const [step, setStep] = useState(0)
   const [chosenCase, setChosenCase] = useState<null | CaseListItem>(null)
-  // The tools themselves rather than their ids: one of them is the name of the
+  // The items themselves rather than their ids: one of them is the name of the
   // arrangement, and only the picker ever knew what it was called.
-  const [tools, setTools] = useState<ToolListItem[]>([])
+  const [items, setTools] = useState<ItemSummary[]>([])
   // Null until somebody types, which is what lets the suggestion follow the
   // selection without ever overwriting a name that was entered by hand. An
   // empty string is a typed name too — the person cleared the box.
@@ -43,23 +43,23 @@ export function OrganizerWizard({
   const [description, setDescription] = useState('')
   const [number, setNumber] = useState<number | string>('')
 
-  const toggleTool = (tool: ToolListItem) =>
+  const toggleTool = (item: ItemSummary) =>
     setTools((current) =>
-      current.some((entry) => entry.id === tool.id)
-        ? current.filter((entry) => entry.id !== tool.id)
-        : [...current, tool],
+      current.some((entry) => entry.id === item.id)
+        ? current.filter((entry) => entry.id !== item.id)
+        : [...current, item],
     )
 
   // An arrangement holding one machine is called after it nine times out of
   // ten, and the name is already on the tile that was just ticked. Only for
   // exactly one: with two, naming it after either would be a guess.
-  const suggestedName = tools.length === 1 ? tools[0].name : ''
+  const suggestedName = items.length === 1 ? items[0].name : ''
   const name = typedName ?? suggestedName
 
   const submit = () => {
     if (!chosenCase || !name.trim()) return
     onCreate({
-      // Not asked for here. The wizard's job is the case and the tools in it;
+      // Not asked for here. The wizard's job is the case and the items in it;
       // where the box stands is something somebody sets afterwards, on the
       // arrangement, and asking for it in step one would be a field nobody has
       // an answer to yet.
@@ -68,7 +68,7 @@ export function OrganizerWizard({
       description: description.trim(),
       name: name.trim(),
       number: typeof number === 'number' ? number : undefined,
-      toolIds: tools.length > 0 ? tools.map((tool) => tool.id) : undefined,
+      itemIds: items.length > 0 ? items.map((item) => item.id) : undefined,
     })
   }
 
@@ -79,7 +79,7 @@ export function OrganizerWizard({
           <Stepper.Step label={t('Skrzynka')} description={chosenCase?.name ?? 'nie wybrano'} />
           <Stepper.Step
             label={t('Narzędzia')}
-            description={tools.length > 0 ? `wybrano ${tools.length}` : 'opcjonalnie'}
+            description={items.length > 0 ? `wybrano ${items.length}` : 'opcjonalnie'}
           />
           <Stepper.Step label={t('Nazwa')} />
         </Stepper>
@@ -95,7 +95,7 @@ export function OrganizerWizard({
         ) : null}
 
         {step === 1 ? (
-          <ToolPicker selected={tools.map((tool) => tool.id)} onToggle={toggleTool} />
+          <ItemPicker selected={items.map((item) => item.id)} onToggle={toggleTool} />
         ) : null}
 
         {step === 2 ? (
@@ -151,8 +151,8 @@ export function OrganizerWizard({
         {step === 2 ? (
           <Text size="xs" c="dimmed">
             {t('Skrzynka')}: {chosenCase?.name ?? '—'}
-            {tools.length > 0
-              ? ` · ${tCount(COUNTS.tool, tools.length)}`
+            {items.length > 0
+              ? ` · ${tCount(COUNTS.item, items.length)}`
               : ` · ${t('bez narzędzi')}`}
           </Text>
         ) : null}

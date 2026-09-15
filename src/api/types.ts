@@ -6,16 +6,32 @@
 
 import type { Lang } from '../i18n/lang'
 
-export const TOOL_CONDITIONS = ['new', 'good', 'worn', 'needs_repair', 'retired'] as const
+export const ITEM_CONDITIONS = ['new', 'good', 'worn', 'needs_repair', 'retired'] as const
 
-export type ToolCondition = (typeof TOOL_CONDITIONS)[number]
+export type ItemCondition = (typeof ITEM_CONDITIONS)[number]
 
-export type Tool = {
-  // Where this tool is kept, or null when nobody has said.
+// The maker, as the row it is. A card used to carry the name as a string beside
+// a pointer at this; one pointer and a join is what the server sends now, and
+// the colour comes with it — a field the makers have had for months and no card
+// ever showed.
+export type ItemBrand = {
+  color: string
+  id: number
+  name: string
+}
+
+// What sort of thing a card is about. Not a category: a category is free text
+// and somebody's own word for a shelf, while this is the handful of sorts the
+// catalog itself behaves differently about. Only a tool goes in an organizer.
+export type ItemKind = 'appliance' | 'case' | 'tool'
+
+export type Item = {
+  // Where this item is kept, or null when nobody has said.
   addressId: null | number
-  brand: string
+  brand: null | ItemBrand
   category: string
-  condition: ToolCondition
+  condition: ItemCondition
+  kind: ItemKind
   createdAt: string
   createdBy: null | number
   id: number
@@ -30,7 +46,7 @@ export type Tool = {
   updatedBy: null | number
 }
 
-// A PDF kept beside a tool: the manual from the box, a parts diagram, a safety
+// A PDF kept beside an item: the manual from the box, a parts diagram, a safety
 // sheet. It belongs to the model rather than to one machine, so the same file
 // can hang on several cards.
 export type Manual = {
@@ -45,12 +61,12 @@ export type Manual = {
 }
 
 // A manual as the library shows it: with the cards that keep it, because
-// "which tools is this the manual for" is the question that screen answers.
+// "which items is this the manual for" is the question that screen answers.
 export type LibraryManual = Manual & {
   // The model as well as the name: a shelf of documents called "Instrukcja
   // obsługi" on cards called "Sekator akumulatorowy" is told apart by the
   // model and by nothing else.
-  tools: { id: number; model: string; name: string }[]
+  items: { id: number; model: string; name: string }[]
 }
 
 export type ManualLibraryPage = {
@@ -60,7 +76,7 @@ export type ManualLibraryPage = {
   total: number
 }
 
-// One parameter of one tool: mains voltage, speed, chuck size. The value
+// One parameter of one item: mains voltage, speed, chuck size. The value
 // carries its unit — "230 V" rather than 230 — because half of these have no
 // unit anybody agrees on.
 export type ToolAttribute = {
@@ -69,10 +85,10 @@ export type ToolAttribute = {
   value: string
 }
 
-// A tool with what is only worth reading one card at a time. The list answers
-// with `Tool`: a grid shows a name, a maker and a condition, and every card's
+// An item with what is only worth reading one card at a time. The list answers
+// with `Item`: a grid shows a name, a maker and a condition, and every card's
 // spec sheet would be paying for what nobody reads there.
-export type ToolDetail = Tool & {
+export type ItemDetail = Item & {
   attributes: ToolAttribute[]
 }
 
@@ -81,13 +97,13 @@ export type ToolDetail = Tool & {
 export type ImportSource = {
   host: string
   label: string
-  // Whether the page publishes documents at all. A shop that sells a tool is
+  // Whether the page publishes documents at all. A shop that sells an item is
   // not obliged to host its manual, and most do not — so a screen asking for
   // one offers only the sources that have any.
   manuals: boolean
 }
 
-export type ToolImportResult = {
+export type ItemImportResult = {
   imported: {
     attributes: number
     // Parameters the page listed that the card would not take. Named rather
@@ -103,7 +119,7 @@ export type ToolImportResult = {
   // Null only if the card vanished between being written and being read
   // back, which is a server fault rather than an outcome — but the
   // contract says it can be, so this says so too.
-  tool: null | ToolDetail
+  item: null | ItemDetail
 }
 
 export type AttributeNameCount = {
@@ -111,10 +127,10 @@ export type AttributeNameCount = {
   name: string
 }
 
-// Where a tool lies, as the catalog grid receives it: the organizer's number
-// and the case it is in, with that case's main photo. Null for a tool nobody
+// Where an item lies, as the catalog grid receives it: the organizer's number
+// and the case it is in, with that case's main photo. Null for an item nobody
 // has put anywhere.
-export type ToolPlacement = {
+export type OrganizerPlacement = {
   caseId: number
   caseName: string
   casePhotoUrl: null | string
@@ -122,18 +138,18 @@ export type ToolPlacement = {
   organizerId: number
 }
 
-// The main photo of a tool, as the catalog grid receives it: a URL and
+// The main photo of an item, as the catalog grid receives it: a URL and
 // nothing else, because a card needs a thumbnail and not a photo record.
-export type ToolListItem = Tool & {
-  organizer: null | ToolPlacement
+export type ItemSummary = Item & {
+  organizer: null | OrganizerPlacement
   primaryPhotoUrl: null | string
 }
 
 export type PhotoSource = 'edit' | 'search' | 'upload' | 'url'
 
-// Tools and cases carry photos on identical terms, so every photo call names
+// Items and cases carry photos on identical terms, so every photo call names
 // which kind of card it is talking about rather than having two of everything.
-export const PHOTO_OWNER_KINDS = ['case', 'tool'] as const
+export const PHOTO_OWNER_KINDS = ['case', 'item'] as const
 
 export type PhotoOwnerKind = (typeof PHOTO_OWNER_KINDS)[number]
 
@@ -144,7 +160,7 @@ export type PhotoOwner = {
 
 // One picture, once. Which cards show it is a separate question — see
 // CardPhoto and LibraryPhoto below — because the same photograph can
-// illustrate several tools, several cases, and a tool together with the case
+// illustrate several items, several cases, and an item together with the case
 // it lives in.
 export type Photo = {
   attribution: string
@@ -315,8 +331,8 @@ export type SearchEnginesResponse = {
   usable: number
 }
 
-export type ToolPage = {
-  items: ToolListItem[]
+export type ItemPage = {
+  items: ItemSummary[]
   limit: number
   offset: number
   total: number
@@ -327,12 +343,16 @@ export type CategoryCount = {
   count: number
 }
 
-// What POST /api/tools accepts. A PATCH sends any subset of it.
-export type ToolFields = {
+// What POST /api/items accepts. A PATCH sends any subset of it.
+export type ItemFields = {
   addressId: null | number
-  brand: string
+  // The maker as an id. It was free text, matched back to a row on the way in;
+  // a form picks from the list now, because a typo there would otherwise become
+  // a maker.
+  brandId: null | number
   category: string
-  condition: ToolCondition
+  condition: ItemCondition
+  kind: ItemKind
   model: string
   name: string
   notes: string
@@ -340,7 +360,7 @@ export type ToolFields = {
   serialNumber: string
 }
 
-// A case: the box the tools live in. Name and maker are required; everything
+// A case: the box the items live in. Name and maker are required; everything
 // else comes off a spec sheet and is null when nobody has filled it in. Zero
 // is never "unknown" — a box with no height does not exist.
 // Where a label goes on a case: a size in millimetres and nothing else. What
@@ -374,7 +394,7 @@ export type ToolCase = {
   outerHeightMm: null | number
   outerLengthMm: null | number
   outerWidthMm: null | number
-  // The same field a tool card has, and what the "update from the page" button
+  // The same field an item card has, and what the "update from the page" button
   // on a case reads.
   referenceUrl: string
   sku: string
@@ -415,7 +435,7 @@ export type CaseFields = {
   system: string
 }
 
-// Where a case can be read from. Shorter than the tool list and a different
+// Where a case can be read from. Shorter than the item list and a different
 // one: a page that sells drills has nothing to say about a box.
 export type CaseImportSource = {
   host: string
@@ -439,9 +459,9 @@ export type SystemCount = {
   system: string
 }
 
-// An organizer: which tools live in which case. The number is the one painted
+// An organizer: which items live in which case. The number is the one painted
 // on the box and said out loud — deliberately not the id.
-export type OrganizerTool = {
+export type OrganizerItem = {
   brand: string
   id: number
   model: string
@@ -489,7 +509,7 @@ export type OrganizerLabelSlot = {
 }
 
 export type Organizer = {
-  // Where this arrangement is kept, or null when nobody has said. The tools in
+  // Where this arrangement is kept, or null when nobody has said. The items in
   // it carry one of their own and the two may disagree: a drill taken to a site
   // while its box stays in the workshop is genuinely two places.
   addressId: null | number
@@ -506,7 +526,7 @@ export type Organizer = {
   labels: OrganizerLabel[]
   name: string
   number: number
-  tools: OrganizerTool[]
+  items: OrganizerItem[]
   updatedAt: string
   updatedBy: null | number
 }
@@ -526,10 +546,10 @@ export type OrganizerFields = {
   description: string
   name: string
   number?: number
-  toolIds?: number[]
+  itemIds?: number[]
 }
 
-// A maker. One row, many tools; the logo is a picture from the library, linked
+// A maker. One row, many items; the logo is a picture from the library, linked
 // one to one in its own table rather than held as a column.
 // Where the kit is: a workshop, a yard, a site, a van. Only `name` is required
 // and it is the part a picker shows — a crew says "magazyn", not a postcode.
@@ -549,7 +569,7 @@ export type Address = {
   organizerCount: number
   postalCode: string
   street: string
-  toolCount: number
+  itemCount: number
   unit: string
   updatedAt: string
   updatedBy: null | number
@@ -585,9 +605,9 @@ export type Brand = {
   logoUrl: null | string
   name: string
   notes: string
-  // How many tools name this maker. Read-only, and the reason the list is
+  // How many items name this maker. Read-only, and the reason the list is
   // worth looking at.
-  toolCount: number
+  itemCount: number
   updatedAt: string
   updatedBy: null | number
 }
@@ -612,7 +632,7 @@ export type Role = (typeof ROLES)[number]
 
 export type AccountStatus = 'active' | 'disabled'
 
-// One capability for the catalog — tools, the cases they live in, and the
+// One capability for the catalog — items, the cases they live in, and the
 // photos of both. The server says the same thing in src/access/roles.ts.
 export type Capability = 'catalog.read' | 'catalog.write' | 'users.manage'
 
