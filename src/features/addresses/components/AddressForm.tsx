@@ -1,12 +1,26 @@
-import { Button, Group, Stack, Textarea, TextInput } from '@mantine/core'
+import { Button, ColorInput, Group, Stack, Textarea, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
 import type { AddressFields } from '../../../api/types'
 import { t } from '../../../i18n'
 
+// Chosen to be told apart at the size they are drawn — a dot beside a name on
+// a phone — rather than to be pretty together.
+const SWATCHES = [
+  '#d0392a',
+  '#e8871a',
+  '#f5d24a',
+  '#3f6652',
+  '#244930',
+  '#4b66a4',
+  '#7a4b9c',
+  '#5c5c5c',
+]
+
 const EMPTY: AddressFields = {
   building: '',
   city: '',
+  color: '',
   name: '',
   notes: '',
   postalCode: '',
@@ -48,6 +62,19 @@ export function AddressForm({
           withAsterisk
           key={form.key('name')}
           {...form.getInputProps('name')}
+        />
+
+        {/* What a place is recognised by across the screens without reading
+            its name. The picker gives hex and the server takes "208 57 42"
+            too, so a colour copied off something else pastes in. */}
+        <ColorInput
+          label={t('Kolor')}
+          description={t('Po nim rozpoznasz miejsce na liście narzędzi.')}
+          placeholder="#d0392a"
+          format="hex"
+          key={form.key('color')}
+          {...form.getInputProps('color')}
+          swatches={SWATCHES}
         />
 
         <Group grow align="flex-start">
@@ -117,6 +144,7 @@ function trimAll(fields: AddressFields): AddressFields {
   return {
     building: fields.building.trim(),
     city: fields.city.trim(),
+    color: fields.color.trim(),
     name: fields.name.trim(),
     notes: fields.notes.trim(),
     postalCode: fields.postalCode.trim(),

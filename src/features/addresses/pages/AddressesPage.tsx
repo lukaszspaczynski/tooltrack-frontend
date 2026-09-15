@@ -16,7 +16,7 @@ import {
 } from '@mantine/core'
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconMapPin, IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react'
+import { IconPencil, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -26,6 +26,7 @@ import { hasCode } from '../../../api/client'
 import type { Address, AddressFields } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
+import { AddressDot } from '../components/AddressDot'
 import { AddressForm } from '../components/AddressForm'
 import { addressContents, addressLine } from '../presentation'
 
@@ -250,7 +251,7 @@ function AddressCard({
       <Stack gap="xs">
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
           <Group gap="xs" wrap="nowrap">
-            <IconMapPin size={18} />
+            <AddressDot color={address.color} size={16} />
             <Text fw={600}>{address.name}</Text>
           </Group>
 
@@ -324,6 +325,7 @@ function toFields(address: Address): AddressFields {
   return {
     building: address.building,
     city: address.city,
+    color: address.color,
     name: address.name,
     notes: address.notes,
     postalCode: address.postalCode,

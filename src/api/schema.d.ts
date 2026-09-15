@@ -2283,6 +2283,7 @@ export interface components {
         Address: {
             building: string;
             city: string;
+            color: string;
             createdAt: string;
             createdBy: null | number;
             id: number;
@@ -2618,6 +2619,7 @@ export interface components {
         AddressCreateBody: {
             building?: string;
             city?: string;
+            color?: string | null;
             name: string;
             notes?: string;
             postalCode?: string;
@@ -2627,6 +2629,7 @@ export interface components {
         AddressPatchBody: {
             building?: string;
             city?: string;
+            color?: string | null;
             name?: string;
             notes?: string;
             postalCode?: string;

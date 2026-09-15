@@ -1,11 +1,11 @@
 import { Anchor, Group, Stack, Text } from '@mantine/core'
-import { IconMapPin } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 
 import { fetchAddresses } from '../../../api/addresses'
 import { t } from '../../../i18n'
 import { addressLine } from '../presentation'
+import { AddressDot } from './AddressDot'
 
 // Where a thing is, on the reading side of a detail page.
 //
@@ -39,8 +39,8 @@ export function AddressField({ addressId }: { addressId: null | number }) {
           —
         </Text>
       ) : (
-        <Group gap={6} wrap="nowrap" align="baseline">
-          <IconMapPin size={15} style={{ flexShrink: 0 }} />
+        <Group gap={6} wrap="nowrap" align="center">
+          <AddressDot color={address?.color ?? ''} />
           <Text size="sm">
             <Anchor component={Link} to="/addresses" inherit>
               {address?.name ?? t('Wczytywanie…')}

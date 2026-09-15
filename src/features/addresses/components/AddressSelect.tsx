@@ -1,10 +1,11 @@
-import { Select } from '@mantine/core'
+import { Group, Select } from '@mantine/core'
 import { IconMapPin } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchAddresses } from '../../../api/addresses'
 import { t } from '../../../i18n'
 import { addressSummary } from '../presentation'
+import { AddressDot } from './AddressDot'
 
 // Choosing where a thing is kept. A select rather than the search-and-grid
 // pickers a case or a tool gets: a workshop has a handful of places and they
@@ -31,6 +32,7 @@ export function AddressSelect({
   })
 
   const data = query.data?.items ?? []
+  const chosen = data.find((address) => address.id === value) ?? null
 
   return (
     <Select
@@ -42,11 +44,22 @@ export function AddressSelect({
             ? t('Brak adresów')
             : t('Nie podano')
       }
-      leftSection={<IconMapPin size={16} />}
       data={data.map((address) => ({
         label: addressSummary(address),
         value: String(address.id),
       }))}
+      // The colour beside the chosen place, so a form shows the same mark the
+      // list and the card do. The options carry it through renderOption below.
+      leftSection={chosen ? <AddressDot color={chosen.color} /> : <IconMapPin size={16} />}
+      renderOption={({ option }) => {
+        const address = data.find((item) => String(item.id) === option.value)
+        return (
+          <Group gap={8} wrap="nowrap">
+            <AddressDot color={address?.color ?? ''} />
+            <span>{option.label}</span>
+          </Group>
+        )
+      }}
       value={value === null ? null : String(value)}
       // An empty select is null, not 0: the API tells "not set" from "set to
       // nothing" and so does the column behind it.

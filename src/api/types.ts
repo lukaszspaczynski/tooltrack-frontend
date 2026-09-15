@@ -536,6 +536,9 @@ export type OrganizerFields = {
 export type Address = {
   building: string
   city: string
+  // '#rrggbb', or '' when nobody has picked one. Not black — a place without a
+  // colour has to look different from one somebody made black on purpose.
+  color: string
   createdAt: string
   createdBy: null | number
   id: number
@@ -563,6 +566,7 @@ export type AddressPage = {
 export type AddressFields = {
   building: string
   city: string
+  color: string
   name: string
   notes: string
   postalCode: string

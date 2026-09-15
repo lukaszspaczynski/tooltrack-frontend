@@ -8,6 +8,7 @@ function address(overrides: Partial<Address> = {}): Address {
   return {
     building: '12A',
     city: 'Warszawa',
+    color: '#d0392a',
     createdAt: '2026-01-01T00:00:00.000Z',
     createdBy: 1,
     id: 1,

@@ -216,6 +216,9 @@ export const EN: Record<string, string> = {
   'Adres usunięty. {n} pozycji straciło lokalizację.':
     'Address deleted. {n} items no longer say where they are.',
   Adresy: 'Addresses',
+  Kolor: 'Colour',
+  'Po nim rozpoznasz miejsce na liście narzędzi.':
+    'It is how you recognise the place on a list of tools.',
   'Brak adresów': 'No addresses yet',
   'Dodaj adres': 'Add an address',
   'Dodaj pierwsze miejsce, a potem przypiszesz do niego narzędzia i organizery.':
