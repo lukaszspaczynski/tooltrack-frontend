@@ -23,6 +23,9 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
         {/* Where this one lives, as a sticker on its own picture: the number
             said out loud and the case it is in. On a shelf of near-identical
             packs that is the fact somebody is actually looking for. */}
+        {/* Two stickers on the picture, at opposite ends of the same row:
+            where it lives on the right, where it stands on the left. */}
+        <AddressBadge address={addressById(tool.addressId)} />
         {tool.organizer ? <PlacementBadge placement={tool.organizer} /> : null}
 
         {/* Fixed height whether or not there is a photo: a grid where every
@@ -76,21 +79,15 @@ export function ToolCard({ tool }: { tool: ToolListItem }) {
         </Stack>
 
         <Group justify="space-between" gap="xs" wrap="nowrap">
-          <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
-            {tool.category ? (
-              <Badge variant="default" size="sm">
-                {tool.category}
-              </Badge>
-            ) : (
-              <Text size="xs" c="dimmed">
-                bez kategorii
-              </Text>
-            )}
-            {/* Where it is, beside what it is. Nothing when nobody has said,
-                so a catalog where the field is unused looks exactly as it did
-                before there was a field. */}
-            <AddressBadge address={addressById(tool.addressId)} />
-          </Group>
+          {tool.category ? (
+            <Badge variant="default" size="sm">
+              {tool.category}
+            </Badge>
+          ) : (
+            <Text size="xs" c="dimmed">
+              bez kategorii
+            </Text>
+          )}
           <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
             {formatDateTime(tool.updatedAt)}
           </Text>

@@ -27,7 +27,10 @@ export function OrganizerCard({ item }: { item: Organizer }) {
       {/* Four across, wrapping downwards for as many rows as it takes. Not a
           scrolling strip: this is read on a phone by somebody in gloves, and a
           card that hides half its contents sideways hides them for good. */}
-      <Card.Section p="xs" bg="var(--mantine-color-default-hover)">
+      <Card.Section p="xs" bg="var(--mantine-color-default-hover)" pos="relative">
+        {/* Where the box stands, in the corner, the same sticker a tool card
+            carries — so one mark means one thing across both grids. */}
+        <AddressBadge address={addressById(item.addressId)} />
         <SimpleGrid cols={4} spacing={6} verticalSpacing={6}>
           <Thumbnail
             alt={item.case.name}
@@ -61,14 +64,9 @@ export function OrganizerCard({ item }: { item: Organizer }) {
           </Text>
         ) : null}
 
-        <Group gap="xs" wrap="nowrap" justify="space-between">
-          <Text size="xs" c="dimmed">
-            {toolCountLabel(item.tools.length)}
-          </Text>
-          {/* Where the box stands. Nothing when nobody has said, so a list of
-              arrangements nobody has located looks as it did before. */}
-          <AddressBadge address={addressById(item.addressId)} />
-        </Group>
+        <Text size="xs" c="dimmed">
+          {toolCountLabel(item.tools.length)}
+        </Text>
       </Stack>
     </Card>
   )
