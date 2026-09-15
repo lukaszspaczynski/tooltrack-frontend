@@ -34,22 +34,22 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import {
   addLabelSlot,
-  deleteCase,
-  fetchCase,
+  deleteItem,
+  fetchItem,
   removeLabelSlot,
-  updateCase,
-} from '../../../api/cases'
+  updateItem,
+} from '../../../api/items'
 import { ReferenceField } from '../../../components/ReferenceField'
 import { fetchOrganizersOfCase } from '../../../api/organizers'
 import { fetchExclusivePhotos } from '../../../api/photos'
-import type { CaseFields, ToolCase } from '../../../api/types'
+import type { ItemDetail } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { AttributePanel } from '../../items/components/AttributePanel'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
-import { CASE_ATTRIBUTE_API } from '../caseAttributeApi'
+import { ITEM_ATTRIBUTE_API } from '../../items/itemAttributeApi'
 import { useSession } from '../../../session/SessionContext'
 import { RefreshCaseModal } from '../components/RefreshCaseModal'
-import { CaseForm } from '../components/CaseForm'
+import { CaseForm, type CaseFields } from '../components/CaseForm'
 import { formatDateTime } from '../../items/presentation'
 import { innerDimensions, outerDimensions } from '../presentation'
 
@@ -64,18 +64,20 @@ export function CaseDetailPage() {
   const [confirmOpen, confirm] = useDisclosure(false)
   const [refreshingOpen, refreshing] = useDisclosure(false)
 
+  // ['item', id], not a key of its own: a box is a card, and two cache entries
+  // for one card is two answers to "what does it say now".
   const query = useQuery({
-    queryKey: ['case', caseId],
-    queryFn: () => fetchCase(caseId),
+    queryKey: ['item', caseId],
+    queryFn: () => fetchItem(caseId),
     enabled: Number.isInteger(caseId),
   })
 
   const save = useMutation({
-    mutationFn: (fields: CaseFields) => updateCase(caseId, fields),
-    onSuccess: async ({ case: saved }) => {
-      queryClient.setQueryData(['case', caseId], { case: saved })
-      await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
+    mutationFn: (fields: CaseFields) => updateItem(caseId, fields),
+    onSuccess: async ({ item: saved }) => {
+      queryClient.setQueryData(['item', caseId], { item: saved })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-models', 'case'] })
       notifications.show({ color: 'teal', message: t('Zapisano zmiany') })
       setEditing(false)
     },
@@ -96,7 +98,7 @@ export function CaseDetailPage() {
   // uses as its logo, stays. Same question the item card asks.
   const doomedPhotos = useQuery({
     queryKey: ['case-photos-exclusive', caseId],
-    queryFn: () => fetchExclusivePhotos({ id: caseId, kind: 'case' }),
+    queryFn: () => fetchExclusivePhotos({ id: caseId }),
     enabled: confirmOpen && Number.isInteger(caseId),
     staleTime: 0,
   })
@@ -108,8 +110,8 @@ export function CaseDetailPage() {
 
   const addSlot = useMutation({
     mutationFn: (slot: { heightMm: number; widthMm: number }) => addLabelSlot(caseId, slot),
-    onSuccess: async ({ case: saved }) => {
-      queryClient.setQueryData(['case', caseId], { case: saved })
+    onSuccess: async ({ item: saved }) => {
+      queryClient.setQueryData(['item', caseId], { item: saved })
       setSlotWidth('')
       setSlotHeight('')
     },
@@ -118,15 +120,15 @@ export function CaseDetailPage() {
 
   const dropSlot = useMutation({
     mutationFn: (slotId: number) => removeLabelSlot(caseId, slotId),
-    onSuccess: ({ case: saved }) => queryClient.setQueryData(['case', caseId], { case: saved }),
+    onSuccess: ({ item: saved }) => queryClient.setQueryData(['item', caseId], { item: saved }),
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
 
   const remove = useMutation({
-    mutationFn: () => deleteCase(caseId),
+    mutationFn: () => deleteItem(caseId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-models', 'case'] })
       // The photos went with it, so the library is stale too — and so did the
       // organizers that arranged this case.
       await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
@@ -161,7 +163,7 @@ export function CaseDetailPage() {
     )
   }
 
-  const item = query.data.case
+  const item = query.data.item
   // Where this case was read from, when it was read from anywhere: the same
   // field an item card carries. It has been a line in the note and a parameter
   // called Referencja on the way here; the migration moved both into the
@@ -327,7 +329,7 @@ export function CaseDetailPage() {
           has; this holds what they do not. */}
       <Paper withBorder p="lg" radius="md">
         <AttributePanel
-          api={CASE_ATTRIBUTE_API}
+          api={ITEM_ATTRIBUTE_API}
           attributes={item.attributes}
           canEdit={can('catalog.write')}
           emptyText={t('Nikt nie zapisał jeszcze parametrów tej skrzynki.')}
@@ -340,8 +342,9 @@ export function CaseDetailPage() {
       <Paper withBorder p="lg" radius="md">
         <PhotoPanel
           canEdit={can('catalog.write')}
+          kind="case"
           label={item.name}
-          owner={{ id: item.id, kind: 'case' }}
+          owner={{ id: item.id }}
           // The maker and the name identify a case; there is no model number.
           // The server falls back to the same thing.
           searchQuery={searchQueryFor(item)}
@@ -418,7 +421,7 @@ export function CaseDetailPage() {
   )
 }
 
-function CaseDetails({ item }: { item: ToolCase }) {
+function CaseDetails({ item }: { item: ItemDetail }) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
@@ -486,7 +489,7 @@ function Field({ label, swatch, value }: { label: string; swatch?: string; value
 
 // The names usually carry the maker already ("Qbrick System PRO Toolbox 2.0"),
 // and searching for "Qbrick Qbrick System PRO…" finds less than the name alone.
-function searchQueryFor(item: ToolCase): string {
+function searchQueryFor(item: ItemDetail): string {
   const name = item.name.trim()
   const manufacturer = (item.brand?.name ?? '').trim()
 
@@ -496,7 +499,7 @@ function searchQueryFor(item: ToolCase): string {
   return `${manufacturer} ${name}`
 }
 
-function toFields(item: ToolCase): CaseFields {
+function toFields(item: ItemDetail): CaseFields {
   return {
     brandId: item.brand?.id ?? null,
     name: item.name,

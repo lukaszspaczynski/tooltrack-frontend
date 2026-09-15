@@ -4,9 +4,23 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { fetchBrands } from '../../../api/brands'
-import { fetchModels } from '../../../api/cases'
-import type { CaseFields } from '../../../api/types'
+import { fetchModels } from '../../../api/items'
 import { t } from '../../../i18n'
+
+// The fields this form edits, which are not all of a card's.
+//
+// A box is an item with `kind: "case"` and could be edited by the item form —
+// but a serial number, a category and a condition are questions about a
+// machine, and the pages that use this turn these five into the card the API
+// takes. There is no `CaseFields` in the contract any more, because there is
+// no case body: this is a form's own shape.
+export type CaseFields = {
+  brandId: null | number
+  model: string
+  name: string
+  notes: string
+  referenceUrl: string
+}
 
 const EMPTY: CaseFields = {
   brandId: null,
@@ -56,8 +70,8 @@ export function CaseForm({
   })
 
   const models = useQuery({
-    queryFn: fetchModels,
-    queryKey: ['case-models'],
+    queryFn: () => fetchModels('case'),
+    queryKey: ['item-models', 'case'],
     staleTime: 60_000,
   })
 

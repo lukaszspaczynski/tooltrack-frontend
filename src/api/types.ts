@@ -90,6 +90,9 @@ export type ItemAttribute = {
 // spec sheet would be paying for what nobody reads there.
 export type ItemDetail = Item & {
   attributes: ItemAttribute[]
+  // Where the labels go, on a case. Empty for everything else, which is what
+  // one card type for the whole catalog costs and all it costs.
+  labelSlots: LabelSlot[]
 }
 
 // A shop this server knows how to read. The import dialog lists these before
@@ -141,27 +144,27 @@ export type OrganizerPlacement = {
 // The main photo of an item, as the catalog grid receives it: a URL and
 // nothing else, because a card needs a thumbnail and not a photo record.
 export type ItemSummary = Item & {
+  // The spec sheet, when the list was asked for it with `attributes: true`.
+  // Absent by default: a grid shows a name, a maker and a condition. The boxes
+  // screen asks, because what somebody scanning a shelf of boxes is choosing
+  // between is the measurements and what goes in.
+  attributes?: ItemAttribute[]
   organizer: null | OrganizerPlacement
   primaryPhotoUrl: null | string
 }
 
 export type PhotoSource = 'edit' | 'search' | 'upload' | 'url'
 
-// Items and cases carry photos on identical terms, so every photo call names
-// which kind of card it is talking about rather than having two of everything.
-export const PHOTO_OWNER_KINDS = ['case', 'item'] as const
-
-export type PhotoOwnerKind = (typeof PHOTO_OWNER_KINDS)[number]
-
+// Which card a photograph hangs on. It carried a kind as well as an id while a
+// case was a table of its own and the photo routes came in two sets — one card
+// now, one set of routes, and what is left is the id.
 export type PhotoOwner = {
   id: number
-  kind: PhotoOwnerKind
 }
 
 // One picture, once. Which cards show it is a separate question — see
 // CardPhoto and LibraryPhoto below — because the same photograph can
-// illustrate several items, several cases, and an item together with the case
-// it lives in.
+// illustrate several cards: an item and the case it lives in, for one.
 export type Photo = {
   attribution: string
   byteSize: number
@@ -191,7 +194,9 @@ export type PhotoOwnerRef = {
   // Whether this picture heads that card. A property of the pairing, so the
   // same photograph can be the main one here and the fourth one there.
   isPrimary: boolean
-  kind: PhotoOwnerKind
+  // What sort of card it is. It used to say which table the row came from and
+  // says what the card is now, which is what the library shows beside a name.
+  kind: ItemKind
   name: string
 }
 
@@ -360,78 +365,17 @@ export type ItemFields = {
   serialNumber: string
 }
 
-// A case: the box the items live in. Name and maker are required; everything
-// else comes off a spec sheet and is null when nobody has filled it in. Zero
-// is never "unknown" — a box with no height does not exist.
 // Where a label goes on a case: a size in millimetres and nothing else. What
 // gets printed on it is a different question.
+//
+// A case is not a type here any more. `catalog.tool_case` and `/api/cases/*`
+// are both gone: a box is an item with `kind: "case"`, so the boxes screen
+// reads `ItemDetail` like every other screen and this is the one shape that
+// was only ever a box's.
 export type LabelSlot = {
   heightMm: number
   id: number
   widthMm: number
-}
-
-export type ToolCase = {
-  // Not beside the columns any more — instead of them. A box was eleven
-  // measurement fields until the sheet took them: it already held a name and a
-  // value with its unit, and a twelfth kind of measurement is a row rather
-  // than a migration.
-  attributes: ItemAttribute[]
-  brand: null | ItemBrand
-  createdAt: string
-  createdBy: null | number
-  id: number
-  // Only the detail carries these: a grid of cases has no use for them.
-  labelSlots: LabelSlot[]
-  name: string
-  notes: string
-  // The same field an item card carries, and what the "update from the page"
-  // button on a case reads.
-  referenceUrl: string
-  model: string
-  updatedAt: string
-  updatedBy: null | number
-}
-
-export type CaseListItem = ToolCase & {
-  primaryPhotoUrl: null | string
-}
-
-export type CasePage = {
-  items: CaseListItem[]
-  limit: number
-  offset: number
-  total: number
-}
-
-// What POST /api/cases accepts. A PATCH sends any subset of it, and an
-// explicit null clears a measurement.
-// What POST /api/cases accepts. A PATCH sends any subset of it.
-export type CaseFields = {
-  brandId: null | number
-  name: string
-  notes: string
-  referenceUrl: string
-  model: string
-}
-
-// Where a case can be read from. Shorter than the item list and a different
-// one: a page that sells drills has nothing to say about a box.
-export type CaseImportSource = {
-  host: string
-  label: string
-}
-
-// What came with an imported case: the photographs and nothing else. A case has
-// no parameters and no documents, which is most of why it has its own importer.
-export type CaseImportResult = {
-  case: ToolCase
-  imported: {
-    // Always 0 on a refresh, whose photographs are deliberately left alone.
-    photos: number
-    photosFailed: number
-    sourceUrl: string
-  }
 }
 
 export type ModelCount = {

@@ -2,7 +2,7 @@
 // the components, so the wording is in one place and can be tested without
 // rendering anything.
 
-import type { Role, Item, ItemCondition } from '../../api/types'
+import type { Role, Item, ItemCondition, ItemKind } from '../../api/types'
 import { ROLES, ITEM_CONDITIONS } from '../../api/types'
 import { COUNTS, t, tCount, tDate } from '../../i18n'
 
@@ -12,6 +12,15 @@ export const CONDITION_LABELS: Record<ItemCondition, string> = {
   new: 'Nowe',
   retired: 'Wycofane',
   worn: 'Zużyte',
+}
+
+// What sort of thing a card is about. Read where a screen shows cards of more
+// than one sort at once — the photo library, which lists every card a picture
+// hangs on, is the one that needs it.
+export const KIND_LABELS: Record<ItemKind, string> = {
+  appliance: 'RTV/AGD',
+  case: 'Skrzynka',
+  tool: 'Narzędzie',
 }
 
 // Green through red, with grey for an item that is out of service. The colour

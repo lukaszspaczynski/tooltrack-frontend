@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import type { ToolCase } from '../../api/types'
+import type { ItemDetail } from '../../api/types'
 import {
   attributeValue,
   capacity,
@@ -13,7 +13,7 @@ import {
 } from './presentation'
 
 // A box states what it states, as parameters, with the unit in the value.
-function sheet(...pairs: [string, string][]): Pick<ToolCase, 'attributes'> {
+function sheet(...pairs: [string, string][]): Pick<ItemDetail, 'attributes'> {
   return {
     attributes: pairs.map(([name, value], index) => ({ id: index + 1, name, value })),
   }

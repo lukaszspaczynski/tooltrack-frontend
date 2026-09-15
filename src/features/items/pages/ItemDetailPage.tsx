@@ -57,7 +57,7 @@ export function ItemDetailPage() {
   // nobody has agreed to yet.
   const doomedPhotos = useQuery({
     queryKey: ['item-photos-exclusive', itemId],
-    queryFn: () => fetchExclusivePhotos({ id: itemId, kind: 'item' }),
+    queryFn: () => fetchExclusivePhotos({ id: itemId }),
     enabled: confirmOpen,
     staleTime: 0,
   })
@@ -248,7 +248,8 @@ export function ItemDetailPage() {
         <PhotoPanel
           canEdit={can('catalog.write')}
           label={item.name}
-          owner={{ id: item.id, kind: 'item' }}
+          kind={item.kind}
+          owner={{ id: item.id }}
           reference={reference}
           // Brand and model identify a machine; the name alone would find a
           // category. The server falls back to the same thing.

@@ -18,11 +18,11 @@ test('only what differs from the default reaches the address bar', () => {
 
   assert.equal(writeCaseParams(query).toString(), '')
   assert.equal(writeCaseParams({ ...query, search: 'toolbox' }).toString(), 'q=toolbox')
-  assert.equal(writeCaseParams({ ...query, sort: 'capacityL' }).toString(), 'sort=capacityL')
+  assert.equal(writeCaseParams({ ...query, sort: 'updatedAt' }).toString(), 'sort=updatedAt')
 })
 
 test('the address survives a round trip', () => {
-  const params = new URLSearchParams('q=pro&manufacturer=Qbrick&sort=capacityL&page=3')
+  const params = new URLSearchParams('q=pro&model=PRO&sort=updatedAt&page=3')
 
   assert.equal(writeCaseParams(readCaseParams(params)).toString(), params.toString())
 })

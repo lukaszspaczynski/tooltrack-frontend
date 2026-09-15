@@ -5,32 +5,43 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { importCase } from '../../../api/cases'
+import { importItem } from '../../../api/items'
 import { ApiError } from '../../../api/client'
 import { COUNTS, t, tCount } from '../../../i18n'
-import { isKnownCaseSource, useCaseImportSources } from '../useCaseImportSources'
+import { isKnownSource, useImportSources } from '../../items/useImportSources'
 
 // Making a case out of a maker's product page: paste the address, and the box
 // arrives with its measurements and its photographs already on it.
 //
 // The dialog says which pages it can read before asking for anything, because
 // the answer to "why was my link refused" should be on the screen that refused
-// it. The list is the cases one, not the items one — a page that sells drills
-// has nothing to say about a box.
+// it. It is the one list now: a page that sells drills has nothing to say about
+// a box, but which sort of card a page describes is the page's own answer, so
+// pasting a drill's address here makes a drill and says so.
 export function ImportCaseModal({ onClose, opened }: { onClose: () => void; opened: boolean }) {
   const [url, setUrl] = useState('')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { sources: known } = useCaseImportSources(opened)
-  const unsupported = url.trim().length > 0 && known.length > 0 && !isKnownCaseSource(url, known)
+  const { sources: known } = useImportSources(opened)
+  const unsupported = url.trim().length > 0 && known.length > 0 && !isKnownSource(url, known)
 
   const run = useMutation({
-    mutationFn: importCase,
-    onSuccess: async ({ case: imported, imported: outcome }) => {
-      queryClient.setQueryData(['case', imported.id], { case: imported })
-      await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
+    mutationFn: importItem,
+    onSuccess: async ({ item: imported, imported: outcome }) => {
+      // The contract allows a null card: the server reads it back after writing
+      // it and says so rather than pretending that cannot fail.
+      if (!imported) {
+        notifications.show({
+          color: 'red',
+          message: t('Nie udało się odczytać zaimportowanej karty'),
+        })
+        return
+      }
+
+      queryClient.setQueryData(['item', imported.id], { item: imported })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-models', 'case'] })
 
       notifications.show({
         color: 'teal',
@@ -39,11 +50,13 @@ export function ImportCaseModal({ onClose, opened }: { onClose: () => void; open
         }),
       })
 
-      // Straight to the case: the point of importing is to look at what came in
-      // and add the label slots, which no page can know about.
+      // Straight to the card: the point of importing is to look at what came in
+      // and add the label slots, which no page can know about. A page that
+      // turned out to describe a drill lands on the catalog screen instead,
+      // which is where that card belongs.
       setUrl('')
       onClose()
-      navigate(`/cases/${imported.id}`)
+      navigate(imported.kind === 'case' ? `/cases/${imported.id}` : `/items/${imported.id}`)
     },
     onError: (error) =>
       notifications.show({

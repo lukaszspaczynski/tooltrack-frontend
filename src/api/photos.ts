@@ -10,10 +10,11 @@ import type {
   PhotoSearchResult,
 } from './types'
 
-// /api/items/7/photos or /api/cases/7/photos — the same routes, the same
-// server handler, and the only place this app turns an owner into a path.
+// /api/items/7/photos. It was two paths — a case had its own — and this was
+// the only place that chose between them; it is still the only place this app
+// turns an owner into a path.
 function ownerPath(owner: PhotoOwner): string {
-  return `/${owner.kind === 'case' ? 'cases' : 'items'}/${owner.id}`
+  return `/items/${owner.id}`
 }
 
 export type PhotoImportItem = {

@@ -12,7 +12,7 @@ import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 
-import type { CaseListItem } from '../../../api/types'
+import type { ItemSummary } from '../../../api/types'
 import { AddressSelect } from '../../addresses/components/AddressSelect'
 import { t } from '../../../i18n'
 import { CasePicker } from './CasePicker'
@@ -113,7 +113,7 @@ export function OrganizerForm({
           <Collapse expanded={caseOpen}>
             <CasePicker
               selectedId={chosenCase.id}
-              onSelect={(item: CaseListItem) => {
+              onSelect={(item: ItemSummary) => {
                 setChosenCase(item)
                 casePicker.close()
               }}

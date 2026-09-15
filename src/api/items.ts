@@ -8,9 +8,14 @@ import type {
   ItemFields,
   ItemImportResult,
   ItemPage,
+  ModelCount,
 } from './types'
 
 export type ItemQuery = {
+  // Whether each card should carry its spec sheet. The boxes grid needs it —
+  // the measurements and what goes in are what somebody is choosing between —
+  // and nothing else does.
+  attributes?: boolean
   category: null | string
   condition: null | string
   // Which sort to list, or null for all of them. The catalog holds tools and
@@ -20,6 +25,10 @@ export type ItemQuery = {
   // false: only items that are in no organizer, which is what the organizer
   // wizard offers. Absent means "do not filter".
   inOrganizer?: boolean
+  // Exact model, as the cards spell it. A filter picked from a list rather than
+  // typed, which is what the boxes screen is read by: a workshop owns nine of
+  // the same Qbrick and one of everything else.
+  model?: null | string
   limit: number
   offset: number
   search: null | string
@@ -32,9 +41,11 @@ export type ItemQuery = {
 export function itemSearchParams(query: ItemQuery): URLSearchParams {
   const params = new URLSearchParams()
   if (query.kind) params.set('kind', query.kind)
+  if (query.attributes) params.set('attributes', '1')
 
   if (query.search) params.set('q', query.search)
   if (query.category) params.set('category', query.category)
+  if (query.model) params.set('model', query.model)
   if (query.condition) params.set('condition', query.condition)
   if (query.inOrganizer !== undefined) params.set('inOrganizer', String(query.inOrganizer))
   params.set('sort', query.sort)
@@ -55,6 +66,27 @@ export function fetchItem(id: number): Promise<{ item: ItemDetail }> {
 
 export function fetchCategories(): Promise<{ categories: CategoryCount[] }> {
   return request('/items/categories')
+}
+
+// What the model filter offers, counted from the cards themselves. The boxes
+// screen asks for `case`: one maker's range is what tells nine identical boxes
+// apart from each other.
+export function fetchModels(kind?: ItemKind): Promise<{ models: ModelCount[] }> {
+  return request('/items/models', { search: kind ? new URLSearchParams({ kind }) : undefined })
+}
+
+// One more place a label goes on a box. The whole card comes back, so the
+// screen does not have to merge a slot into a list it already holds — and a
+// card that is not a case is refused by the server with ITEM_IS_NOT_A_CASE.
+export function addLabelSlot(
+  id: number,
+  slot: { heightMm: number; widthMm: number },
+): Promise<{ item: ItemDetail }> {
+  return request(`/items/${id}/label-slots`, { body: slot, method: 'POST' })
+}
+
+export function removeLabelSlot(id: number, slotId: number): Promise<{ item: ItemDetail }> {
+  return request(`/items/${id}/label-slots/${slotId}`, { method: 'DELETE' })
 }
 
 export function createItem(fields: ItemFields): Promise<{ item: ItemDetail }> {

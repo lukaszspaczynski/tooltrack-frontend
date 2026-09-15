@@ -12,7 +12,7 @@
 // either side is a failure. There is no runtime here: `npm run typecheck` is
 // the test.
 
-import type { components, paths } from './schema'
+import type { components } from './schema'
 import type {
   AccountStatus,
   Address,
@@ -22,9 +22,6 @@ import type {
   BrandPage,
   Capability,
   CardPhoto,
-  CaseImportSource,
-  CaseListItem,
-  CasePage,
   CategoryCount,
   CutoutMethod,
   CutoutMethodSettings,
@@ -46,7 +43,6 @@ import type {
   Photo,
   PhotoLibraryPage,
   PhotoOwner,
-  PhotoOwnerKind,
   PhotoOwnerRef,
   PhotoSearchResult,
   PhotoSource,
@@ -58,7 +54,6 @@ import type {
   SuggestionProvider,
   ModelCount,
   ItemAttribute,
-  ToolCase,
   ItemCondition,
   ItemDetail,
   ItemImportResult,
@@ -84,8 +79,6 @@ export type _Brand = Assert<Same<Brand, Schemas['Brand']>>
 export type _BrandPage = Assert<Same<BrandPage, Schemas['BrandPage']>>
 export type _Capability = Assert<Same<Capability, Schemas['Capability']>>
 export type _CardPhoto = Assert<Same<CardPhoto, Schemas['CardPhoto']>>
-export type _CaseListItem = Assert<Same<CaseListItem, Schemas['CaseListItem']>>
-export type _CasePage = Assert<Same<CasePage, Schemas['CaseListPage']>>
 export type _CategoryCount = Assert<Same<CategoryCount, Schemas['CategoryCount']>>
 export type _CutoutMethod = Assert<Same<CutoutMethod, Schemas['CutoutMethod']>>
 export type _CutoutMethodSettings = Assert<
@@ -111,7 +104,6 @@ export type _OrganizerItem = Assert<Same<OrganizerItem, Schemas['OrganizerItem']
 export type _Photo = Assert<Same<Photo, Schemas['Photo']>>
 export type _PhotoLibraryPage = Assert<Same<PhotoLibraryPage, Schemas['LibraryPage']>>
 export type _PhotoOwner = Assert<Same<PhotoOwner, Schemas['PhotoOwner']>>
-export type _PhotoOwnerKind = Assert<Same<PhotoOwnerKind, Schemas['PhotoOwnerKind']>>
 export type _PhotoOwnerRef = Assert<Same<PhotoOwnerRef, Schemas['PhotoOwnerRef']>>
 export type _PhotoSearchResult = Assert<Same<PhotoSearchResult, Schemas['PhotoSearchResult']>>
 export type _PhotoSource = Assert<Same<PhotoSource, Schemas['PhotoSource']>>
@@ -123,7 +115,6 @@ export type _Session = Assert<Same<Session, Schemas['SessionResponse']>>
 export type _SuggestionProvider = Assert<Same<SuggestionProvider, Schemas['SuggestionProvider']>>
 export type _SystemCount = Assert<Same<ModelCount, Schemas['ModelCount']>>
 export type _ItemAttribute = Assert<Same<ItemAttribute, Schemas['Attribute']>>
-export type _ToolCase = Assert<Same<ToolCase, Schemas['ToolCase']>>
 export type _ItemCondition = Assert<Same<ItemCondition, Schemas['ItemCondition']>>
 export type _ItemDetail = Assert<Same<ItemDetail, Schemas['ItemDetail']>>
 export type _ItemImportResult = Assert<Same<ItemImportResult, Schemas['ImportResponse']>>
@@ -131,16 +122,3 @@ export type _ItemSummary = Assert<Same<ItemSummary, Schemas['ItemSummary']>>
 export type _ItemPage = Assert<Same<ItemPage, Schemas['ItemListPage']>>
 export type _OrganizerPlacement = Assert<Same<OrganizerPlacement, Schemas['OrganizerPlacement']>>
 export type _User = Assert<Same<User, Schemas['User']>>
-
-// The case import, whose shapes the contract states inline on the operations
-// rather than as named schemas, so these are checked field by field.
-export type _CaseImportSource = Assert<
-  Same<
-    CaseImportSource,
-    NonNullable<
-      NonNullable<
-        paths['/api/cases/import/sources']['get']['responses'][200]['content']['application/json']
-      >['sources']
-    >[number]
-  >
->

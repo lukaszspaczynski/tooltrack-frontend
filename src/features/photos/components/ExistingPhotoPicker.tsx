@@ -80,11 +80,11 @@ export function ExistingPhotoPicker({
   })
 
   // A picture already on this card cannot be added again, so it is not
-  // offered. Item 4 and case 4 are different cards, hence both halves of the
-  // check — and a picture on three other cards is still offered, because that
-  // is now allowed.
+  // offered. The check was on the kind as well as the id while item 4 and case
+  // 4 were different cards; one card, one id. A picture on three other cards is
+  // still offered, because that is allowed.
   const items = (library.data?.items ?? []).filter(
-    (photo) => !photo.owners.some((entry) => entry.kind === owner.kind && entry.id === owner.id),
+    (photo) => !photo.owners.some((entry) => entry.id === owner.id),
   )
   const pages = Math.max(Math.ceil((library.data?.total ?? 0) / PAGE_SIZE), 1)
 

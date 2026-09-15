@@ -14,7 +14,7 @@ src/
 ├── api/                 The whole HTTP surface. Nothing else calls fetch.
 │   ├── client.ts            request(), ApiError, the base URL
 │   ├── types.ts             The contract, mirroring Backend/docs/api.md
-│   └── auth.ts cases.ts photos.ts settings.ts items.ts users.ts
+│   └── auth.ts photos.ts settings.ts items.ts users.ts
 ├── i18n/                What the interface says, in Polish and English
 │   ├── lang.ts              Plural rules, dates, the language itself. Pure.
 │   ├── catalog.ts           The English side, keyed by the Polish phrase
@@ -55,9 +55,8 @@ src/
 - **Server state is TanStack Query, not useState.** Cache keys: `['items',
 query]`, `['item', id]`, `['item-categories']`, `['users']`, `['session']`.
   A mutation invalidates what it changed — a new item changes the list _and_
-  the category list. Photo keys carry the owner's kind as well as its id
-  (`['card-photos', 'case', 4]`): item 4 and case 4 are different cards that
-  happen to share a number.
+  the category list. There is no `['case', id]`: a box is a card, and two cache
+  entries for one card would be two answers to "what does it say now".
 
 ## Importing from a shop
 
@@ -113,8 +112,9 @@ and the photographs.
 
 `features/items/` was `features/tools/`. The catalog began as a tool shed and
 is not only one: a drill and a washing machine want the same card, so they are
-one screen and `kind` says which sort each row is — `tool`, `appliance`, and
-`case` reserved for the day the boxes fold in.
+one screen and `kind` says which sort each row is — `tool`, `appliance` and
+`case`. The boxes folded in: `catalog.tool_case` and `/api/cases/*` are both
+gone.
 
 The filter for it lives in the URL like every other one, so "show me the
 appliances" is a link somebody can send. It is deliberately **not** the
@@ -161,25 +161,35 @@ is what lets a card written by hand have the update button too.
 
 ## Cases
 
-`features/cases/` is the second half of the catalog: the boxes the items live
-in. Same shapes as `features/items/` — URL-driven list, card grid, detail page
-with an inline form — because it is read in the same place under the same
-conditions.
+`features/cases/` is the boxes, and it is a **view of the item list** rather
+than a second catalog: `GET /api/items?kind=case`, `GET /api/items/:id`, and
+the same POST and PATCH every card uses. There is no `api/cases.ts` any more,
+no `ToolCase`, and the detail page shares `['item', id]` with the catalog
+screen — editing a box on one screen cannot leave the other showing the old
+name.
 
-What differs is the fields. Name and maker are required, everything else comes
-off a spec sheet, and a measurement nobody has taken stays `null`. The form
-sends `null` rather than omitting an emptied input, because that is what clears
-a number the API already has. Millimetres are whole numbers and the input says
-so; litres and kilograms accept a Polish comma, since that is what the spec
-sheets these get copied from are written with.
+Two things are still only a box's. **Label slots** hang off the card
+(`POST /api/items/:id/label-slots`, refused on a drill with
+`ITEM_IS_NOT_A_CASE`) and arrive on every item as `labelSlots`, empty for
+everything else. And the **spec sheet in the grid**: this is the one list that
+asks for `attributes: true`, because what somebody scanning a shelf of boxes is
+choosing between is the outside measurements and what goes in, while the
+catalog grid shows a name, a maker and a condition and should not pay for a
+sheet nobody reads.
+
+`CaseForm` keeps its own `CaseFields` — five fields, not a card's — because a
+serial number, a category and a condition are questions about a machine. The
+create page turns them into the card the API takes.
 
 ## Photos
 
 `features/photos/` holds the photo components, and they are not under `items/`
-because a case carries pictures on exactly the same terms. Every one of them
-takes a `PhotoOwner` — `{ kind: 'item' | 'case', id }` — which `api/photos.ts`
-turns into `/api/items/7/…` or `/api/cases/7/…`. `PhotoPanel` is the gallery,
-and it is the same component on both detail pages.
+because the boxes screen shows the same gallery. Every one of them takes a
+`PhotoOwner` — `{ id }`, and it carried a `kind` as well while a case was a
+table of its own and the routes came in two sets. `api/photos.ts` turns it into
+`/api/items/7/…` and is the only place that builds one. `PhotoPanel` is the
+gallery, and it is the same component on both detail pages; `kind` is passed to
+it separately, for the one line of wording that needs it.
 
 A `Photo` is a picture and has no owner; a `CardPhoto` is a picture as one card
 shows it and adds `isPrimary`. The same photograph can head one card and sit

@@ -41,8 +41,6 @@ export const EN: Record<string, string> = {
     '{items} stay in the catalog and keep the maker’s name as text — they lose only the link to this entry.',
   'brak narzędzi': 'no items',
   pusty: 'empty',
-  skrzynka: 'case',
-  narzędzie: 'item',
   'bez narzędzi': 'no items',
   'Dodaj rozmiar na karcie skrzynki „{name}”, a potem wróć tutaj.':
     'Add a size on the case card for “{name}”, then come back here.',

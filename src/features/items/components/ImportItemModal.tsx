@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { ApiError } from '../../../api/client'
 import { importItem } from '../../../api/items'
 import { COUNTS, t, tCount } from '../../../i18n'
-import { useImportSources } from '../useImportSources'
+import { isKnownSource, useImportSources } from '../useImportSources'
 
 // Making a card out of a shop's product page: paste the address, and the card
 // arrives with its parameters and its photographs already on it.
@@ -24,7 +24,7 @@ export function ImportItemModal({ onClose, opened }: { onClose: () => void; open
   const queryClient = useQueryClient()
 
   const { sources: known } = useImportSources(opened)
-  const unsupported = url.trim().length > 0 && known.length > 0 && !isKnown(url, known)
+  const unsupported = url.trim().length > 0 && known.length > 0 && !isKnownSource(url, known)
 
   const run = useMutation({
     mutationFn: importItem,
@@ -125,22 +125,4 @@ export function ImportItemModal({ onClose, opened }: { onClose: () => void; open
       </Stack>
     </Modal>
   )
-}
-
-// The same rule the server applies, so the refusal happens where the address
-// was typed rather than after a round trip: the host has to be one of the
-// shops, not merely contain its name.
-function isKnown(url: string, sources: { host: string }[]): boolean {
-  let parsed: URL
-  try {
-    parsed = new URL(url.trim())
-  } catch {
-    return false
-  }
-
-  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false
-
-  const host = parsed.hostname.toLowerCase().replace(/^www\./, '')
-
-  return sources.some((source) => host === source.host.toLowerCase().replace(/^www\./, ''))
 }

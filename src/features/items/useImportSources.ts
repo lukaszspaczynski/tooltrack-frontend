@@ -31,3 +31,23 @@ export function useImportSources(enabled: boolean): {
     sources,
   }
 }
+
+// Whether an address is one of them, checked here as well as on the server:
+// here so nobody waits for a round trip to be told, there because that is where
+// it is true. Shared by every dialog that takes an address — the one importing
+// a drill and the one importing a box are the same question now that there is
+// one registry.
+export function isKnownSource(url: string, sources: { host: string }[]): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(url.trim())
+  } catch {
+    return false
+  }
+
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false
+
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, '')
+
+  return sources.some((source) => host === source.host.toLowerCase().replace(/^www\./, ''))
+}

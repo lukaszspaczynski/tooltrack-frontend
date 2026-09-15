@@ -39,7 +39,7 @@ import {
   uploadPhoto,
   type PhotoImportItem,
 } from '../../../api/photos'
-import type { Photo, PhotoOwner } from '../../../api/types'
+import type { ItemKind, Photo, PhotoOwner } from '../../../api/types'
 import { t } from '../../../i18n'
 import { CutoutStudio } from './CutoutStudio'
 import { ExistingPhotoPicker } from './ExistingPhotoPicker'
@@ -64,12 +64,17 @@ const SOURCE_LABELS: Record<Photo['source'], string> = {
 // exactly the same terms; the server serves both from one set of routes.
 export function PhotoPanel({
   canEdit,
+  kind,
   label,
   owner,
   reference = '',
   searchQuery,
 }: {
   canEdit: boolean
+  // What sort of card this is, which only the wording needs: "wytnij samą
+  // skrzynkę" against "samo narzędzie". The owner used to carry it, back when
+  // it decided which routes to call as well.
+  kind: ItemKind
   // What to put in the alt text: the name of the card these belong to.
   label: string
   owner: PhotoOwner
@@ -85,7 +90,7 @@ export function PhotoPanel({
   const [pickerOpen, picker] = useDisclosure(false)
 
   const photos = useQuery({
-    queryKey: ['card-photos', owner.kind, owner.id],
+    queryKey: ['card-photos', owner.id],
     queryFn: () => fetchPhotos(owner),
   })
 
@@ -100,7 +105,7 @@ export function PhotoPanel({
   })
 
   const refresh = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['card-photos', owner.kind, owner.id] })
+    await queryClient.invalidateQueries({ queryKey: ['card-photos', owner.id] })
     // The grid shows the main photo, so it changed too.
     await queryClient.invalidateQueries({ queryKey: ['items'] })
   }
@@ -284,7 +289,7 @@ export function PhotoPanel({
                       label={
                         photo.source === 'edit'
                           ? t('To zdjęcie już jest wycięte')
-                          : `Wytnij ${owner.kind === 'case' ? t('samą skrzynkę') : t('samo narzędzie')}`
+                          : `Wytnij ${kind === 'case' ? t('samą skrzynkę') : t('samo narzędzie')}`
                       }
                     >
                       <ActionIcon

@@ -11,7 +11,7 @@ import {
 } from '@mantine/core'
 import { useState } from 'react'
 
-import type { CaseListItem, OrganizerFields, ItemSummary } from '../../../api/types'
+import type { OrganizerFields, ItemSummary } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { CasePicker } from './CasePicker'
 import { ItemPicker } from './ItemPicker'
@@ -32,7 +32,7 @@ export function OrganizerWizard({
   saving: boolean
 }) {
   const [step, setStep] = useState(0)
-  const [chosenCase, setChosenCase] = useState<null | CaseListItem>(null)
+  const [chosenCase, setChosenCase] = useState<null | ItemSummary>(null)
   // The items themselves rather than their ids: one of them is the name of the
   // arrangement, and only the picker ever knew what it was called.
   const [items, setTools] = useState<ItemSummary[]>([])

@@ -1,7 +1,7 @@
 // How a case reads on screen. Pure functions, apart from the components, so
 // the wording is in one place and can be tested without rendering anything.
 
-import type { ToolCase } from '../../api/types'
+import type { Item, ItemDetail } from '../../api/types'
 import { CASE_ATTRIBUTE_LABELS } from './attributeLabels'
 
 // What a box states, read off its spec sheet.
@@ -9,7 +9,7 @@ import { CASE_ATTRIBUTE_LABELS } from './attributeLabels'
 // These were typed fields until a box stopped being eleven columns. They are
 // parameters now, which means the name is the key and the value carries its
 // unit — "450 mm" — so a screen reads them rather than formats them.
-export function attributeValue(item: Pick<ToolCase, 'attributes'>, name: string): string {
+export function attributeValue(item: Pick<ItemDetail, 'attributes'>, name: string): string {
   return item.attributes.find((attribute) => attribute.name === name)?.value ?? ''
 }
 
@@ -19,14 +19,14 @@ export function attributeValue(item: Pick<ToolCase, 'attributes'>, name: string)
 // marks: two measurements out of three is still worth reading, and an invented
 // third is not. The unit is written once at the end, which is why it is
 // stripped from each value first.
-function dimensions(item: Pick<ToolCase, 'attributes'>, names: string[]): string {
+function dimensions(item: Pick<ItemDetail, 'attributes'>, names: string[]): string {
   const parts = names.map((name) => attributeValue(item, name).replace(' mm', '')).filter(Boolean)
   if (parts.length === 0) return ''
 
   return `${parts.join(' × ')} mm`
 }
 
-export function outerDimensions(item: Pick<ToolCase, 'attributes'>): string {
+export function outerDimensions(item: Pick<ItemDetail, 'attributes'>): string {
   return dimensions(item, [
     CASE_ATTRIBUTE_LABELS.outerLength,
     CASE_ATTRIBUTE_LABELS.outerWidth,
@@ -34,7 +34,7 @@ export function outerDimensions(item: Pick<ToolCase, 'attributes'>): string {
   ])
 }
 
-export function innerDimensions(item: Pick<ToolCase, 'attributes'>): string {
+export function innerDimensions(item: Pick<ItemDetail, 'attributes'>): string {
   return dimensions(item, [
     CASE_ATTRIBUTE_LABELS.innerLength,
     CASE_ATTRIBUTE_LABELS.innerWidth,
@@ -44,17 +44,17 @@ export function innerDimensions(item: Pick<ToolCase, 'attributes'>): string {
 
 // What goes in and what it carries — the two facts somebody choosing a box is
 // choosing between.
-export function capacity(item: Pick<ToolCase, 'attributes'>): string {
+export function capacity(item: Pick<ItemDetail, 'attributes'>): string {
   return attributeValue(item, CASE_ATTRIBUTE_LABELS.volume)
 }
 
-export function load(item: Pick<ToolCase, 'attributes'>): string {
+export function load(item: Pick<ItemDetail, 'attributes'>): string {
   return attributeValue(item, CASE_ATTRIBUTE_LABELS.load)
 }
 
 // The maker and the model, as one line under the name. Either may be missing
 // and the line closes up rather than showing a stray separator.
-export function caseSubtitle(item: Pick<ToolCase, 'brand' | 'model'>): string {
+export function caseSubtitle(item: Pick<Item, 'brand' | 'model'>): string {
   return [item.brand?.name, item.model]
     .map((part) => part?.trim())
     .filter(Boolean)

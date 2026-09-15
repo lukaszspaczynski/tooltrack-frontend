@@ -18,7 +18,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
-import { fetchCases } from '../../../api/cases'
+import { fetchItems } from '../../../api/items'
 import { useSession } from '../../../session/SessionContext'
 import { ImportCaseModal } from '../components/ImportCaseModal'
 import { CaseCard } from '../components/CaseCard'
@@ -53,9 +53,11 @@ export function CasesListPage() {
     apply({ search: value.trim() || null })
   }, 300)
 
+  // ['items', query] like every other list: the boxes are the item list asked
+  // for one kind, so adding a box has to make this stale too.
   const cases = useQuery({
-    queryKey: ['cases', query],
-    queryFn: () => fetchCases(query),
+    queryKey: ['items', query],
+    queryFn: () => fetchItems(query),
     // The grid keeps the previous page while the next one loads, instead of
     // collapsing to a spinner every time a filter changes.
     placeholderData: keepPreviousData,

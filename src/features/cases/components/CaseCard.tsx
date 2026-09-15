@@ -3,17 +3,19 @@ import { IconPhotoOff } from '@tabler/icons-react'
 import { Link } from 'react-router-dom'
 
 import { apiFileUrl } from '../../../api/client'
-import type { CaseListItem } from '../../../api/types'
+import type { ItemSummary } from '../../../api/types'
 import { t } from '../../../i18n'
 import { capacity, caseSubtitle, outerDimensions } from '../presentation'
 
-// One case, as it appears in the grid. The same card shape as an item, because
-// it is read in the same place under the same conditions: on a phone, in a
-// van, by somebody looking for the box rather than the drill.
-export function CaseCard({ item }: { item: CaseListItem }) {
+// One case, as it appears in the grid. The same card shape as an item because
+// it is the same card: a box is an item with `kind: "case"`, and this screen
+// is the one that shows what a box states — the outside measurements and what
+// goes in — which is why its list asks for the spec sheet.
+export function CaseCard({ item }: { item: ItemSummary }) {
+  const sheet = { attributes: item.attributes ?? [] }
   const subtitle = caseSubtitle(item)
-  const dimensions = outerDimensions(item)
-  const goesIn = capacity(item)
+  const dimensions = outerDimensions(sheet)
+  const goesIn = capacity(sheet)
 
   return (
     <Card

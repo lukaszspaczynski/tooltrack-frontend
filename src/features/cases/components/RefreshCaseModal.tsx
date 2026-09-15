@@ -4,10 +4,10 @@ import { IconAlertTriangle, IconRefresh } from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
-import { refreshCaseFromPage } from '../../../api/cases'
+import { refreshToolFromPage } from '../../../api/items'
 import { ApiError } from '../../../api/client'
 import { t } from '../../../i18n'
-import { isKnownCaseSource, useCaseImportSources } from '../useCaseImportSources'
+import { isKnownSource, useImportSources } from '../../items/useImportSources'
 
 // Reading the product page again into a case that already exists.
 //
@@ -32,16 +32,15 @@ export function RefreshCaseModal({
   const [url, setUrl] = useState(reference)
   const queryClient = useQueryClient()
 
-  const { sources } = useCaseImportSources(opened)
-  const unsupported =
-    url.trim().length > 0 && sources.length > 0 && !isKnownCaseSource(url, sources)
+  const { sources } = useImportSources(opened)
+  const unsupported = url.trim().length > 0 && sources.length > 0 && !isKnownSource(url, sources)
 
   const refresh = useMutation({
-    mutationFn: (address: string) => refreshCaseFromPage(caseId, address),
-    onSuccess: async ({ case: updated }) => {
-      queryClient.setQueryData(['case', caseId], { case: updated })
-      await queryClient.invalidateQueries({ queryKey: ['cases'] })
-      await queryClient.invalidateQueries({ queryKey: ['case-models'] })
+    mutationFn: (address: string) => refreshToolFromPage(caseId, address),
+    onSuccess: async ({ item: updated }) => {
+      if (updated) queryClient.setQueryData(['item', caseId], { item: updated })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['item-models', 'case'] })
 
       notifications.show({ color: 'teal', message: t('Zaktualizowano skrzynkę ze strony') })
       onClose()

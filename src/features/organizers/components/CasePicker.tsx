@@ -15,8 +15,8 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import { apiFileUrl } from '../../../api/client'
-import { fetchCases } from '../../../api/cases'
-import type { CaseListItem } from '../../../api/types'
+import { fetchItems } from '../../../api/items'
+import type { ItemSummary } from '../../../api/types'
 import { t } from '../../../i18n'
 import { capacity, outerDimensions } from '../../cases/presentation'
 
@@ -31,7 +31,7 @@ export function CasePicker({
   onSelect,
   selectedId,
 }: {
-  onSelect: (item: CaseListItem) => void
+  onSelect: (item: ItemSummary) => void
   selectedId: null | number
 }) {
   const [searchText, setSearchText] = useState('')
@@ -41,7 +41,19 @@ export function CasePicker({
   const cases = useQuery({
     queryKey: ['organizer-case-picker', search],
     queryFn: () =>
-      fetchCases({ limit: PAGE_SIZE, manufacturer: null, offset: 0, search, sort: 'name' }),
+      fetchItems({
+        // The two facts that decide a box are on its spec sheet, so this list
+        // asks for it like the boxes screen does.
+        attributes: true,
+        category: null,
+        condition: null,
+        direction: 'asc',
+        kind: 'case',
+        limit: PAGE_SIZE,
+        offset: 0,
+        search,
+        sort: 'name',
+      }),
     placeholderData: keepPreviousData,
   })
 
@@ -92,10 +104,10 @@ export function CasePicker({
                 </Text>
                 <Group gap={4} wrap="nowrap" justify="space-between">
                   <Text size="xs" c="dimmed">
-                    {capacity(item) || '— L'}
+                    {capacity(sheetOf(item)) || '— L'}
                   </Text>
-                  <Text size="xs" c="dimmed" lineClamp={1} title={outerDimensions(item)}>
-                    {outerDimensions(item) || t('bez wymiarów')}
+                  <Text size="xs" c="dimmed" lineClamp={1} title={outerDimensions(sheetOf(item))}>
+                    {outerDimensions(sheetOf(item)) || t('bez wymiarów')}
                   </Text>
                 </Group>
               </Stack>
@@ -105,4 +117,10 @@ export function CasePicker({
       </ScrollArea.Autosize>
     </Stack>
   )
+}
+
+// The list carries the sheet because this asked for it; the presentation
+// helpers take a card that has one.
+function sheetOf(item: ItemSummary): { attributes: NonNullable<ItemSummary['attributes']> } {
+  return { attributes: item.attributes ?? [] }
 }

@@ -43,11 +43,11 @@ import {
   importLibraryPhoto,
   uploadLibraryPhoto,
 } from '../../../api/photos'
-import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
+import type { LibraryPhoto, PhotoOwner, PhotoOwnerRef } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutStudio } from '../../photos/components/CutoutStudio'
-import { formatDateTime } from '../../items/presentation'
+import { formatDateTime, KIND_LABELS } from '../../items/presentation'
 import {
   ASSIGNED_OPTIONS,
   LIBRARY_PAGE_SIZE,
@@ -157,7 +157,7 @@ export function PhotoLibraryPage() {
   // result is a new picture either way — and one nobody has placed cannot be
   // cut out from here at all.
   const cutoutOwner: null | PhotoOwner = cutoutTarget?.owners[0]
-    ? { id: cutoutTarget.owners[0].id, kind: cutoutTarget.owners[0].kind }
+    ? { id: cutoutTarget.owners[0].id }
     : null
 
   const items = library.data?.items ?? []
@@ -418,11 +418,11 @@ function PhotoTile({
               <Text
                 key={`${owner.kind}-${owner.id}`}
                 component={Link}
-                to={owner.kind === 'case' ? `/cases/${owner.id}` : `/items/${owner.id}`}
+                to={cardPath(owner)}
                 size="xs"
                 fw={600}
                 lineClamp={1}
-                title={`${owner.name} (${owner.kind === 'case' ? t('skrzynka') : t('narzędzie')})`}
+                title={`${owner.name} (${t(KIND_LABELS[owner.kind])})`}
               >
                 {owner.name}
                 {index < photo.owners.length - 1 || photo.logoForBrand !== null ? ',' : ''}
@@ -563,7 +563,7 @@ function DeleteConfirmation({
                 <List.Item key={`${owner.kind}-${owner.id}`}>
                   {owner.name}{' '}
                   <Text span size="xs" c="dimmed">
-                    ({owner.kind === 'case' ? t('skrzynka') : t('narzędzie')})
+                    ({t(KIND_LABELS[owner.kind])})
                   </Text>
                 </List.Item>
               ))}
@@ -655,4 +655,10 @@ function primaryLabel(photo: LibraryPhoto): string {
   const cards = photo.owners.filter((owner) => owner.isPrimary).map((owner) => owner.name)
 
   return t('Zdjęcie główne: {cards}', { cards: cards.join(', ') })
+}
+
+// Where a card is read. A box has a screen of its own — the same card, shown
+// the way somebody scanning a shelf of boxes wants it.
+function cardPath(owner: PhotoOwnerRef): string {
+  return owner.kind === 'case' ? `/cases/${owner.id}` : `/items/${owner.id}`
 }
