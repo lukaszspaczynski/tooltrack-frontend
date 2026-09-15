@@ -2,58 +2,66 @@
 // the wording is in one place and can be tested without rendering anything.
 
 import type { ToolCase } from '../../api/types'
+import { CASE_ATTRIBUTE_LABELS } from './attributeLabels'
 
-type Dimensions = {
-  height: null | number
-  length: null | number
-  width: null | number
+// What a box states, read off its spec sheet.
+//
+// These were typed fields until a box stopped being eleven columns. They are
+// parameters now, which means the name is the key and the value carries its
+// unit — "450 mm" — so a screen reads them rather than formats them.
+export function attributeValue(item: Pick<ToolCase, 'attributes'>, name: string): string {
+  return item.attributes.find((attribute) => attribute.name === name)?.value ?? ''
 }
 
-// "450 × 331 × 240 mm", or nothing at all. A partial set is shown as far as it
-// goes rather than padded with question marks: two measurements out of three
-// is still worth reading, and an invented third is not.
-export function formatDimensions(dimensions: Dimensions): string {
-  const parts = [dimensions.length, dimensions.width, dimensions.height].filter(
-    (part): part is number => part !== null,
-  )
+// "450 × 322 × 126 mm", or nothing at all.
+//
+// A partial set is shown as far as it goes rather than padded with question
+// marks: two measurements out of three is still worth reading, and an invented
+// third is not. The unit is written once at the end, which is why it is
+// stripped from each value first.
+function dimensions(item: Pick<ToolCase, 'attributes'>, names: string[]): string {
+  const parts = names.map((name) => attributeValue(item, name).replace(' mm', '')).filter(Boolean)
   if (parts.length === 0) return ''
 
   return `${parts.join(' × ')} mm`
 }
 
-export function outerDimensions(item: ToolCase): string {
-  return formatDimensions({
-    height: item.outerHeightMm,
-    length: item.outerLengthMm,
-    width: item.outerWidthMm,
-  })
+export function outerDimensions(item: Pick<ToolCase, 'attributes'>): string {
+  return dimensions(item, [
+    CASE_ATTRIBUTE_LABELS.outerLength,
+    CASE_ATTRIBUTE_LABELS.outerWidth,
+    CASE_ATTRIBUTE_LABELS.outerHeight,
+  ])
 }
 
-export function innerDimensions(item: ToolCase): string {
-  return formatDimensions({
-    height: item.innerHeightMm,
-    length: item.innerLengthMm,
-    width: item.innerWidthMm,
-  })
+export function innerDimensions(item: Pick<ToolCase, 'attributes'>): string {
+  return dimensions(item, [
+    CASE_ATTRIBUTE_LABELS.innerLength,
+    CASE_ATTRIBUTE_LABELS.innerWidth,
+    CASE_ATTRIBUTE_LABELS.innerHeight,
+  ])
 }
 
-// A Polish decimal comma, and no trailing zeroes: the label says "4,5 L", not
-// "4.50 L".
-export function formatNumber(value: null | number, unit: string): string {
-  if (value === null) return ''
-
-  return `${new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 2 }).format(value)} ${unit}`
+// What goes in and what it carries — the two facts somebody choosing a box is
+// choosing between.
+export function capacity(item: Pick<ToolCase, 'attributes'>): string {
+  return attributeValue(item, CASE_ATTRIBUTE_LABELS.volume)
 }
 
-// The line under a case's name. Blank fields are dropped rather than shown as
-// empty separators.
-export function caseSubtitle(item: Pick<ToolCase, 'manufacturer' | 'system'>): string {
-  return [item.manufacturer, item.system].filter(Boolean).join(' · ')
+export function load(item: Pick<ToolCase, 'attributes'>): string {
+  return attributeValue(item, CASE_ATTRIBUTE_LABELS.load)
 }
 
-// "3 skrzynki" is not "3 skrzynek". Polish picks a form by the last digits,
-// and getting it wrong is the kind of small wrongness people notice on every
-// screen.
+// The maker and the system, as one line under the name. Either may be missing
+// and the line closes up rather than showing a stray separator.
+export function caseSubtitle(item: Pick<ToolCase, 'brand' | 'system'>): string {
+  return [item.brand?.name, item.system]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(' · ')
+}
+
+// Polish counts a case three ways. The list header says how many there are.
 export function caseCountLabel(count: number): string {
   const lastTwo = count % 100
   const last = count % 10

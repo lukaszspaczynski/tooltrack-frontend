@@ -57,7 +57,7 @@ import type {
   Session,
   SuggestionProvider,
   SystemCount,
-  ToolAttribute,
+  ItemAttribute,
   ToolCase,
   ItemCondition,
   ItemDetail,
@@ -122,7 +122,7 @@ export type _SearchProvider = Assert<Same<SearchProvider, Schemas['SearchProvide
 export type _Session = Assert<Same<Session, Schemas['SessionResponse']>>
 export type _SuggestionProvider = Assert<Same<SuggestionProvider, Schemas['SuggestionProvider']>>
 export type _SystemCount = Assert<Same<SystemCount, Schemas['SystemCount']>>
-export type _ToolAttribute = Assert<Same<ToolAttribute, Schemas['Attribute']>>
+export type _ItemAttribute = Assert<Same<ItemAttribute, Schemas['Attribute']>>
 export type _ToolCase = Assert<Same<ToolCase, Schemas['ToolCase']>>
 export type _ItemCondition = Assert<Same<ItemCondition, Schemas['ItemCondition']>>
 export type _ItemDetail = Assert<Same<ItemDetail, Schemas['ItemDetail']>>

@@ -1,36 +1,18 @@
-import {
-  Autocomplete,
-  Button,
-  Fieldset,
-  Group,
-  NumberInput,
-  Stack,
-  Textarea,
-  TextInput,
-} from '@mantine/core'
+import { Autocomplete, Button, Group, Select, Stack, Textarea, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
+import { fetchBrands } from '../../../api/brands'
 import { fetchSystems } from '../../../api/cases'
 import type { CaseFields } from '../../../api/types'
 import { t } from '../../../i18n'
 
 const EMPTY: CaseFields = {
-  capacityL: null,
-  diagonalMm: null,
-  ean: '',
-  innerHeightMm: null,
-  innerLengthMm: null,
-  innerWidthMm: null,
-  loadKg: null,
-  manufacturer: '',
+  brandId: null,
   name: '',
   notes: '',
   referenceUrl: '',
-  outerHeightMm: null,
-  outerLengthMm: null,
-  outerWidthMm: null,
-  sku: '',
   system: '',
 }
 
@@ -42,25 +24,13 @@ export type CaseFormProps = {
   submitLabel: string
 }
 
-// Name and maker are required; everything below comes off a spec sheet, and a
-// spec sheet is something you have or you do not. An empty measurement stays
-// null rather than becoming zero — a box with no height does not exist, and
-// "not measured" has to remain sayable.
-// The form's type is whatever this returns, which is how the small helpers
-// below can take it without anybody writing Mantine's generics out by hand.
-function useCaseForm(initialValues?: CaseFields) {
-  return useForm<CaseFields>({
-    mode: 'uncontrolled',
-    initialValues: initialValues ?? EMPTY,
-    validate: {
-      manufacturer: (value) => (value.trim() ? null : t('Producent jest wymagany')),
-      name: (value) => (value.trim() ? null : t('Nazwa jest wymagana')),
-    },
-  })
-}
-
-type CaseFormApi = ReturnType<typeof useCaseForm>
-
+// What a box is called, who makes it, and what it stacks with.
+//
+// Everything a spec sheet states — the six measurements, the diagonal, the
+// capacity, the load, the barcode, the catalogue number — is a parameter now,
+// added below this form one at a time in the panel that already existed for
+// exactly that. So there are no measurement inputs here any more, and a box
+// that states a twelfth thing needs no field added for it.
 export function CaseForm({
   initialValues,
   onCancel,
@@ -68,103 +38,73 @@ export function CaseForm({
   pending,
   submitLabel,
 }: CaseFormProps) {
-  const form = useCaseForm(initialValues)
+  const form = useForm<CaseFields>({
+    initialValues: initialValues ?? EMPTY,
+    validate: {
+      name: (value) => (value.trim() ? null : t('Nazwa jest wymagana')),
+    },
+  })
 
-  // Systems come from the cases themselves, so the field suggests what is
-  // already on the shelf without forcing anyone to pick from a list.
+  // Its own state, merged at submit: a Select writes a string and the field is
+  // an id, and the maker is a row this box points at rather than a name on it.
+  const [brandId, setBrandId] = useState(initialValues?.brandId ?? null)
+
+  const brands = useQuery({
+    queryFn: () => fetchBrands({ limit: 500, offset: 0, search: null, sort: 'name' }),
+    queryKey: ['brands', null],
+    staleTime: 60_000,
+  })
+
   const systems = useQuery({
-    queryKey: ['case-systems'],
     queryFn: fetchSystems,
+    queryKey: ['case-systems'],
     staleTime: 60_000,
   })
 
   return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(normalise(values)))}>
+    <form onSubmit={form.onSubmit((values) => onSubmit(trimAll({ ...values, brandId })))}>
       <Stack gap="md">
         <TextInput
           label={t('Nazwa')}
           placeholder="Qbrick System PRO Toolbox 2.0"
-          required
+          withAsterisk
           data-autofocus
           key={form.key('name')}
           {...form.getInputProps('name')}
         />
 
         <Group grow align="flex-start">
-          <TextInput
+          <Select
             label={t('Producent')}
-            placeholder="Qbrick"
-            required
-            key={form.key('manufacturer')}
-            {...form.getInputProps('manufacturer')}
+            placeholder={t('Wybierz producenta')}
+            data={(brands.data?.items ?? []).map((brand) => ({
+              label: brand.name,
+              value: String(brand.id),
+            }))}
+            searchable
+            clearable
+            nothingFoundMessage={t('Nie ma takiego producenta')}
+            value={brandId === null ? null : String(brandId)}
+            onChange={(next) => setBrandId(next === null || next === '' ? null : Number(next))}
           />
+          {/* Free text on purpose: which modular range a box stacks with is not
+              a list that is ours to close. */}
           <Autocomplete
             label="System"
             placeholder="PRO"
-            description={t('Z czym się składa')}
             data={systems.data?.systems.map((entry) => entry.system) ?? []}
             key={form.key('system')}
             {...form.getInputProps('system')}
           />
         </Group>
 
-        <Fieldset legend={`${t('Wymiary zewnętrzne')} (mm)`}>
-          <Group grow align="flex-start">
-            <Millimetres form={form} field="outerLengthMm" label={t('Długość')} />
-            <Millimetres form={form} field="outerWidthMm" label={t('Szerokość')} />
-            <Millimetres form={form} field="outerHeightMm" label={t('Wysokość')} />
-          </Group>
-        </Fieldset>
-
-        <Fieldset legend={`${t('Wymiary wewnętrzne')} (mm)`}>
-          <Group grow align="flex-start">
-            <Millimetres form={form} field="innerLengthMm" label={t('Długość')} />
-            <Millimetres form={form} field="innerWidthMm" label={t('Szerokość')} />
-            <Millimetres form={form} field="innerHeightMm" label={t('Wysokość')} />
-          </Group>
-        </Fieldset>
-
-        <Group grow align="flex-start">
-          <Millimetres form={form} field="diagonalMm" label={t('Przekątna')} suffix=" mm" />
-          <NumberInput
-            label={t('Pojemność')}
-            placeholder="19"
-            suffix=" L"
-            min={0}
-            decimalScale={2}
-            // A Polish keyboard produces "4,5", and so does every spec sheet
-            // these numbers are copied from.
-            decimalSeparator=","
-            key={form.key('capacityL')}
-            {...form.getInputProps('capacityL')}
-          />
-          <NumberInput
-            label={t('Ładowność')}
-            placeholder="20"
-            suffix=" kg"
-            min={0}
-            decimalScale={2}
-            decimalSeparator=","
-            key={form.key('loadKg')}
-            {...form.getInputProps('loadKg')}
-          />
-        </Group>
-
-        <Group grow align="flex-start">
-          <TextInput
-            label="EAN"
-            placeholder="5901238254249"
-            description={t('Kod produktu — dwie takie same skrzynki mają ten sam')}
-            key={form.key('ean')}
-            {...form.getInputProps('ean')}
-          />
-          <TextInput
-            label="SKU"
-            placeholder="SKRQTBPRO2CZAPG001"
-            key={form.key('sku')}
-            {...form.getInputProps('sku')}
-          />
-        </Group>
+        <TextInput
+          label={t('Strona producenta')}
+          placeholder="https://…"
+          type="url"
+          key={form.key('referenceUrl')}
+          {...form.getInputProps('referenceUrl')}
+        />
 
         <Textarea
           label={t('Notatki')}
@@ -173,16 +113,6 @@ export function CaseForm({
           minRows={3}
           key={form.key('notes')}
           {...form.getInputProps('notes')}
-        />
-
-        {/* An import fills this in, and typing it here is what gives a box
-            catalogued by hand the update button an imported one has. */}
-        <TextInput
-          label={t('Strona producenta')}
-          placeholder="https://…"
-          type="url"
-          key={form.key('referenceUrl')}
-          {...form.getInputProps('referenceUrl')}
         />
 
         <Group justify="flex-end" gap="sm">
@@ -198,50 +128,14 @@ export function CaseForm({
   )
 }
 
-// Millimetres are whole numbers, so the input does not offer decimals at all
-// rather than accepting 450,5 and letting the API refuse it.
-function Millimetres({
-  field,
-  form,
-  label,
-  suffix,
-}: {
-  field: keyof CaseFields
-  form: CaseFormApi
-  label: string
-  suffix?: string
-}) {
-  return (
-    <NumberInput
-      label={label}
-      min={0}
-      allowDecimal={false}
-      suffix={suffix}
-      key={form.key(field)}
-      {...form.getInputProps(field)}
-    />
-  )
-}
-
-// Mantine's NumberInput hands back '' for an empty field. The API reads '' and
-// null the same way — "forget this measurement" — but null says it plainly,
-// and it is what a PATCH has to send to clear a number that was wrong.
-function normalise(values: CaseFields): CaseFields {
-  const result = { ...values }
-
-  for (const [key, value] of Object.entries(result) as [keyof CaseFields, unknown][]) {
-    if (typeof value === 'string' && key !== 'name' && key !== 'manufacturer') {
-      const trimmed = value.trim()
-      // A text field keeps '' — that is how the catalog says "not filled in".
-      // A number field becomes null.
-      ;(result[key] as unknown) = TEXT_FIELDS.has(key) ? trimmed : trimmed === '' ? null : value
-    }
-    if (typeof value === 'string' && (key === 'name' || key === 'manufacturer')) {
-      ;(result[key] as unknown) = value.trim()
-    }
+// The API trims anyway; doing it here means the value that gets sent is the
+// value the person will see when the box comes back.
+function trimAll(fields: CaseFields): CaseFields {
+  return {
+    brandId: fields.brandId,
+    name: fields.name.trim(),
+    notes: fields.notes.trim(),
+    referenceUrl: fields.referenceUrl.trim(),
+    system: fields.system.trim(),
   }
-
-  return result
 }
-
-const TEXT_FIELDS = new Set<keyof CaseFields>(['ean', 'notes', 'referenceUrl', 'sku', 'system'])

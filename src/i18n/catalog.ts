@@ -217,6 +217,22 @@ export const EN: Record<string, string> = {
     'Address deleted. {n} items no longer say where they are.',
   Adresy: 'Addresses',
   Kolor: 'Colour',
+
+  // Parameter names the catalog writes for itself — the importer and the
+  // migration that turned a box's measurement columns into rows. A name
+  // somebody typed is shown as typed; these are the ones nobody typed.
+  // See features/cases/attributeLabels.ts.
+  'Długość zewnętrzna': 'Outer length',
+  'Szerokość zewnętrzna': 'Outer width',
+  'Wysokość zewnętrzna': 'Outer height',
+  'Długość wewnętrzna': 'Inner length',
+  'Szerokość wewnętrzna': 'Inner width',
+  'Wysokość wewnętrzna': 'Inner height',
+  Przekątna: 'Diagonal',
+  Pojemność: 'Volume',
+  Ładowność: 'Load',
+  Waga: 'Weight',
+  'Ilość na palecie': 'Per pallet',
   Narzędzie: 'Tool',
   Rodzaj: 'Kind',
   'RTV/AGD': 'Appliance',
@@ -368,7 +384,6 @@ export const EN: Record<string, string> = {
   'Nazwa, marka, model, numer seryjny…': 'Name, make, model, serial number…',
   'Nazwa, marka, model…': 'Name, make, model…',
   'Nazwa jest wymagana': 'A name is required',
-  'Producent jest wymagany': 'A manufacturer is required',
   'Numer seryjny': 'Serial number',
   'Katalog jest pusty': 'The catalog is empty',
   'Nikt jeszcze nie dodał żadnego narzędzia.': 'Nobody has added an item yet.',
@@ -422,12 +437,6 @@ export const EN: Record<string, string> = {
   'Wymiary zewnętrzne': 'Outside dimensions',
   Szerokość: 'Width',
   Wysokość: 'Height',
-  Długość: 'Length',
-  Przekątna: 'Diagonal',
-  Pojemność: 'Capacity',
-  Ładowność: 'Load capacity',
-  'Kod produktu — dwie takie same skrzynki mają ten sam':
-    'Product code — two identical cases share it',
   'Nie ma jeszcze żadnych skrzynek.': 'There are no cases yet.',
   'Nie ma takiej skrzynki.': 'There is no such case.',
   'Nie udało się wczytać skrzynek': 'The cases could not be loaded',
@@ -544,7 +553,6 @@ export const EN: Record<string, string> = {
     'A margin with crop marks in the corners, a cut line along the label and a control ruler — measure it after printing to check the printer did not rescale the file',
   'Strona dokładnie w rozmiarze etykiety, bez żadnych linii. Do wstawienia gdzie indziej albo do obejrzenia':
     'A page exactly the size of the label, with no lines at all. For placing elsewhere, or for looking at',
-  'Z czym się składa': 'What it is made of',
   'Uzupełnij brakujące': 'Fill in what is missing',
 
   // Photos

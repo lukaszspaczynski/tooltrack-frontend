@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import { apiFileUrl } from '../../../api/client'
 import type { CaseListItem } from '../../../api/types'
 import { t } from '../../../i18n'
-import { caseSubtitle, formatNumber, outerDimensions } from '../presentation'
+import { capacity, caseSubtitle, outerDimensions } from '../presentation'
 
 // One case, as it appears in the grid. The same card shape as an item, because
 // it is read in the same place under the same conditions: on a phone, in a
@@ -13,7 +13,7 @@ import { caseSubtitle, formatNumber, outerDimensions } from '../presentation'
 export function CaseCard({ item }: { item: CaseListItem }) {
   const subtitle = caseSubtitle(item)
   const dimensions = outerDimensions(item)
-  const capacity = formatNumber(item.capacityL, 'L')
+  const goesIn = capacity(item)
 
   return (
     <Card
@@ -48,9 +48,9 @@ export function CaseCard({ item }: { item: CaseListItem }) {
             <Text fw={600} lineClamp={2} c="var(--mantine-color-text)">
               {item.name}
             </Text>
-            {capacity ? (
+            {goesIn ? (
               <Badge variant="light" color="amber" style={{ flexShrink: 0 }}>
-                {capacity}
+                {goesIn}
               </Badge>
             ) : null}
           </Group>

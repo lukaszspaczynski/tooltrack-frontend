@@ -79,7 +79,7 @@ export type ManualLibraryPage = {
 // One parameter of one item: mains voltage, speed, chuck size. The value
 // carries its unit — "230 V" rather than 230 — because half of these have no
 // unit anybody agrees on.
-export type ToolAttribute = {
+export type ItemAttribute = {
   id: number
   name: string
   value: string
@@ -89,7 +89,7 @@ export type ToolAttribute = {
 // with `Item`: a grid shows a name, a maker and a condition, and every card's
 // spec sheet would be paying for what nobody reads there.
 export type ItemDetail = Item & {
-  attributes: ToolAttribute[]
+  attributes: ItemAttribute[]
 }
 
 // A shop this server knows how to read. The import dialog lists these before
@@ -372,32 +372,22 @@ export type LabelSlot = {
 }
 
 export type ToolCase = {
-  // Beside the columns, not instead of them: a length is a length and every box
-  // has one, and this is for what the columns do not cover — a stacking system,
-  // a lid type, whatever the next kind of box states.
-  attributes: ToolAttribute[]
-  capacityL: null | number
+  // Not beside the columns any more — instead of them. A box was eleven
+  // measurement fields until the sheet took them: it already held a name and a
+  // value with its unit, and a twelfth kind of measurement is a row rather
+  // than a migration.
+  attributes: ItemAttribute[]
+  brand: null | ItemBrand
   createdAt: string
   createdBy: null | number
-  diagonalMm: null | number
-  ean: string
   id: number
-  innerHeightMm: null | number
-  innerLengthMm: null | number
-  innerWidthMm: null | number
   // Only the detail carries these: a grid of cases has no use for them.
   labelSlots: LabelSlot[]
-  loadKg: null | number
-  manufacturer: string
   name: string
   notes: string
-  outerHeightMm: null | number
-  outerLengthMm: null | number
-  outerWidthMm: null | number
-  // The same field an item card has, and what the "update from the page" button
-  // on a case reads.
+  // The same field an item card carries, and what the "update from the page"
+  // button on a case reads.
   referenceUrl: string
-  sku: string
   system: string
   updatedAt: string
   updatedBy: null | number
@@ -416,22 +406,12 @@ export type CasePage = {
 
 // What POST /api/cases accepts. A PATCH sends any subset of it, and an
 // explicit null clears a measurement.
+// What POST /api/cases accepts. A PATCH sends any subset of it.
 export type CaseFields = {
-  capacityL: null | number
-  diagonalMm: null | number
-  ean: string
-  innerHeightMm: null | number
-  innerLengthMm: null | number
-  innerWidthMm: null | number
-  loadKg: null | number
-  manufacturer: string
+  brandId: null | number
   name: string
   notes: string
-  outerHeightMm: null | number
-  outerLengthMm: null | number
-  outerWidthMm: null | number
   referenceUrl: string
-  sku: string
   system: string
 }
 

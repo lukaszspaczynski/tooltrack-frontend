@@ -2335,25 +2335,14 @@ export interface components {
         };
         ToolCase: {
             attributes: components["schemas"]["Attribute"][];
-            capacityL: null | number;
+            brand: null | components["schemas"]["ItemBrand"];
             createdAt: string;
             createdBy: null | number;
-            diagonalMm: null | number;
-            ean: string;
             id: number;
-            innerHeightMm: null | number;
-            innerLengthMm: null | number;
-            innerWidthMm: null | number;
-            loadKg: null | number;
-            manufacturer: string;
+            labelSlots: components["schemas"]["LabelSlot"][];
             name: string;
             notes: string;
             referenceUrl: string;
-            outerHeightMm: null | number;
-            outerLengthMm: null | number;
-            outerWidthMm: null | number;
-            labelSlots: components["schemas"]["LabelSlot"][];
-            sku: string;
             system: string;
             updatedAt: string;
             updatedBy: null | number;
@@ -2366,25 +2355,14 @@ export interface components {
         CaseListItem: {
             primaryPhotoUrl: null | string;
             attributes: components["schemas"]["Attribute"][];
-            capacityL: null | number;
+            brand: null | components["schemas"]["ItemBrand"];
             createdAt: string;
             createdBy: null | number;
-            diagonalMm: null | number;
-            ean: string;
             id: number;
-            innerHeightMm: null | number;
-            innerLengthMm: null | number;
-            innerWidthMm: null | number;
-            loadKg: null | number;
-            manufacturer: string;
+            labelSlots: components["schemas"]["LabelSlot"][];
             name: string;
             notes: string;
             referenceUrl: string;
-            outerHeightMm: null | number;
-            outerLengthMm: null | number;
-            outerWidthMm: null | number;
-            labelSlots: components["schemas"]["LabelSlot"][];
-            sku: string;
             system: string;
             updatedAt: string;
             updatedBy: null | number;
@@ -2669,21 +2647,10 @@ export interface components {
             notes?: string;
         };
         CaseCreateBody: {
-            capacityL?: number | string | null;
-            diagonalMm?: number | string | null;
-            ean?: string;
-            innerHeightMm?: number | string | null;
-            innerLengthMm?: number | string | null;
-            innerWidthMm?: number | string | null;
-            loadKg?: number | string | null;
-            manufacturer: string;
+            brandId?: number | string | null;
             name: string;
             notes?: string;
             referenceUrl?: string;
-            outerHeightMm?: number | string | null;
-            outerLengthMm?: number | string | null;
-            outerWidthMm?: number | string | null;
-            sku?: string;
             system?: string;
         };
         CaseLabelSlotBody: {
@@ -2691,21 +2658,10 @@ export interface components {
             widthMm: number | string | null;
         };
         CasePatchBody: {
-            capacityL?: number | string | null;
-            diagonalMm?: number | string | null;
-            ean?: string;
-            innerHeightMm?: number | string | null;
-            innerLengthMm?: number | string | null;
-            innerWidthMm?: number | string | null;
-            loadKg?: number | string | null;
-            manufacturer?: string;
+            brandId?: number | string | null;
             name?: string;
             notes?: string;
             referenceUrl?: string;
-            outerHeightMm?: number | string | null;
-            outerLengthMm?: number | string | null;
-            outerWidthMm?: number | string | null;
-            sku?: string;
             system?: string;
         };
         CutoutCommitBody: {

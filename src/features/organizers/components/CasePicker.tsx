@@ -18,7 +18,7 @@ import { apiFileUrl } from '../../../api/client'
 import { fetchCases } from '../../../api/cases'
 import type { CaseListItem } from '../../../api/types'
 import { t } from '../../../i18n'
-import { formatNumber, outerDimensions } from '../../cases/presentation'
+import { capacity, outerDimensions } from '../../cases/presentation'
 
 const PAGE_SIZE = 24
 
@@ -92,7 +92,7 @@ export function CasePicker({
                 </Text>
                 <Group gap={4} wrap="nowrap" justify="space-between">
                   <Text size="xs" c="dimmed">
-                    {formatNumber(item.capacityL, 'L') || '— L'}
+                    {capacity(item) || '— L'}
                   </Text>
                   <Text size="xs" c="dimmed" lineClamp={1} title={outerDimensions(item)}>
                     {outerDimensions(item) || t('bez wymiarów')}

@@ -14,7 +14,7 @@ import { IconCheck, IconPencil, IconPlus, IconTrash, IconX } from '@tabler/icons
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
-import type { AttributeNameCount, ToolAttribute } from '../../../api/types'
+import type { AttributeNameCount, ItemAttribute } from '../../../api/types'
 import { t } from '../../../i18n'
 
 // What this particular machine is: mains voltage, speed, chuck, weight.
@@ -51,7 +51,7 @@ export function AttributePanel<T>({
   referenceId,
 }: {
   api: AttributeApi<T>
-  attributes: ToolAttribute[]
+  attributes: ItemAttribute[]
   canEdit: boolean
   // What a sheet with nothing on it says. An item points at the rating plate; a
   // case has no plate to point at.
@@ -129,8 +129,17 @@ export function AttributePanel<T>({
               ) : (
                 <Table.Tr key={attribute.id}>
                   <Table.Td w="45%">
+                    {/* Through t() even though most of these are somebody's own
+                        words. A name nobody has translated falls through
+                        unchanged, which is right for one that was typed; the
+                        handful the catalog wrote for itself — a box's
+                        measurements, written by the importer and by the
+                        migration that turned them from columns into rows —
+                        have an English side, and showing those in Polish to
+                        somebody reading in English would be showing them a
+                        word the catalog picked and never translated. */}
                     <Text size="sm" c="dimmed">
-                      {attribute.name}
+                      {t(attribute.name)}
                     </Text>
                   </Table.Td>
                   <Table.Td>
@@ -193,7 +202,7 @@ function AttributeEdit({
   onSave,
   pending,
 }: {
-  attribute: ToolAttribute
+  attribute: ItemAttribute
   onCancel: () => void
   onSave: (name: string, value: string) => void
   pending: boolean

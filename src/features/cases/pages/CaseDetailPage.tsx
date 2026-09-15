@@ -51,7 +51,7 @@ import { useSession } from '../../../session/SessionContext'
 import { RefreshCaseModal } from '../components/RefreshCaseModal'
 import { CaseForm } from '../components/CaseForm'
 import { formatDateTime } from '../../items/presentation'
-import { formatNumber, innerDimensions, outerDimensions } from '../presentation'
+import { innerDimensions, outerDimensions } from '../presentation'
 
 export function CaseDetailPage() {
   const { id } = useParams()
@@ -181,7 +181,7 @@ export function CaseDetailPage() {
         <Stack gap={4}>
           <Title order={2}>{item.name}</Title>
           <Group gap="xs">
-            <Badge variant="default">{item.manufacturer}</Badge>
+            <Badge variant="default">{item.brand?.name ?? ''}</Badge>
             {item.system ? (
               <Badge variant="light" color="amber">
                 {item.system}
@@ -422,15 +422,15 @@ function CaseDetails({ item }: { item: ToolCase }) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        <Field label={t('Producent')} value={item.manufacturer} />
+        <Field label={t('Producent')} value={item.brand?.name ?? ''} swatch={item.brand?.color} />
         <Field label="System" value={item.system} />
+        {/* The only two lines here that the parameter panel below cannot show:
+            each is three parameters read as one measurement. Everything else a
+            box states — the diagonal, what goes in, what it carries, the
+            barcode — is a row down there, and showing it twice would be two
+            places to notice a change in. */}
         <Field label={t('Wymiary zewnętrzne')} value={outerDimensions(item)} />
         <Field label={t('Wymiary wewnętrzne')} value={innerDimensions(item)} />
-        <Field label={t('Przekątna')} value={formatNumber(item.diagonalMm, 'mm')} />
-        <Field label={t('Pojemność')} value={formatNumber(item.capacityL, 'L')} />
-        <Field label={t('Ładowność')} value={formatNumber(item.loadKg, 'kg')} />
-        <Field label="EAN" value={item.ean} />
-        <Field label="SKU" value={item.sku} />
       </SimpleGrid>
 
       {item.notes ? (
@@ -455,13 +455,31 @@ function CaseDetails({ item }: { item: ToolCase }) {
 
 // An empty field is shown as a dash rather than hidden: on a detail page, "we
 // do not know the capacity" is information, unlike on a card in a grid.
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, swatch, value }: { label: string; swatch?: string; value: string }) {
   return (
     <Stack gap={2}>
       <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
         {label}
       </Text>
-      <Text size="sm">{value || '—'}</Text>
+      <Group gap={6} wrap="nowrap" align="center">
+        {/* The maker's own colour, as a dot rather than as coloured text: it
+            identifies, and half a palette is unreadable as type. */}
+        {swatch ? (
+          <span
+            aria-hidden
+            style={{
+              backgroundColor: swatch,
+              borderRadius: '50%',
+              flexShrink: 0,
+              height: 12,
+              outline: '1px solid rgba(0, 0, 0, 0.18)',
+              outlineOffset: -1,
+              width: 12,
+            }}
+          />
+        ) : null}
+        <Text size="sm">{value || '—'}</Text>
+      </Group>
     </Stack>
   )
 }
@@ -470,7 +488,7 @@ function Field({ label, value }: { label: string; value: string }) {
 // and searching for "Qbrick Qbrick System PRO…" finds less than the name alone.
 function searchQueryFor(item: ToolCase): string {
   const name = item.name.trim()
-  const manufacturer = item.manufacturer.trim()
+  const manufacturer = (item.brand?.name ?? '').trim()
 
   if (!manufacturer) return name
   if (name.toLowerCase().includes(manufacturer.toLowerCase())) return name
@@ -480,21 +498,10 @@ function searchQueryFor(item: ToolCase): string {
 
 function toFields(item: ToolCase): CaseFields {
   return {
-    capacityL: item.capacityL,
-    diagonalMm: item.diagonalMm,
-    ean: item.ean,
-    innerHeightMm: item.innerHeightMm,
-    innerLengthMm: item.innerLengthMm,
-    innerWidthMm: item.innerWidthMm,
-    loadKg: item.loadKg,
-    manufacturer: item.manufacturer,
+    brandId: item.brand?.id ?? null,
     name: item.name,
     notes: item.notes,
-    outerHeightMm: item.outerHeightMm,
-    outerLengthMm: item.outerLengthMm,
-    outerWidthMm: item.outerWidthMm,
     referenceUrl: item.referenceUrl,
-    sku: item.sku,
     system: item.system,
   }
 }
