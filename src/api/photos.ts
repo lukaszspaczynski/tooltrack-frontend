@@ -76,28 +76,31 @@ export function importPhotos(
 
 // Runs the cutout and shows it without keeping it. The result lives on the
 // server until it is committed or forgotten.
+//
+// `owner` is the card the picture hangs on, or null for one that hangs on
+// none: a brand's logo, or anything still on the unassigned shelf. The server
+// has both pairs of routes, and which one this is decides where the new photo
+// lands rather than what the answer looks like.
 export function previewCutout(
-  owner: PhotoOwner,
+  owner: null | PhotoOwner,
   photoId: number,
   params: CutoutParams,
 ): Promise<CutoutPreviewResponse> {
-  return request(`${ownerPath(owner)}/photos/${photoId}/cutout/preview`, {
-    body: params,
-    method: 'POST',
-  })
+  return request(`${cutoutPath(owner, photoId)}/preview`, { body: params, method: 'POST' })
 }
 
 // Keeps a preview. The bytes are already on the server; this is what turns
-// them into a photo of the item.
+// them into a photo — of the card, or of nothing in particular.
 export function commitCutout(
-  owner: PhotoOwner,
+  owner: null | PhotoOwner,
   photoId: number,
   checksum: string,
 ): Promise<{ photo: CardPhoto }> {
-  return request(`${ownerPath(owner)}/photos/${photoId}/cutout/commit`, {
-    body: { checksum },
-    method: 'POST',
-  })
+  return request(`${cutoutPath(owner, photoId)}/commit`, { body: { checksum }, method: 'POST' })
+}
+
+function cutoutPath(owner: null | PhotoOwner, photoId: number): string {
+  return owner ? `${ownerPath(owner)}/photos/${photoId}/cutout` : `/photos/${photoId}/cutout`
 }
 
 export function setPrimaryPhoto(owner: PhotoOwner, photoId: number): Promise<{ photo: CardPhoto }> {

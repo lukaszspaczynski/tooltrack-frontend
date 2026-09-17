@@ -48,7 +48,11 @@ export function CutoutStudio({
     url: string
     width: null | number
   }
-  owner: PhotoOwner
+  // The card this picture hangs on, or null for one that hangs on none — a
+  // brand's logo, or anything still on the unassigned shelf. It decides which
+  // pair of routes runs and therefore where a kept result lands: on the card,
+  // or on the shelf beside the original.
+  owner: null | PhotoOwner
 }) {
   const settings = useQuery({
     queryKey: CUTOUT_SETTINGS_KEY,

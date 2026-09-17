@@ -225,7 +225,14 @@ had to branch on the kind to say "samą skrzynkę", and that branch is gone with
 it.
 
 It shows the method, its parameters, the original and the result side by side,
-and a save that only happens when the person says so. The method
+and a save that only happens when the person says so.
+
+It takes an **owner or null**. A picture on a card is cut out through that
+card; a picture on none — a brand's logo, or anything still on the unassigned
+shelf — goes through `/api/photos/:id/cutout/…`, and the result waits on the
+shelf beside the original. The library used to open nothing at all for those:
+the wand was enabled, the studio needed a card, and clicking it did nothing and
+said nothing. The method
 list is built from what the server can actually run: a method switched off in
 settings is not offered, nor is a service whose key is missing, and when
 nothing is available the wand is not offered at all. There is no default

@@ -1410,6 +1410,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/photos/{id}/cutout/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keep a previewed cutout with no card
+         * @description Keeps a preview as a picture of nothing in particular. No 409 about a card, because there is no card: the same bytes twice is the same row, the way a second upload of one file is.
+         */
+        post: operations["commitLibraryCutout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/photos/{id}/cutout/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Try a cutout on a picture with no card
+         * @description The same cutout screen for a picture that is on no card — a brand’s logo, or anything still on the unassigned shelf. The pair under a card cannot answer for those, and a logo is the picture most worth cutting a background out of.
+         *
+         *     The body, the answer and the refusals are the card version’s.
+         */
+        post: operations["previewLibraryCutout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/photos/{id}/cutout/preview/{checksum}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The preview image
+         * @description Addressed by checksum, like the card’s: nothing here can serve a file that was not produced by a cutout somebody just ran.
+         */
+        get: operations["getLibraryCutoutPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/photos/{id}/file": {
         parameters: {
             query?: never;
@@ -6449,6 +6511,163 @@ export interface operations {
             422: components["responses"]["422"];
             426: components["responses"]["426"];
             503: components["responses"]["503"];
+        };
+    };
+    commitLibraryCutout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The photograph the preview was made from. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CutoutCommitBody"];
+            };
+        };
+        responses: {
+            /** @description Kept. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        photo: components["schemas"]["Photo"];
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description The preview has expired or is damaged. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    previewLibraryCutout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The photograph. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description Optional. Omit it entirely to use the configured settings. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CutoutRunBody"];
+            };
+        };
+        responses: {
+            /** @description The cutout, cached rather than stored. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CutoutPreviewResponse"];
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            404: components["responses"]["404"];
+            /** @description The picture is not one this method can cut out. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
+            503: components["responses"]["503"];
+        };
+    };
+    getLibraryCutoutPreview: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Picks the language of any prose this API returns. `pl` and `en` are understood; anything else falls back to Polish.
+                 * @example pl
+                 */
+                "Accept-Language"?: "pl" | "en";
+                /**
+                 * @description Which build is calling, as `name/version` — `mobile/1.4.2`. Logged the first time each build is seen, which is how "may the old field go yet" gets an answer. When `TOOLTRACK_MIN_CLIENT` names a floor for this client and the build is under it, every route but the public ones answers 426.
+                 * @example mobile/1.4.2
+                 */
+                "X-ToolTrack-Client"?: string;
+            };
+            path: {
+                /** @description The photograph the preview was made from. */
+                id: number;
+                /** @description The `preview.checksum` the preview call answered with. */
+                checksum: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The preview image. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            401: components["responses"]["401"];
+            403: components["responses"]["403"];
+            /** @description No such preview, or it has expired. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            426: components["responses"]["426"];
         };
     };
     getLibraryPhotoFile: {

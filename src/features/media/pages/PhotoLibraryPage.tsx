@@ -152,10 +152,10 @@ export function PhotoLibraryPage() {
   // is decided while looking at the batch.
   const [cutoutTarget, setCutoutTarget] = useState<null | LibraryPhoto>(null)
 
-  // The wand works through a card, because that is the only route the cutout
-  // has. A picture on several cards is cut out through the first of them — the
-  // result is a new picture either way — and one nobody has placed cannot be
-  // cut out from here at all.
+  // A picture on a card is cut out through the first of them, so the result
+  // lands where the original is; one that is on no card — a logo, or anything
+  // still on the unassigned shelf — goes through the routes that take a
+  // picture and no card, and the result waits on the shelf beside it.
   const cutoutOwner: null | PhotoOwner = cutoutTarget?.owners[0]
     ? { id: cutoutTarget.owners[0].id }
     : null
@@ -329,7 +329,7 @@ export function PhotoLibraryPage() {
         </Group>
       ) : null}
 
-      {cutoutOwner ? (
+      {cutoutTarget ? (
         <CutoutStudio
           opened
           onClose={() => setCutoutTarget(null)}
@@ -337,7 +337,7 @@ export function PhotoLibraryPage() {
             await queryClient.invalidateQueries({ queryKey: ['photo-library'] })
             await queryClient.invalidateQueries({ queryKey: ['card-photos'] })
           }}
-          photo={cutoutTarget!}
+          photo={cutoutTarget}
           owner={cutoutOwner}
         />
       ) : null}
