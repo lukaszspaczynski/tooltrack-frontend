@@ -2,15 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import type { ItemDetail } from '../../api/types'
-import {
-  attributeValue,
-  capacity,
-  caseCountLabel,
-  caseSubtitle,
-  innerDimensions,
-  load,
-  outerDimensions,
-} from './presentation'
+import { attributeValue, capacity, innerDimensions, load, outerDimensions } from './caseSpec'
 
 // A box states what it states, as parameters, with the unit in the value.
 function sheet(...pairs: [string, string][]): Pick<ItemDetail, 'attributes'> {
@@ -55,22 +47,4 @@ test('what goes in and what it carries come off the sheet as written', () => {
 test('a parameter nobody wrote reads as empty, not as undefined', () => {
   assert.equal(attributeValue(sheet(['EAN', '5901238254232']), 'EAN'), '5901238254232')
   assert.equal(attributeValue(sheet(), 'SKU'), '')
-})
-
-test('the subtitle closes up around whatever is missing', () => {
-  const maker = { color: '', id: 1, name: 'Qbrick' }
-
-  assert.equal(caseSubtitle({ brand: maker, model: 'PRO' }), 'Qbrick · PRO')
-  assert.equal(caseSubtitle({ brand: maker, model: '' }), 'Qbrick')
-  // A box whose maker nobody has recorded is still a box.
-  assert.equal(caseSubtitle({ brand: null, model: 'PRO' }), 'PRO')
-  assert.equal(caseSubtitle({ brand: null, model: '' }), '')
-})
-
-test('Polish counts a case three ways', () => {
-  assert.equal(caseCountLabel(1), '1 skrzynka')
-  assert.equal(caseCountLabel(3), '3 skrzynki')
-  assert.equal(caseCountLabel(5), '5 skrzynek')
-  assert.equal(caseCountLabel(13), '13 skrzynek')
-  assert.equal(caseCountLabel(22), '22 skrzynki')
 })

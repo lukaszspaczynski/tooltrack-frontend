@@ -117,16 +117,22 @@ export function ItemForm({
         />
 
         {/* What sort of thing this is, which is not the same question as the
-            category: a category is your own word for a shelf, this is the
-            handful of sorts the catalog behaves differently about. Only a tool
-            goes in an organizer, and the server refuses the rest. */}
+            category: a category is your own word for a shelf, this is the three
+            sorts the catalog behaves differently about. Only a tool goes in an
+            organizer, and only a case has places for labels; the server refuses
+            the rest, with ITEM_IS_NOT_A_TOOL and ITEM_IS_NOT_A_CASE.
+
+            A box is here rather than on a screen of its own. It was one while
+            it was a table of its own, and this is the same form it would have
+            been given: a name, a maker, a model and a note. */}
         <SegmentedControl
           fullWidth
           data={[
             { label: t('Narzędzie'), value: 'tool' },
             { label: t('RTV/AGD'), value: 'appliance' },
+            { label: t('Skrzynka'), value: 'case' },
           ]}
-          value={kind === 'case' ? 'tool' : kind}
+          value={kind}
           onChange={(next) => setKind(next as ItemKind)}
         />
 

@@ -32,9 +32,6 @@ export const EN: Record<string, string> = {
   'Utworzono kopię „{name}”': 'Copy made: “{name}”',
   'Karta „{name}” zniknie z katalogu. Tej operacji nie da się cofnąć.':
     'The card “{name}” will disappear from the catalog. This cannot be undone.',
-  'Skrzynka „{name}” zniknie z listy. Tej operacji nie da się cofnąć.':
-    'The case “{name}” will disappear from the list. This cannot be undone.',
-  'Zniknie też {n} organizerów tej skrzynki': '{n} arrangements of this case go with it',
   'Usuń miejsce {width} na {height}': 'Delete the {width} by {height} place',
   'Zmiana nazwy poprawi ją też na {items}.': 'Renaming corrects it on {items} as well.',
   '{items} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.':
@@ -129,7 +126,6 @@ export const EN: Record<string, string> = {
   Plik: 'File',
   Pobierz: 'Download',
   Podpis: 'Caption',
-  Producent: 'Manufacturer',
   Przypisanie: 'Attachment',
   Rejestracja: 'Signing up',
   Rola: 'Role',
@@ -157,7 +153,6 @@ export const EN: Record<string, string> = {
   Organizer: 'Organiser',
   Producenci: 'Manufacturers',
   'Przełącz motyw': 'Switch theme',
-  Skrzynki: 'Cases',
   Ustawienia: 'Settings',
   Układy: 'Arrangements',
   Użytkownicy: 'Users',
@@ -181,24 +176,6 @@ export const EN: Record<string, string> = {
   'Brak uprawnień do tej operacji.': 'You do not have access to this.',
   'Brak połączenia z serwerem': 'No connection to the server',
   'Nic tu jeszcze nie zapisano.': 'Nothing has been recorded here yet.',
-  'Nikt nie zapisał jeszcze parametrów tej skrzynki.':
-    'Nobody has recorded any parameters for this case yet.',
-  'Aktualizuj ze strony': 'Update from the page',
-  'Aktualizuj ze strony producenta': "Update from the maker's page",
-  'EAN, SKU i notatka': 'EAN, SKU and the note',
-  'Importuj ze strony producenta': "Import from the maker's page",
-  'Miejsca na etykiety i zdjęcia zostają bez zmian.':
-    'Label slots and photographs are left as they are.',
-  'Miejsca na etykiety trzeba dodać samodzielnie — strona producenta ich nie zna.':
-    "Label slots have to be added by hand — the maker's page does not know about them.",
-  'Nie udało się zaimportować skrzynki': 'The case could not be imported',
-  'Nie udało się zaktualizować skrzynki': 'The case could not be updated',
-  'To źródło nie jest obsługiwane': 'That source is not supported',
-  'Zaimportowano skrzynkę: {photos}': 'Case imported: {photos}',
-  'Zaktualizowano skrzynkę ze strony': 'Case updated from the page',
-  'Ze strony zostaną nadpisane:': 'The page will overwrite:',
-  'producent, nazwa i model': 'maker, name and model',
-  'wszystkie wymiary, pojemność i ładowność': 'every dimension, capacity and load',
   'Konto wyłączone': 'Account disabled',
   'Nie udało się odczytać zaimportowanej karty': 'The imported card could not be read back',
   'Baza danych jest chwilowo niedostępna. Spróbuj ponownie.':
@@ -371,8 +348,8 @@ export const EN: Record<string, string> = {
   'Edytuj parametr {name}': 'Edit the parameter {name}',
   'Usuń parametr': 'Delete parameter',
   'Usuń parametr {name}': 'Delete the parameter {name}',
-  'Nikt nie zapisał jeszcze parametrów tego narzędzia.':
-    'Nobody has written down this item’s parameters yet.',
+  'Nikt nie zapisał jeszcze parametrów tej pozycji.':
+    'Nobody has written down what this one is yet.',
 
   // Items
   'Nowe narzędzie': 'New item',
@@ -425,26 +402,18 @@ export const EN: Record<string, string> = {
   'Nie udało się wczytać użytkowników': 'The users could not be loaded',
 
   // Cases
-  'Nowa skrzynka': 'New case',
   'Szukaj skrzynki': 'Search for a case',
-  'Nazwa, producent, model, EAN, SKU…': 'Name, manufacturer, model, EAN, SKU…',
   'Nazwa, producent…': 'Name, manufacturer…',
-  'Co jest w środku, gdzie stoi, co się w niej zepsuło…':
-    'What is inside, where it stands, what broke in it…',
   'Wymiary wewnętrzne': 'Inside dimensions',
   'Wymiary zewnętrzne': 'Outside dimensions',
   Szerokość: 'Width',
   Wysokość: 'Height',
-  'Nie ma jeszcze żadnych skrzynek.': 'There are no cases yet.',
-  'Nie ma takiej skrzynki.': 'There is no such case.',
-  'Nie udało się wczytać skrzynek': 'The cases could not be loaded',
-  'Nie udało się wczytać skrzynki': 'The case could not be loaded',
-  'Usunąć skrzynkę?': 'Delete the case?',
-  'Skrzynka usunięta': 'Case deleted',
   'samą skrzynkę': 'the case itself',
   'Zniknie też organizer tej skrzynki': "The case's arrangement goes with it",
+  'Zniknie też {n} organizerów tej skrzynki': "{n} of the case's arrangements go with it",
   'Ta skrzynka nie ma miejsc na etykiety': 'This case has no places for labels',
   'Dodaj miejsce': 'Add a place',
+  'Miejsca na etykiety': 'Places for labels',
   'Nie ma jeszcze żadnego miejsca.': 'There are no places yet.',
 
   // Manufacturers

@@ -161,30 +161,36 @@ is what lets a card written by hand have the update button too.
 
 ## Cases
 
-`features/cases/` is the boxes, and it is a **view of the item list** rather
-than a second catalog: `GET /api/items?kind=case`, `GET /api/items/:id`, and
-the same POST and PATCH every card uses. There is no `api/cases.ts` any more,
-no `ToolCase`, and the detail page shares `['item', id]` with the catalog
-screen — editing a box on one screen cannot leave the other showing the old
-name.
+There is no boxes screen. A case is a card, so it is read on the catalog screen
+like every other one — `features/cases/` is gone, and with it a list, a card, a
+form, two modals and a set of URL parameters that were all a second version of
+what `features/items/` already had. The **Rodzaj** filter is how somebody sees
+the boxes and only the boxes, and it is a link like every other filter.
 
-Two things are still only a box's. **Label slots** hang off the card
-(`POST /api/items/:id/label-slots`, refused on a drill with
-`ITEM_IS_NOT_A_CASE`) and arrive on every item as `labelSlots`, empty for
-everything else. And the **spec sheet in the grid**: this is the one list that
-asks for `attributes: true`, because what somebody scanning a shelf of boxes is
-choosing between is the outside measurements and what goes in, while the
-catalog grid shows a name, a maker and a condition and should not pay for a
-sheet nobody reads.
+What is genuinely only a box's lives on the item screens, behind
+`item.kind === 'case'`:
 
-`CaseForm` keeps its own `CaseFields` — five fields, not a card's — because a
-serial number, a category and a condition are questions about a machine. The
-create page turns them into the card the API takes.
+- `components/LabelSlotPanel.tsx`, drawn on the detail page for a case and not
+  for anything else. The sizes go in and out one at a time, immediately, and
+  the server refuses a drill one with `ITEM_IS_NOT_A_CASE`.
+- two composed lines in the card's own fields — `caseSpec.ts` reads
+  "450 × 322 × 126 mm" out of three parameters, which is the one thing the
+  parameter panel cannot do for itself. A box shows those where a machine shows
+  its serial number and category.
+- the delete confirmation names the **arrangements** that would cascade away
+  with the box, which a person cannot weigh without the list.
+- the suggestions search for the **name** rather than brand-and-model: a box's
+  name usually carries its maker already, and its model is the range it stacks
+  with.
+
+`ItemForm` offers `case` as a third kind. It has to: editing a box through a
+form that only knew about tools and appliances would have turned it into a tool
+on save.
 
 ## Photos
 
 `features/photos/` holds the photo components, and they are not under `items/`
-because the boxes screen shows the same gallery. Every one of them takes a
+because the media library uses them too. Every one of them takes a
 `PhotoOwner` — `{ id }`, and it carried a `kind` as well while a case was a
 table of its own and the routes came in two sets. `api/photos.ts` turns it into
 `/api/items/7/…` and is the only place that builds one. `PhotoPanel` is the

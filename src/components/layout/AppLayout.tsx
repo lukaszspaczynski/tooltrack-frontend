@@ -16,7 +16,6 @@ import { useDisclosure } from '@mantine/hooks'
 import {
   IconLogout,
   IconMoon,
-  IconBox,
   IconFileTypePdf,
   IconLayoutGrid,
   IconMapPin,
@@ -126,14 +125,6 @@ export function AppLayout() {
             onClick={close}
           />
         </NavLink>
-        <NavLink
-          component={Link}
-          to="/cases"
-          label={t('Skrzynki')}
-          leftSection={<IconBox size={18} />}
-          active={location.pathname.startsWith('/cases')}
-          onClick={close}
-        />
         {/* Labels hang under the organizer for the same reason producers hang
             under the items: a label is something an arrangement produces, and
             the submenu says so. Open whenever either of the two is showing. */}

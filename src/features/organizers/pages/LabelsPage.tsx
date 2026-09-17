@@ -419,7 +419,7 @@ function LabelTile({
 
         <Anchor
           component={Link}
-          to={`/cases/${label.case.id}`}
+          to={`/items/${label.case.id}`}
           size="xs"
           c="dimmed"
           lineClamp={1}

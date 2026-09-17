@@ -43,7 +43,7 @@ import {
   importLibraryPhoto,
   uploadLibraryPhoto,
 } from '../../../api/photos'
-import type { LibraryPhoto, PhotoOwner, PhotoOwnerRef } from '../../../api/types'
+import type { LibraryPhoto, PhotoOwner } from '../../../api/types'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { useSession } from '../../../session/SessionContext'
 import { CutoutStudio } from '../../photos/components/CutoutStudio'
@@ -418,7 +418,7 @@ function PhotoTile({
               <Text
                 key={`${owner.kind}-${owner.id}`}
                 component={Link}
-                to={cardPath(owner)}
+                to={`/items/${owner.id}`}
                 size="xs"
                 fw={600}
                 lineClamp={1}
@@ -655,10 +655,4 @@ function primaryLabel(photo: LibraryPhoto): string {
   const cards = photo.owners.filter((owner) => owner.isPrimary).map((owner) => owner.name)
 
   return t('Zdjęcie główne: {cards}', { cards: cards.join(', ') })
-}
-
-// Where a card is read. A box has a screen of its own — the same card, shown
-// the way somebody scanning a shelf of boxes wants it.
-function cardPath(owner: PhotoOwnerRef): string {
-  return owner.kind === 'case' ? `/cases/${owner.id}` : `/items/${owner.id}`
 }

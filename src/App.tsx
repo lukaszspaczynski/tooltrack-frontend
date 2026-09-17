@@ -4,11 +4,8 @@ import { Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
 import { AccountLanguage } from './i18n/AccountLanguage'
 import { LoginPage } from './features/auth/pages/LoginPage'
-import { CaseCreatePage } from './features/cases/pages/CaseCreatePage'
-import { CaseDetailPage } from './features/cases/pages/CaseDetailPage'
 import { AddressesPage } from './features/addresses/pages/AddressesPage'
 import { BrandsPage } from './features/brands/pages/BrandsPage'
-import { CasesListPage } from './features/cases/pages/CasesListPage'
 import { LabelsPage } from './features/organizers/pages/LabelsPage'
 import { ManualLibraryPage } from './features/manuals/pages/ManualLibraryPage'
 import { OrganizerDetailPage } from './features/organizers/pages/OrganizerDetailPage'
@@ -71,8 +68,6 @@ export function App() {
               </RequireCapability>
             }
           />
-          {/* Cases before the :id route, as on the server: "new" must not be
-            read as the id of a case. */}
           <Route
             path="addresses"
             element={
@@ -86,30 +81,6 @@ export function App() {
             element={
               <RequireCapability capability="catalog.read">
                 <BrandsPage />
-              </RequireCapability>
-            }
-          />
-          <Route
-            path="cases"
-            element={
-              <RequireCapability capability="catalog.read">
-                <CasesListPage />
-              </RequireCapability>
-            }
-          />
-          <Route
-            path="cases/new"
-            element={
-              <RequireCapability capability="catalog.write">
-                <CaseCreatePage />
-              </RequireCapability>
-            }
-          />
-          <Route
-            path="cases/:id"
-            element={
-              <RequireCapability capability="catalog.read">
-                <CaseDetailPage />
               </RequireCapability>
             }
           />

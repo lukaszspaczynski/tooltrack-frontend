@@ -5,6 +5,7 @@ import {
   Button,
   Center,
   Group,
+  List,
   Loader,
   Modal,
   Paper,
@@ -15,25 +16,35 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications'
-import { IconChevronLeft, IconCopy, IconPencil, IconRefresh, IconTrash } from '@tabler/icons-react'
+import {
+  IconAlertTriangle,
+  IconChevronLeft,
+  IconCopy,
+  IconPencil,
+  IconRefresh,
+  IconTrash,
+} from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ApiError, hasCode } from '../../../api/client'
 import { deleteItem, duplicateItem, fetchItem, updateItem } from '../../../api/items'
-import type { Item, ItemFields } from '../../../api/types'
+import type { Item, ItemDetail, ItemFields } from '../../../api/types'
 import { AddressField } from '../../addresses/components/AddressField'
 import { ReferenceField } from '../../../components/ReferenceField'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
+import { fetchOrganizersOfCase } from '../../../api/organizers'
 import { useSession } from '../../../session/SessionContext'
 import { AttributePanel } from '../components/AttributePanel'
 import { ITEM_ATTRIBUTE_API } from '../itemAttributeApi'
 import { RefreshFromPageModal } from '../components/RefreshFromPageModal'
+import { LabelSlotPanel } from '../components/LabelSlotPanel'
 import { ManualPanel } from '../components/ManualPanel'
 import { ItemForm } from '../components/ItemForm'
 import { PhotoPanel } from '../../photos/components/PhotoPanel'
+import { innerDimensions, outerDimensions } from '../caseSpec'
 import { CONDITION_COLORS, CONDITION_LABELS, formatDateTime } from '../presentation'
 
 export function ItemDetailPage() {
@@ -51,6 +62,15 @@ export function ItemDetailPage() {
     queryKey: ['item', itemId],
     queryFn: () => fetchItem(itemId),
     enabled: Number.isInteger(itemId),
+  })
+
+  // What else the delete would take, when the card is a box: the arrangements
+  // standing in it cascade away with it. Asked only while the confirmation is
+  // open, and only for a case — nothing else has any.
+  const organizers = useQuery({
+    queryKey: ['organizers', 'of-case', itemId],
+    queryFn: () => fetchOrganizersOfCase(itemId),
+    enabled: confirmOpen && query.data?.item.kind === 'case',
   })
 
   // Only while the confirmation is open: it is a question about a delete
@@ -219,9 +239,18 @@ export function ItemDetailPage() {
             submitLabel={t('Zapisz zmiany')}
           />
         ) : (
-          <ToolDetails item={item} />
+          <CardDetails item={item} />
         )}
       </Paper>
+
+      {/* Where the labels go, on a box. Only a case has any — the server
+          refuses a drill one with ITEM_IS_NOT_A_CASE — so the panel is not
+          drawn where it would only ever be empty. */}
+      {item.kind === 'case' ? (
+        <Paper withBorder p="lg" radius="md">
+          <LabelSlotPanel canEdit={can('catalog.write')} itemId={item.id} slots={item.labelSlots} />
+        </Paper>
+      ) : null}
 
       {/* What this particular machine is. Outside the editing form for the same
           reason the photos are: one parameter at a time, immediately. */}
@@ -230,7 +259,7 @@ export function ItemDetailPage() {
           api={ITEM_ATTRIBUTE_API}
           attributes={item.attributes}
           canEdit={can('catalog.write')}
-          emptyText={t('Nikt nie zapisał jeszcze parametrów tego narzędzia.')}
+          emptyText={t('Nikt nie zapisał jeszcze parametrów tej pozycji.')}
           referenceId={item.id}
         />
       </Paper>
@@ -252,8 +281,11 @@ export function ItemDetailPage() {
           owner={{ id: item.id }}
           reference={reference}
           // Brand and model identify a machine; the name alone would find a
-          // category. The server falls back to the same thing.
-          searchQuery={[item.brand?.name, item.model].filter(Boolean).join(' ') || item.name}
+          // category. A box is the other way round — its name usually carries
+          // the maker already ("Qbrick System PRO Toolbox 2.0") and its model
+          // is the range rather than the box — so it searches for the name.
+          // The server falls back to the same two rules.
+          searchQuery={searchQueryFor(item)}
         />
       </Paper>
 
@@ -271,17 +303,49 @@ export function ItemDetailPage() {
               name: item.name,
             })}
           </Text>
-          {/* Asked while the modal is open, the way the case screen asks what
-              would go with a box: the pictures this card is the only home of
-              are deleted with it, and a person cannot weigh that without the
-              number. One that another card shows, or that is a maker's logo,
-              stays — which is why this is not simply the size of the gallery. */}
+          {/* Asked while the modal is open: the pictures this card is the only
+              home of are deleted with it, and a person cannot weigh that
+              without the number. One that another card shows, or that is a
+              maker's logo, stays — which is why this is not simply the size of
+              the gallery. */}
           {doomedPhotos.data && doomedPhotos.data.photos.length > 0 ? (
             <Text size="sm">
               {t('Zniknie z nią {photos} — te, których nie pokazuje żadna inna karta.', {
                 photos: tCount(COUNTS.photo, doomedPhotos.data.photos.length),
               })}
             </Text>
+          ) : null}
+          {/* And what else goes, when the card is a box. An arrangement is not
+              obviously part of the case it stands in, so it has to be said
+              before the person agrees rather than noticed afterwards. */}
+          {organizers.data && organizers.data.total > 0 ? (
+            <Alert
+              color="orange"
+              variant="light"
+              icon={<IconAlertTriangle size={18} />}
+              title={
+                organizers.data.total === 1
+                  ? t('Zniknie też organizer tej skrzynki')
+                  : t('Zniknie też {n} organizerów tej skrzynki', { n: organizers.data.total })
+              }
+            >
+              <List size="sm" spacing={2}>
+                {organizers.data.items.map((organizer) => (
+                  <List.Item key={organizer.id}>
+                    {organizer.number}. {organizer.name}
+                    {organizer.items.length > 0 ? (
+                      <Text span size="xs" c="dimmed">
+                        {' '}
+                        ({tCount(COUNTS.item, organizer.items.length)})
+                      </Text>
+                    ) : null}
+                  </List.Item>
+                ))}
+              </List>
+              <Text size="sm" mt="xs">
+                {t('Same narzędzia zostają w katalogu — znika tylko informacja, co w czym leżało.')}
+              </Text>
+            </Alert>
           ) : null}
           <Group justify="flex-end">
             <Button variant="default" onClick={confirm.close}>
@@ -297,7 +361,7 @@ export function ItemDetailPage() {
   )
 }
 
-function ToolDetails({ item }: { item: Item }) {
+function CardDetails({ item }: { item: ItemDetail }) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
@@ -305,8 +369,23 @@ function ToolDetails({ item }: { item: Item }) {
             for months and never shown. */}
         <Field label={t('Marka')} value={item.brand?.name ?? ''} swatch={item.brand?.color} />
         <Field label={t('Model')} value={item.model} />
-        <Field label={t('Numer seryjny')} value={item.serialNumber} />
-        <Field label={t('Kategoria')} value={item.category} />
+        {/* The one thing a box's spec sheet cannot show for itself: three
+            parameters read as one measurement. */}
+        {item.kind === 'case' ? (
+          <>
+            <Field label={t('Wymiary zewnętrzne')} value={outerDimensions(item)} />
+            <Field label={t('Wymiary wewnętrzne')} value={innerDimensions(item)} />
+          </>
+        ) : null}
+        {/* A box normally has neither, and two dashes are noise — but a box
+            somebody did write one on is a box that has to show it, or the
+            field is edited into a card that never displays it. */}
+        {item.kind !== 'case' || item.serialNumber ? (
+          <Field label={t('Numer seryjny')} value={item.serialNumber} />
+        ) : null}
+        {item.kind !== 'case' || item.category ? (
+          <Field label={t('Kategoria')} value={item.category} />
+        ) : null}
       </SimpleGrid>
 
       <Field label={t('Notatki')} value={item.notes} multiline />
@@ -382,4 +461,21 @@ function toFields(item: Item): ItemFields {
     referenceUrl: item.referenceUrl,
     serialNumber: item.serialNumber,
   }
+}
+
+// What the suggestions modal searches for before anybody types.
+//
+// Brand and model identify a machine. A box is the other way round: the names
+// usually carry the maker already ("Qbrick System PRO Toolbox 2.0"), and
+// searching for "Qbrick PRO" finds a range rather than a box.
+function searchQueryFor(item: ItemDetail): string {
+  if (item.kind !== 'case') {
+    return [item.brand?.name, item.model].filter(Boolean).join(' ') || item.name
+  }
+
+  const maker = (item.brand?.name ?? '').trim()
+  const name = item.name.trim()
+  if (!maker || name.toLowerCase().includes(maker.toLowerCase())) return name
+
+  return `${maker} ${name}`.trim()
 }

@@ -622,7 +622,7 @@ function OrganizerDetails({ organizer }: { organizer: Organizer }) {
   return (
     <Stack gap="lg">
       <Group gap="lg" align="flex-start" wrap="nowrap">
-        <Link to={`/cases/${organizer.case.id}`} style={{ lineHeight: 0 }}>
+        <Link to={`/items/${organizer.case.id}`} style={{ lineHeight: 0 }}>
           {organizer.case.primaryPhotoUrl ? (
             <Image
               src={apiFileUrl(organizer.case.primaryPhotoUrl)}
@@ -643,7 +643,7 @@ function OrganizerDetails({ organizer }: { organizer: Organizer }) {
           <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
             {t('Skrzynka')}
           </Text>
-          <Anchor component={Link} to={`/cases/${organizer.case.id}`} size="sm">
+          <Anchor component={Link} to={`/items/${organizer.case.id}`} size="sm">
             {organizer.case.name}
           </Anchor>
           <Text size="sm" c="dimmed">

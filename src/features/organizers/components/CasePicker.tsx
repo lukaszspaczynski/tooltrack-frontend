@@ -18,7 +18,7 @@ import { apiFileUrl } from '../../../api/client'
 import { fetchItems } from '../../../api/items'
 import type { ItemSummary } from '../../../api/types'
 import { t } from '../../../i18n'
-import { capacity, outerDimensions } from '../../cases/presentation'
+import { capacity, outerDimensions } from '../../items/caseSpec'
 
 const PAGE_SIZE = 24
 

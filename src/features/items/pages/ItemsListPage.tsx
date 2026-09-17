@@ -117,7 +117,7 @@ export function ItemsListPage() {
         />
         {/* Which sort of thing, which is not the category: the category is
             somebody's own word for a shelf and there are dozens, this is the
-            two the catalog itself behaves differently about. */}
+            three the catalog itself behaves differently about. */}
         <Select
           label={t('Rodzaj')}
           placeholder={t('Wszystkie')}
@@ -125,9 +125,8 @@ export function ItemsListPage() {
           data={[
             { label: t('Narzędzie'), value: 'tool' },
             { label: t('RTV/AGD'), value: 'appliance' },
-            // A box is a card too, since the fold. It has its own screen under
-            // Skrzynki, and it is here because leaving it out would make the
-            // unfiltered catalog show something no filter could then isolate.
+            // A box is a card too, since the fold, and this is the only way to
+            // see the boxes: there is no screen of their own any more.
             { label: t('Skrzynka'), value: 'case' },
           ]}
           value={query.kind ?? null}
