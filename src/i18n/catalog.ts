@@ -77,11 +77,11 @@ export const EN: Record<string, string> = {
     'Unavailable without a key: {methods} — an administrator configures them in Settings.',
   'Ustaw metodę i kliknij „Generuj podgląd”. Nic nie zostanie zapisane, dopóki nie potwierdzisz.':
     'Choose a method and press “Generate a preview”. Nothing is saved until you confirm.',
-  'Różdżka przy zdjęciu otwiera ekran wycinania, gdzie metodę wybiera się dla każdego zdjęcia osobno, widząc oryginał obok wyniku. Tutaj decyduje się,':
+  'Różdżka przy zdjęciu otwiera ekran wycinania tła, gdzie metodę wybiera się dla każdego zdjęcia osobno, widząc oryginał obok wyniku. Tutaj decyduje się,':
     'The wand on a photo opens the cutout screen, where the method is chosen per photo with the original beside the result. What is decided here is',
   '. Wycinka zawsze powstaje jako nowe zdjęcie — oryginał zostaje.':
     '. A cutout is always a new photo — the original stays.',
-  'Punkt wyjścia dla metody lokalnej na ekranie wycinania (1–765)':
+  'Punkt wyjścia dla metody lokalnej na ekranie wycinania tła (1–765)':
     'The starting point for the local method on the cutout screen (1–765)',
   'Włącz {name}': 'Switch {name} on',
   'Włącz {name} globalnie': 'Switch {name} on for everyone',
@@ -408,7 +408,6 @@ export const EN: Record<string, string> = {
   'Wymiary zewnętrzne': 'Outside dimensions',
   Szerokość: 'Width',
   Wysokość: 'Height',
-  'samą skrzynkę': 'the case itself',
   'Zniknie też organizer tej skrzynki': "The case's arrangement goes with it",
   'Zniknie też {n} organizerów tej skrzynki': "{n} of the case's arrangements go with it",
   'Ta skrzynka nie ma miejsc na etykiety': 'This case has no places for labels',
@@ -591,36 +590,35 @@ export const EN: Record<string, string> = {
   'Włącz którąś poniżej lub poproś administratora o skonfigurowanie kluczy.':
     'Switch one on below, or ask an administrator to configure the keys.',
 
-  // Cutting an item out of its photo
-  'Wytnij samo narzędzie': 'Cut out the item alone',
-  'Wytnij sam przedmiot': 'Cut out the object alone',
-  'samo narzędzie': 'the item alone',
-  'Metody wycinania': 'Cutout methods',
-  'Nie udało się wyciąć': 'The cutout failed',
-  'Nie udało się wczytać ustawień wycinania': 'The cutout settings could not be loaded',
-  'Wycinanie jest wyłączone w Ustawieniach.': 'Cutting out is switched off in Settings.',
-  'Wycinka zapisana jako nowe zdjęcie': 'The cutout was saved as a new photo',
-  'Zapisz wycinkę': 'Save the cutout',
+  // Cutting the background out of a photo
+  'Wytnij tło': 'Cut out the background',
+  'Metody wycinania tła': 'Background removal methods',
+  'Nie udało się wyciąć tła': 'The background could not be cut out',
+  'Nie udało się wczytać ustawień wycinania tła':
+    'The background removal settings could not be loaded',
+  'Wycinanie tła jest wyłączone w Ustawieniach.': 'Background removal is switched off in Settings.',
+  'Zdjęcie bez tła zapisane jako nowe': 'The photo without its background was saved as a new one',
+  'Zapisz bez tła': 'Save without the background',
   'Zapis tworzy nowe zdjęcie. Oryginał zostaje nietknięty.':
     'Saving makes a new photo. The original is left untouched.',
-  'To zdjęcie już jest wycięte': 'This photo has been cut out already',
+  'Z tego zdjęcia już wycięto tło': 'The background has been cut out of this photo already',
   Oryginał: 'Original',
-  'Po wycięciu': 'After the cutout',
-  wycięte: 'cut out',
+  'Po wycięciu tła': 'After the background',
+  'bez tła': 'no background',
   'Żadna metoda nie jest dostępna, więc różdżka przy zdjęciach nie zadziała.':
     'No method is available, so the wand on the photos will not work.',
-  'Wyłączona metoda nie pojawia się na ekranie wycinania':
-    'A method that is switched off does not appear on the cutout screen',
+  'Wyłączona metoda nie pojawia się na ekranie wycinania tła':
+    'A method that is switched off does not appear on the background removal screen',
   'Lokalny skrypt': 'Local script',
   'Bez klucza i natychmiast. Wymaga jasnego, jednolitego tła.':
     'No key, and immediate. Needs a light, even background.',
-  'Usługa do wycinania — radzi sobie ze zdjęciami z warsztatu.':
-    'A cutout service — it copes with photographs taken in a workshop.',
-  'Model ogólny — narzędzie na białym tle, bez przezroczystości.':
-    'A general model — the item on a white ground, with no transparency.',
+  'Usługa do wycinania tła — radzi sobie ze zdjęciami z warsztatu.':
+    'A background removal service — it copes with photographs taken in a workshop.',
+  'Model ogólny — przedmiot na białym tle, bez przezroczystości.':
+    'A general model — the object on a white ground, with no transparency.',
   'Próg jasności tła': 'Background brightness threshold',
   'Domyślny próg jasności tła': 'Default background brightness threshold',
-  'Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasne narzędzie gubi fragmenty.':
+  'Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasny przedmiot gubi fragmenty.':
     'The sum of the RGB components at which a pixel counts as background. 735 is 245 per channel on average. Lower it for a greyish ground; raise it when a light item loses pieces.',
   'Zapisz próg': 'Save the threshold',
   'Zapisano próg': 'Threshold saved',

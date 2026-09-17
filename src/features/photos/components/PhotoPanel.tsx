@@ -39,14 +39,14 @@ import {
   uploadPhoto,
   type PhotoImportItem,
 } from '../../../api/photos'
-import type { ItemKind, Photo, PhotoOwner } from '../../../api/types'
+import type { Photo, PhotoOwner } from '../../../api/types'
 import { t } from '../../../i18n'
 import { CutoutStudio } from './CutoutStudio'
 import { ExistingPhotoPicker } from './ExistingPhotoPicker'
 import { PhotoSuggestionsModal } from './PhotoSuggestionsModal'
 
 const SOURCE_LABELS: Record<Photo['source'], string> = {
-  edit: 'wycięte',
+  edit: 'bez tła',
   search: 'z wyszukiwarki',
   upload: 'wgrane',
   url: 'z adresu',
@@ -64,17 +64,12 @@ const SOURCE_LABELS: Record<Photo['source'], string> = {
 // exactly the same terms; the server serves both from one set of routes.
 export function PhotoPanel({
   canEdit,
-  kind,
   label,
   owner,
   reference = '',
   searchQuery,
 }: {
   canEdit: boolean
-  // What sort of card this is, which only the wording needs: "wytnij samą
-  // skrzynkę" against "samo narzędzie". The owner used to carry it, back when
-  // it decided which routes to call as well.
-  kind: ItemKind
   // What to put in the alt text: the name of the card these belong to.
   label: string
   owner: PhotoOwner
@@ -288,14 +283,14 @@ export function PhotoPanel({
                     <Tooltip
                       label={
                         photo.source === 'edit'
-                          ? t('To zdjęcie już jest wycięte')
-                          : `Wytnij ${kind === 'case' ? t('samą skrzynkę') : t('samo narzędzie')}`
+                          ? t('Z tego zdjęcia już wycięto tło')
+                          : t('Wytnij tło')
                       }
                     >
                       <ActionIcon
                         variant="subtle"
                         color="grape"
-                        aria-label={t('Wytnij sam przedmiot')}
+                        aria-label={t('Wytnij tło')}
                         disabled={photo.source === 'edit'}
                         onClick={() => setCutoutPhoto(photo)}
                       >

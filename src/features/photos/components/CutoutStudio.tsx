@@ -87,7 +87,7 @@ export function CutoutStudio({
   const keep = useMutation({
     mutationFn: (checksum: string) => commitCutout(owner, photo.id, checksum),
     onSuccess: () => {
-      notifications.show({ color: 'teal', message: t('Wycinka zapisana jako nowe zdjęcie') })
+      notifications.show({ color: 'teal', message: t('Zdjęcie bez tła zapisane jako nowe') })
       onSaved()
       onClose()
     },
@@ -97,11 +97,11 @@ export function CutoutStudio({
   const usesLocal = method === 'local'
 
   return (
-    <Modal opened={opened} onClose={onClose} title={t('Wytnij samo narzędzie')} size="xl" centered>
+    <Modal opened={opened} onClose={onClose} title={t('Wytnij tło')} size="xl" centered>
       <Stack gap="md">
         {available.length === 0 ? (
           <Alert color="orange" variant="light" icon={<IconAlertTriangle size={18} />}>
-            {t('Wycinanie jest wyłączone w Ustawieniach.')}
+            {t('Wycinanie tła jest wyłączone w Ustawieniach.')}
           </Alert>
         ) : (
           <>
@@ -184,7 +184,7 @@ export function CutoutStudio({
             ) : null}
 
             {run.isError ? (
-              <Alert color="orange" variant="light" title={t('Nie udało się wyciąć')}>
+              <Alert color="orange" variant="light" title={t('Nie udało się wyciąć tła')}>
                 {(run.error as Error).message}
               </Alert>
             ) : null}
@@ -203,7 +203,7 @@ export function CutoutStudio({
                     ? `${preview.image.width}×${preview.image.height} · ${t(METHOD_LABELS[preview.provider] ?? preview.provider)}`
                     : ''
                 }
-                title={t('Po wycięciu')}
+                title={t('Po wycięciu tła')}
               >
                 {run.isPending ? (
                   <Center h={320}>
@@ -251,7 +251,7 @@ export function CutoutStudio({
               loading={keep.isPending}
               onClick={() => preview && keep.mutate(preview.image.checksum)}
             >
-              {t('Zapisz wycinkę')}
+              {t('Zapisz bez tła')}
             </Button>
           </Group>
         </Group>
@@ -267,9 +267,9 @@ const METHOD_LABELS: Record<string, string> = {
 }
 
 const METHOD_HINTS: Record<string, string> = {
-  gemini: 'Model ogólny — narzędzie na białym tle, bez przezroczystości.',
+  gemini: 'Model ogólny — przedmiot na białym tle, bez przezroczystości.',
   local: 'Bez klucza i natychmiast. Wymaga jasnego, jednolitego tła.',
-  removebg: 'Usługa do wycinania — radzi sobie ze zdjęciami z warsztatu.',
+  removebg: 'Usługa do wycinania tła — radzi sobie ze zdjęciami z warsztatu.',
 }
 
 // What can actually run: methods an admin has switched on and given a key to.

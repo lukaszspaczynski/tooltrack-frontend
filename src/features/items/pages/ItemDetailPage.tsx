@@ -277,7 +277,6 @@ export function ItemDetailPage() {
         <PhotoPanel
           canEdit={can('catalog.write')}
           label={item.name}
-          kind={item.kind}
           owner={{ id: item.id }}
           reference={reference}
           // Brand and model identify a machine; the name alone would find a

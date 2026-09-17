@@ -456,15 +456,13 @@ function PhotoTile({
             <Group gap={2} wrap="nowrap">
               <Tooltip
                 label={
-                  photo.source === 'edit'
-                    ? t('To zdjęcie już jest wycięte')
-                    : t('Wytnij samo narzędzie')
+                  photo.source === 'edit' ? t('Z tego zdjęcia już wycięto tło') : t('Wytnij tło')
                 }
               >
                 <ActionIcon
                   variant="subtle"
                   color="grape"
-                  aria-label={t('Wytnij samo narzędzie')}
+                  aria-label={t('Wytnij tło')}
                   disabled={photo.source === 'edit'}
                   onClick={onCutout}
                 >

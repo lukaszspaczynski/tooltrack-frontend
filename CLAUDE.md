@@ -216,8 +216,16 @@ formality — it names the cards the selection belongs to, says which are cases
 and which are items, and calls out the main photos, because those change what
 the grids show.
 
-`CutoutStudio.tsx` is the wand: method, its parameters, original and result
-side by side, and a save that only happens when the person says so. The method
+`CutoutStudio.tsx` is the wand — **wycinanie tła** on screen, because that is
+what it does and what every service that does it calls it. It used to say
+"wytnij samo narzędzie", which named the half the method does not look at: what
+remove.bg and the local script both recognise is the background. The wording
+also stopped being true twice over — a card is not always a tool, so the label
+had to branch on the kind to say "samą skrzynkę", and that branch is gone with
+it.
+
+It shows the method, its parameters, the original and the result side by side,
+and a save that only happens when the person says so. The method
 list is built from what the server can actually run: a method switched off in
 settings is not offered, nor is a service whose key is missing, and when
 nothing is available the wand is not offered at all. There is no default

@@ -67,7 +67,7 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
 
   if (settings.isError) {
     return (
-      <Alert color="red" variant="light" title={t('Nie udało się wczytać ustawień wycinania')}>
+      <Alert color="red" variant="light" title={t('Nie udało się wczytać ustawień wycinania tła')}>
         {(settings.error as Error).message}
       </Alert>
     )
@@ -83,7 +83,7 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
     <Stack gap="xs">
       <Group gap="xs">
         <IconWand size={18} />
-        <Text fw={600}>{t('Metody wycinania')}</Text>
+        <Text fw={600}>{t('Metody wycinania tła')}</Text>
         {isAdmin ? (
           <Badge size="xs" variant="light">
             tylko administrator
@@ -92,7 +92,7 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
       </Group>
       <Text c="dimmed" size="sm">
         {t(
-          'Różdżka przy zdjęciu otwiera ekran wycinania, gdzie metodę wybiera się dla każdego zdjęcia osobno, widząc oryginał obok wyniku. Tutaj decyduje się,',
+          'Różdżka przy zdjęciu otwiera ekran wycinania tła, gdzie metodę wybiera się dla każdego zdjęcia osobno, widząc oryginał obok wyniku. Tutaj decyduje się,',
         )}{' '}
         <strong>{t('które metody są tam do wyboru')}</strong>
         {t('. Wycinka zawsze powstaje jako nowe zdjęcie — oryginał zostaje.')}
@@ -124,12 +124,14 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
               multiline
               w={280}
               label={t(
-                'Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasne narzędzie gubi fragmenty.',
+                'Suma składowych RGB, od której piksel liczy się jako tło. 735 to średnio 245 na kanał. Obniż przy szarawym tle, podnieś, gdy jasny przedmiot gubi fragmenty.',
               )}
             >
               <NumberInput
                 label={t('Domyślny próg jasności tła')}
-                description={t('Punkt wyjścia dla metody lokalnej na ekranie wycinania (1–765)')}
+                description={t(
+                  'Punkt wyjścia dla metody lokalnej na ekranie wycinania tła (1–765)',
+                )}
                 min={1}
                 max={765}
                 defaultValue={settings.data.threshold}
@@ -229,7 +231,7 @@ function MethodCard({
             </Text>
           </Stack>
 
-          <Tooltip label={t('Wyłączona metoda nie pojawia się na ekranie wycinania')}>
+          <Tooltip label={t('Wyłączona metoda nie pojawia się na ekranie wycinania tła')}>
             <div>
               <Switch
                 checked={method.enabled}
