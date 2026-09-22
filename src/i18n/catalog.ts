@@ -226,6 +226,8 @@ export const EN: Record<string, string> = {
     'Where the kit stands: a workshop, a yard, a site.',
   Miejsce: 'Place',
   'Miejsce „{name}” zniknie z listy.': 'The place “{name}” will disappear from the list.',
+  'Przeniesiono do „{name}”': 'Moved to “{name}”',
+  'Karta nie ma już miejsca': 'The card no longer has a place',
   Miejscowość: 'Town',
   'Nic nie pasuje': 'Nothing matches',
   'Nic tu nie stoi.': 'Nothing is kept here.',

@@ -1,4 +1,4 @@
-import { Group, Select } from '@mantine/core'
+import { Group, Select, type SelectProps } from '@mantine/core'
 import { IconMapPin } from '@tabler/icons-react'
 import { t } from '../../../i18n'
 import { addressSummary } from '../presentation'
@@ -15,11 +15,17 @@ export function AddressSelect({
   disabled,
   label,
   onChange,
+  openAtOnce,
+  style,
   value,
 }: {
   disabled?: boolean
   label?: string
   onChange: (addressId: null | number) => void
+  // Focused with its list open, for the field that swaps itself for this
+  // picker on a detail page: the press that opened it was the press to choose.
+  openAtOnce?: boolean
+  style?: SelectProps['style']
   value: null | number
 }) {
   // The whole list, because it is short — and through the same hook the badges
@@ -56,6 +62,13 @@ export function AddressSelect({
       onChange={(next) => onChange(next === null || next === '' ? null : Number(next))}
       disabled={disabled || (data.length === 0 && !pending)}
       clearable
+      // Tapping the place already chosen is not asking for none: the cross is
+      // there for that, and a select that clears itself on a repeated tap is
+      // one that loses a place on a phone.
+      allowDeselect={false}
+      autoFocus={openAtOnce}
+      defaultDropdownOpened={openAtOnce}
+      style={style}
       searchable={data.length > 8}
       nothingFoundMessage={t('Nic nie pasuje')}
     />

@@ -32,6 +32,7 @@ import { ApiError, hasCode } from '../../../api/client'
 import { deleteItem, duplicateItem, fetchItem, updateItem } from '../../../api/items'
 import type { Item, ItemDetail, ItemFields } from '../../../api/types'
 import { AddressField } from '../../addresses/components/AddressField'
+import { useAddresses } from '../../addresses/useAddresses'
 import { ReferenceField } from '../../../components/ReferenceField'
 import { COUNTS, t, tCount } from '../../../i18n'
 import { fetchExclusivePhotos } from '../../../api/photos'
@@ -53,6 +54,7 @@ export function ItemDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { can } = useSession()
+  const { addressById } = useAddresses()
 
   const [editing, setEditing] = useState(false)
   const [confirmOpen, confirm] = useDisclosure(false)
@@ -113,6 +115,28 @@ export function ItemDetailPage() {
         message: t('Utworzono kopię „{name}”', { name: copy.name }),
       })
       navigate(`/items/${copy.id}`)
+    },
+    onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
+  })
+
+  // Moving the thing without opening the form: one field, saved as soon as it
+  // is chosen. Its own mutation rather than `save`, because the outcome is
+  // named after the place — "moved to the yard" is the confirmation somebody
+  // standing in the yard is looking for — and because a place's count of
+  // items changes with it.
+  const relocate = useMutation({
+    mutationFn: (addressId: null | number) => updateItem(itemId, { addressId }),
+    onSuccess: async ({ item }) => {
+      queryClient.setQueryData(['item', itemId], { item })
+      await queryClient.invalidateQueries({ queryKey: ['items'] })
+      await queryClient.invalidateQueries({ queryKey: ['addresses'] })
+      const address = addressById(item.addressId)
+      notifications.show({
+        color: 'teal',
+        message: address
+          ? t('Przeniesiono do „{name}”', { name: address.name })
+          : t('Karta nie ma już miejsca'),
+      })
     },
     onError: (error) => notifications.show({ color: 'red', message: (error as Error).message }),
   })
@@ -239,7 +263,13 @@ export function ItemDetailPage() {
             submitLabel={t('Zapisz zmiany')}
           />
         ) : (
-          <CardDetails item={item} />
+          <CardDetails
+            item={item}
+            onRelocate={
+              can('catalog.write') ? (addressId) => relocate.mutate(addressId) : undefined
+            }
+            relocating={relocate.isPending}
+          />
         )}
       </Paper>
 
@@ -360,7 +390,15 @@ export function ItemDetailPage() {
   )
 }
 
-function CardDetails({ item }: { item: ItemDetail }) {
+function CardDetails({
+  item,
+  onRelocate,
+  relocating,
+}: {
+  item: ItemDetail
+  onRelocate?: (addressId: null | number) => void
+  relocating?: boolean
+}) {
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
@@ -389,7 +427,7 @@ function CardDetails({ item }: { item: ItemDetail }) {
 
       <Field label={t('Notatki')} value={item.notes} multiline />
 
-      <AddressField addressId={item.addressId} />
+      <AddressField addressId={item.addressId} onChange={onRelocate} pending={relocating} />
 
       <ReferenceField url={item.referenceUrl} />
 
