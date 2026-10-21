@@ -8,8 +8,8 @@ API in the sibling `Backend/` directory. No server of its own: the build is a
 static bundle.
 
 - [CLAUDE.md](CLAUDE.md) — how the code is organised and why.
-- [`../Backend/docs/api.md`](../Backend/docs/api.md) — the API this client is
-  written against.
+- [`tooltrack-backend/docs/api.md`](https://github.com/lukaszspaczynski/tooltrack-backend/blob/main/docs/api.md)
+  — the API this client is written against.
 
 ## Local development
 
