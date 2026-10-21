@@ -44,23 +44,23 @@ npm run user:admin -- --email you@example.com
 
 ## What is in the app
 
-| Screen                  | Needs          | What it does                                                                                     |
-| ----------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| Logowanie / Rejestracja | —              | Sign in, or open a viewer account                                                                |
-| Katalog                 | `tools.read`   | Search, filter by category and condition, sort, paginate                                         |
-| Karta narzędzia         | `tools.read`   | Everything on the card; edit and delete with `tools.write`                                       |
-| Nowe narzędzie          | `tools.write`  | Add a card; the category field suggests the ones already in use                                  |
-| Zdjęcia narzędzia       | `tools.write`  | Upload from a phone, paste a URL, or pick from the web search — multi-select, stored server-side |
-| Wycinanie               | `tools.write`  | Wand on a photo: method, parameters, original and result side by side, saved only on approval    |
-| Biblioteka zdjęć        | `tools.read`   | Every photo in the system; delete one or a batch, with the affected tools named first            |
-| Ustawienia              | `tools.read`   | Which search engines my account uses; API keys for the whole installation with `users.manage`    |
-| Użytkownicy             | `users.manage` | Change roles, disable and delete accounts                                                        |
+| Screen             | Needs          | What it does                                                                                     |
+| ------------------ | -------------- | ------------------------------------------------------------------------------------------------ |
+| Sign in / Sign up  | —              | Sign in, or open a viewer account                                                                |
+| Catalog            | `tools.read`   | Search, filter by category and condition, sort, paginate                                         |
+| Item card          | `tools.read`   | Everything on the card; edit and delete with `tools.write`                                       |
+| New item           | `tools.write`  | Add a card; the category field suggests the ones already in use                                  |
+| Item photos        | `tools.write`  | Upload from a phone, paste a URL, or pick from the web search — multi-select, stored server-side |
+| Background removal | `tools.write`  | Wand on a photo: method, parameters, original and result side by side, saved only on approval    |
+| Photos             | `tools.read`   | Every photo in the system; delete one or a batch, with the affected tools named first            |
+| Settings           | `tools.read`   | Which search engines my account uses; API keys for the whole installation with `users.manage`    |
+| Users              | `users.manage` | Change roles, disable and delete accounts                                                        |
 
 The menu and every button are rendered from the `capabilities` list the API
 returns, so nothing is offered that the server would refuse.
 
 Photos are served by the API (`/api/tools/:id/photos/:photoId/file`) and used
-directly as `<img src>`. The web search behind _Znajdź w internecie_ only runs
+directly as `<img src>`. The web search behind _Search the web_ only runs
 when its button is pressed — see the backend README for the provider it uses
 and how to point it at Google.
 
