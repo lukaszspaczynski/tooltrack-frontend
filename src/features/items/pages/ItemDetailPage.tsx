@@ -432,7 +432,10 @@ function CardDetails({
       <ReferenceField url={item.referenceUrl} />
 
       <Text size="xs" c="dimmed">
-        Dodano {formatDateTime(item.createdAt)} · ostatnia zmiana {formatDateTime(item.updatedAt)}
+        {t('Dodano {created} · ostatnia zmiana {updated}', {
+          created: formatDateTime(item.createdAt),
+          updated: formatDateTime(item.updatedAt),
+        })}
       </Text>
     </Stack>
   )

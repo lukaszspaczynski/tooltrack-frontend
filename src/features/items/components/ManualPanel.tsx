@@ -243,7 +243,7 @@ export function ManualPanel({
           <Group gap="sm" align="flex-end" wrap="wrap">
             <TextInput
               label={t('Albo wklej adres pliku PDF')}
-              placeholder="https://…/instrukcja.pdf"
+              placeholder={t('https://…/instrukcja.pdf')}
               leftSection={<IconLink size={16} />}
               value={url}
               onChange={(event) => setUrl(event.currentTarget.value)}

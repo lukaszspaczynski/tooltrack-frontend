@@ -200,7 +200,7 @@ export function AddManualModal({ onClose, opened }: { onClose: () => void; opene
         {way === 'url' ? (
           <TextInput
             label={t('Adres pliku PDF')}
-            placeholder="https://…/instrukcja.pdf"
+            placeholder={t('https://…/instrukcja.pdf')}
             leftSection={<IconLink size={16} />}
             value={url}
             onChange={(event) => setUrl(event.currentTarget.value)}

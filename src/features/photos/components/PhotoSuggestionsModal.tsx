@@ -185,7 +185,7 @@ export function PhotoSuggestionsModal({
             <Group gap="sm" align="center">
               <Checkbox
                 size="xs"
-                label={`Zaznacz wszystkie (${suggestions.length})`}
+                label={t('Zaznacz wszystkie ({n})', { n: suggestions.length })}
                 checked={allSelected}
                 indeterminate={selected.length > 0 && !allSelected}
                 onChange={() =>
@@ -200,7 +200,7 @@ export function PhotoSuggestionsModal({
               {byProvider.size > 1 ? (
                 <>
                   <Text size="xs" c="dimmed">
-                    tylko z:
+                    {t('tylko z:')}
                   </Text>
                   {[...byProvider].map(([provider, urls]) => (
                     <Button
@@ -231,8 +231,10 @@ export function PhotoSuggestionsModal({
 
             <Group justify="space-between">
               <Text size="sm" c="dimmed">
-                {`Wyniki z: ${(search.data?.providers ?? []).map(providerLabel).join(', ')}`}
-                {selected.length > 0 ? ` · zaznaczono ${selected.length}` : ''}
+                {t('Wyniki z: {providers}', {
+                  providers: (search.data?.providers ?? []).map(providerLabel).join(', '),
+                })}
+                {selected.length > 0 ? ` · ${t('zaznaczono {n}', { n: selected.length })}` : ''}
               </Text>
               <Group gap="sm">
                 <Button variant="default" onClick={onClose}>

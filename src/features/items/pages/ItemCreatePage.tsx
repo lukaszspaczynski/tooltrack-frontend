@@ -20,7 +20,7 @@ export function ItemCreatePage() {
       // The list and the category list both changed.
       await queryClient.invalidateQueries({ queryKey: ['items'] })
       await queryClient.invalidateQueries({ queryKey: ['item-categories'] })
-      notifications.show({ color: 'teal', message: `Dodano „${item.name}"` })
+      notifications.show({ color: 'teal', message: t('Dodano „{name}"', { name: item.name }) })
       navigate(`/items/${item.id}`, { replace: true })
     },
     onError: (error) => {

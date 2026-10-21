@@ -208,7 +208,7 @@ export function PhotoLibraryPage() {
                 fetches. The same guards apply — the URL is checked before
                 anything is opened, and the bytes decide what the file is. */}
             <TextInput
-              placeholder="albo wklej adres https://…"
+              placeholder={t('albo wklej adres https://…')}
               value={url}
               onChange={(event) => setUrl(event.currentTarget.value)}
               onKeyDown={(event) => {
@@ -406,7 +406,7 @@ function PhotoTile({
 
         {photo.owners.length === 0 && photo.logoForBrand === null ? (
           <Text size="xs" fw={600} c="dimmed" lineClamp={1}>
-            bez przypisania
+            {t('bez przypisania')}
           </Text>
         ) : (
           // Everything this picture is used for: every card showing it, and
@@ -436,7 +436,7 @@ function PhotoTile({
                 size="xs"
                 fw={600}
                 lineClamp={1}
-                title={`Logo producenta ${photo.logoForBrand.name}`}
+                title={t('Logo producenta {name}', { name: photo.logoForBrand.name })}
               >
                 {photo.logoForBrand.name}
                 <Text span size="xs" c="dimmed" fw={400}>

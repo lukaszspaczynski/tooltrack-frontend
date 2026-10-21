@@ -138,7 +138,7 @@ export function ItemForm({
 
         <Autocomplete
           label={t('Kategoria')}
-          placeholder="Wiertarki"
+          placeholder={t('Wiertarki')}
           data={categories.data?.categories.map((entry) => entry.category) ?? []}
           key={form.key('category')}
           {...form.getInputProps('category')}
@@ -150,7 +150,7 @@ export function ItemForm({
             placeholder={t('Wybierz producenta')}
             description={
               <>
-                Nowego dodasz na ekranie{' '}
+                {t('Nowego dodasz na ekranie')}{' '}
                 <Anchor component={Link} to="/brands" size="xs">
                   {t('Producenci')}
                 </Anchor>

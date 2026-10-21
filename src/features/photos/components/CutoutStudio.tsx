@@ -295,7 +295,7 @@ function missingMethods(settings: CutoutSettings | undefined): string[] {
 
   return settings.methods
     .filter((entry) => !entry.configured || !entry.enabled)
-    .map((entry) => `${entry.label} (${entry.configured ? t('wyłączona') : 'brak klucza'})`)
+    .map((entry) => `${entry.label} (${entry.configured ? t('wyłączona') : t('brak klucza')})`)
 }
 
 function Pane({

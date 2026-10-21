@@ -50,7 +50,10 @@ export function OrganizersPage() {
       await queryClient.invalidateQueries({ queryKey: ['organizers'] })
       await queryClient.invalidateQueries({ queryKey: ['organizer-item-picker'] })
       wizard.close()
-      notifications.show({ color: 'teal', message: `Utworzono organizer ${organizer.number}` })
+      notifications.show({
+        color: 'teal',
+        message: t('Utworzono organizer {number}', { number: organizer.number }),
+      })
       // Straight to the new one: the reason to create it is to look at it.
       navigate(`/organizers/${organizer.id}`)
     },

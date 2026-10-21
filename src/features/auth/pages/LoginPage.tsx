@@ -118,7 +118,7 @@ export function LoginPage() {
 
               <TextInput
                 label={t('E-mail')}
-                placeholder="ty@example.com"
+                placeholder={t('ty@example.com')}
                 autoComplete="email"
                 required
                 key={form.key('email')}

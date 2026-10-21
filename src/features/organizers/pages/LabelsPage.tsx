@@ -207,7 +207,8 @@ export function LabelsPage() {
               loading={redraw.isPending}
               onClick={() => redraw.mutate(selected)}
             >
-              Generuj ponownie{selected.length > 0 ? ` (${selected.length})` : ''}
+              {t('Generuj ponownie')}
+              {selected.length > 0 ? ` (${selected.length})` : ''}
             </Button>
           ) : null}
         </Group>
@@ -334,7 +335,7 @@ export function LabelsPage() {
               narrows to ten rows, or a request that failed and left none,
               would otherwise strand the screen in a view it cannot leave. */}
           <Button variant="subtle" size="sm" onClick={() => show(!all)}>
-            {all ? t('Po stronach') : `Wszystkie (${allShownCount(total)})`}
+            {all ? t('Po stronach') : t('Wszystkie ({n})', { n: allShownCount(total) })}
           </Button>
         </Group>
       ) : null}
@@ -373,7 +374,10 @@ function LabelTile({
             {label.previewUrl ? (
               <Image
                 src={apiFileUrl(label.previewUrl)}
-                alt={`Etykieta ${label.widthMm} × ${label.heightMm} mm`}
+                alt={t('Etykieta {width} × {height} mm', {
+                  height: label.heightMm,
+                  width: label.widthMm,
+                })}
                 h={110}
                 fit="contain"
                 // Two hundred tiles on one screen is two hundred preview files:
@@ -435,7 +439,7 @@ function LabelTile({
             </Anchor>
             <Text size="xs" c="dimmed">
               {label.widthMm} × {label.heightMm} mm ·{' '}
-              {label.options.printReady === false ? 'sama grafika' : 'do druku'}
+              {label.options.printReady === false ? t('sama grafika') : t('do druku')}
             </Text>
             <Text size="xs" c="dimmed">
               {formatDateTime(label.createdAt)} · {Math.round(label.byteSize / 1024)} kB

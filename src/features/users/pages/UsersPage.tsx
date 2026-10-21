@@ -41,7 +41,10 @@ export function UsersPage() {
       updateUser(id, changes),
     onSuccess: async ({ user }) => {
       await queryClient.invalidateQueries({ queryKey: ['users'] })
-      notifications.show({ color: 'teal', message: `Zapisano zmiany dla ${user.email}` })
+      notifications.show({
+        color: 'teal',
+        message: t('Zapisano zmiany dla {email}', { email: user.email }),
+      })
     },
     // The API refuses two things this screen can ask for — changing your own
     // role, and removing the last active admin — and its message says which.

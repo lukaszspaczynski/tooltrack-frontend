@@ -35,7 +35,7 @@ export function OrganizerCard({ item }: { item: Organizer }) {
           <Thumbnail
             alt={item.case.name}
             isCase
-            label={`${item.case.name} (skrzynka)`}
+            label={t('{name} (skrzynka)', { name: item.case.name })}
             url={item.case.primaryPhotoUrl}
           />
           {item.items.map((item) => (

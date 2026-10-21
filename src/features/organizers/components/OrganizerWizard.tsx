@@ -76,10 +76,12 @@ export function OrganizerWizard({
     <Modal opened={opened} onClose={onClose} title={t('Nowy organizer')} size="xl" centered>
       <Stack gap="md">
         <Stepper active={step} onStepClick={setStep} size="sm" allowNextStepsSelect={false}>
-          <Stepper.Step label={t('Skrzynka')} description={chosenCase?.name ?? 'nie wybrano'} />
+          <Stepper.Step label={t('Skrzynka')} description={chosenCase?.name ?? t('nie wybrano')} />
           <Stepper.Step
             label={t('Narzędzia')}
-            description={items.length > 0 ? `wybrano ${items.length}` : 'opcjonalnie'}
+            description={
+              items.length > 0 ? t('wybrano {n}', { n: items.length }) : t('opcjonalnie')
+            }
           />
           <Stepper.Step label={t('Nazwa')} />
         </Stepper>
@@ -119,7 +121,7 @@ export function OrganizerWizard({
             <NumberInput
               label={t('Numer porządkowy')}
               description={t('Zostaw puste, żeby dostać kolejny wolny')}
-              placeholder="kolejny wolny"
+              placeholder={t('kolejny wolny')}
               min={1}
               allowDecimal={false}
               value={number}

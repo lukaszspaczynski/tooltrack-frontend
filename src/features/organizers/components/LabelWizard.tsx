@@ -141,16 +141,19 @@ export function LabelWizard({
         <Stepper active={step} onStepClick={setStep} size="sm" allowNextStepsSelect={false}>
           <Stepper.Step
             label={t('Rozmiar')}
-            description={slot ? `${slot.widthMm} × ${slot.heightMm} mm` : 'nie wybrano'}
+            description={slot ? `${slot.widthMm} × ${slot.heightMm} mm` : t('nie wybrano')}
           />
           <Stepper.Step
             label={t('Szablon')}
             description={
-              template === 'number' ? 'numer' : template === 'contents' ? t('zawartość') : '—'
+              template === 'number' ? t('numer') : template === 'contents' ? t('zawartość') : '—'
             }
           />
           <Stepper.Step label={t('Opcje')} />
-          <Stepper.Step label={t('Plik')} description={printReady ? 'do druku' : 'sama grafika'} />
+          <Stepper.Step
+            label={t('Plik')}
+            description={printReady ? t('do druku') : t('sama grafika')}
+          />
         </Stepper>
 
         {step === 0 ? (
@@ -273,7 +276,10 @@ export function LabelWizard({
                     }}
                   >
                     <Group gap="lg">
-                      <Radio value="organizer" label={`Nazwa organizera („${organizer.name}")`} />
+                      <Radio
+                        value="organizer"
+                        label={t('Nazwa organizera („{name}")', { name: organizer.name })}
+                      />
                       <Radio value="custom" label={t('Własny tekst')} />
                     </Group>
                   </Radio.Group>
@@ -282,7 +288,7 @@ export function LabelWizard({
                       value={titleText}
                       onChange={(event) => setTitleText(event.currentTarget.value)}
                       maxLength={MAX_TEXT}
-                      placeholder="np. Akumulatory"
+                      placeholder={t('np. Akumulatory')}
                       aria-label={t('Własna nazwa na etykiecie')}
                     />
                   ) : null}
@@ -320,7 +326,7 @@ export function LabelWizard({
                         label={t('Modele urządzeń')}
                         description={
                           automaticModels
-                            ? `Na tej etykiecie: „${automaticModels}"`
+                            ? t('Na tej etykiecie: „{models}"', { models: automaticModels })
                             : t('Żadne narzędzie tutaj nie ma wpisanego modelu')
                         }
                         disabled={automaticModels === ''}
@@ -333,7 +339,7 @@ export function LabelWizard({
                       value={namesText}
                       onChange={(event) => setNamesText(event.currentTarget.value)}
                       maxLength={MAX_TEXT}
-                      placeholder="np. 18 V + 12 V, Li-Ion"
+                      placeholder={t('np. 18 V + 12 V, Li-Ion')}
                       aria-label={t('Własny podpis na etykiecie')}
                     />
                   ) : null}

@@ -279,7 +279,7 @@ export function BrandsPage() {
       >
         <Stack gap="md">
           <Text size="sm">
-            Marka „{pendingDelete?.name}" zniknie z listy.{' '}
+            {t('Marka „{name}" zniknie z listy.', { name: pendingDelete?.name ?? '' })}{' '}
             {pendingDelete && pendingDelete.itemCount > 0
               ? t(
                   '{items} zostaną w katalogu i zachowają nazwę producenta jako tekst — stracą tylko powiązanie z tą pozycją.',
@@ -338,7 +338,7 @@ function BrandForm({
             work. */}
         <ColorInput
           label={t('Wiodący kolor')}
-          placeholder="#122447 albo 18 36 71"
+          placeholder={t('#122447 albo 18 36 71')}
           format="hex"
           value={color}
           onChange={setColor}

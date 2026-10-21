@@ -156,7 +156,7 @@ export function OrganizerDetailPage() {
       // trusts and one they check by hand.
       notifications.show(
         failed.length === 0
-          ? { color: 'teal', message: `Narysowano od nowa: ${refreshed}` }
+          ? { color: 'teal', message: t('Narysowano od nowa: {n}', { n: refreshed }) }
           : {
               color: 'orange',
               message: t('Narysowano od nowa: {done}. Nie udało się: {reasons}', {
@@ -194,7 +194,7 @@ export function OrganizerDetailPage() {
 
       notifications.show(
         failed.length === 0
-          ? { color: 'teal', message: `Wygenerowano etykiety: ${made}` }
+          ? { color: 'teal', message: t('Wygenerowano etykiety: {n}', { n: made }) }
           : {
               color: 'orange',
               message: t('Wygenerowano: {done}. Nie udało się: {reasons}', {
@@ -369,7 +369,7 @@ export function OrganizerDetailPage() {
                             size="sm"
                             variant="subtle"
                             color="gray"
-                            aria-label={`Wyjmij ${item.name}`}
+                            aria-label={t('Wyjmij {name}', { name: item.name })}
                             loading={takeOut.isPending && takeOut.variables === item.id}
                             onClick={() => takeOut.mutate(item.id)}
                           >
@@ -405,7 +405,7 @@ export function OrganizerDetailPage() {
                     loading={addTools.isPending}
                     onClick={() => addTools.mutate(picked)}
                   >
-                    Dodaj {picked.length > 0 ? `(${picked.length})` : ''}
+                    {t('Dodaj')} {picked.length > 0 ? `(${picked.length})` : ''}
                   </Button>
                 </Group>
               </Stack>
@@ -423,7 +423,9 @@ export function OrganizerDetailPage() {
           <Group justify="space-between" align="center">
             <Group gap="xs">
               <IconTag size={18} />
-              <Text fw={600}>Etykiety ({organizer.labels.length})</Text>
+              <Text fw={600}>
+                {t('Etykiety')} ({organizer.labels.length})
+              </Text>
               {/* The same rows on the screen that holds every organizer's,
                   already filtered to this one — that is where a shelf is
                   drawn again, and this panel is where somebody is standing
@@ -516,7 +518,10 @@ export function OrganizerDetailPage() {
                       {label.previewUrl ? (
                         <Image
                           src={apiFileUrl(label.previewUrl)}
-                          alt={`Etykieta ${label.widthMm} × ${label.heightMm} mm`}
+                          alt={t('Etykieta {width} × {height} mm', {
+                            height: label.heightMm,
+                            width: label.widthMm,
+                          })}
                           h={110}
                           fit="contain"
                         />
@@ -555,7 +560,7 @@ export function OrganizerDetailPage() {
                         </Anchor>
                         <Text size="xs" c="dimmed">
                           {label.widthMm} × {label.heightMm} mm ·{' '}
-                          {label.options.printReady === false ? 'sama grafika' : 'do druku'}
+                          {label.options.printReady === false ? t('sama grafika') : t('do druku')}
                         </Text>
                         <Text size="xs" c="dimmed">
                           {formatDateTime(label.createdAt)} · {Math.round(label.byteSize / 1024)} kB
@@ -666,7 +671,7 @@ function OrganizerDetails({ organizer }: { organizer: Organizer }) {
       ) : null}
 
       <Text size="xs" c="dimmed">
-        Zmieniono {formatDateTime(organizer.updatedAt)}
+        {t('Zmieniono {date}', { date: formatDateTime(organizer.updatedAt) })}
       </Text>
     </Stack>
   )

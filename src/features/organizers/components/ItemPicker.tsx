@@ -131,7 +131,7 @@ function ToolTile({
             checked={checked}
             onChange={onToggle}
             onClick={(event) => event.stopPropagation()}
-            aria-label={`Wybierz ${item.name}`}
+            aria-label={t('Wybierz {name}', { name: item.name })}
             style={{ left: 4, position: 'absolute', top: 4 }}
           />
         </div>

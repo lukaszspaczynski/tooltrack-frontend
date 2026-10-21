@@ -194,7 +194,7 @@ export function ExistingPhotoPicker({
               loading={saving}
               onClick={() => onPick(selected)}
             >
-              Przypisz {selected.length > 0 ? `(${selected.length})` : ''}
+              {t('Przypisz')} {selected.length > 0 ? `(${selected.length})` : ''}
             </Button>
           </Group>
         </Group>

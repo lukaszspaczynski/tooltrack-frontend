@@ -145,7 +145,7 @@ export function SettingsPage() {
             <IconKey size={18} />
             <Text fw={600}>{t('Klucze wyszukiwarek')}</Text>
             <Badge size="xs" variant="light">
-              tylko administrator
+              {t('tylko administrator')}
             </Badge>
           </Group>
           <Text c="dimmed" size="sm">
@@ -258,11 +258,11 @@ function GlobalEngineCard({
               <Text fw={500}>{engine.label}</Text>
               {engine.configured ? (
                 <Badge size="xs" color="teal" variant="light">
-                  skonfigurowana
+                  {t('skonfigurowana')}
                 </Badge>
               ) : engine.requiresKey ? (
                 <Badge size="xs" color="gray" variant="light">
-                  brak klucza
+                  {t('brak klucza')}
                 </Badge>
               ) : null}
               {engine.keySource === 'environment' ? (
@@ -324,8 +324,12 @@ function GlobalEngineCard({
           <Group align="flex-end" gap="sm" grow>
             <PasswordInput
               label={engine.keyLabel}
-              placeholder={engine.keyHint || 'wklej klucz'}
-              description={engine.keyHint ? `Zapisany: ${engine.keyHint}` : t('Nie ustawiono')}
+              placeholder={engine.keyHint || t('wklej klucz')}
+              description={
+                engine.keyHint
+                  ? t('Zapisany: {hint}', { hint: engine.keyHint })
+                  : t('Nie ustawiono')
+              }
               value={key}
               onChange={(event) => setKey(event.currentTarget.value)}
               size="sm"
@@ -333,9 +337,11 @@ function GlobalEngineCard({
             {engine.requiresSecret ? (
               <PasswordInput
                 label={engine.secretLabel}
-                placeholder={engine.secretHint || 'wklej identyfikator'}
+                placeholder={engine.secretHint || t('wklej identyfikator')}
                 description={
-                  engine.secretHint ? `Zapisany: ${engine.secretHint}` : t('Nie ustawiono')
+                  engine.secretHint
+                    ? t('Zapisany: {hint}', { hint: engine.secretHint })
+                    : t('Nie ustawiono')
                 }
                 value={secret}
                 onChange={(event) => setSecret(event.currentTarget.value)}

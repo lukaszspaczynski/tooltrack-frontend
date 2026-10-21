@@ -86,7 +86,7 @@ export function CutoutSection({ isAdmin }: { isAdmin: boolean }) {
         <Text fw={600}>{t('Metody wycinania tła')}</Text>
         {isAdmin ? (
           <Badge size="xs" variant="light">
-            tylko administrator
+            {t('tylko administrator')}
           </Badge>
         ) : null}
       </Group>
@@ -174,7 +174,7 @@ function MethodRow({ method }: { method: CutoutMethodSettings }) {
           </Text>
         </Stack>
         <Badge size="xs" color={available ? 'teal' : 'gray'} variant="light">
-          {available ? t('dostępna') : method.configured ? t('wyłączona') : 'brak klucza'}
+          {available ? t('dostępna') : method.configured ? t('wyłączona') : t('brak klucza')}
         </Badge>
       </Group>
     </Card>
@@ -211,7 +211,7 @@ function MethodCard({
                 )
               ) : (
                 <Badge size="xs" color="gray" variant="light">
-                  brak klucza
+                  {t('brak klucza')}
                 </Badge>
               )}
               {method.keySource === 'environment' ? (
@@ -247,8 +247,12 @@ function MethodCard({
           <Group align="flex-end" gap="sm" grow preventGrowOverflow={false}>
             <PasswordInput
               label={method.keyLabel}
-              placeholder={method.keyHint || 'nie ustawiono'}
-              description={method.configured ? `Zapisany: ${method.keyHint}` : t('Nie ustawiono')}
+              placeholder={method.keyHint || t('nie ustawiono')}
+              description={
+                method.configured
+                  ? t('Zapisany: {hint}', { hint: method.keyHint })
+                  : t('Nie ustawiono')
+              }
               value={key}
               onChange={(event) => setKey(event.currentTarget.value)}
               size="sm"

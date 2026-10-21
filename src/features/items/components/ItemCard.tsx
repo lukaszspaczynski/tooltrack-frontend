@@ -85,7 +85,7 @@ export function ItemCard({ item }: { item: ItemSummary }) {
             </Badge>
           ) : (
             <Text size="xs" c="dimmed">
-              bez kategorii
+              {t('bez kategorii')}
             </Text>
           )}
           <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
@@ -99,11 +99,16 @@ export function ItemCard({ item }: { item: ItemSummary }) {
 
 function PlacementBadge({ placement }: { placement: NonNullable<ItemSummary['organizer']> }) {
   return (
-    <Tooltip label={`Organizer ${placement.number} · ${placement.caseName}`}>
+    <Tooltip
+      label={t('Organizer {number} · {case}', {
+        case: placement.caseName,
+        number: placement.number,
+      })}
+    >
       <Link
         to={`/organizers/${placement.organizerId}`}
         className="above-stretched-link"
-        aria-label={`Organizer ${placement.number}`}
+        aria-label={t('Organizer {number}', { number: placement.number })}
         style={{ position: 'absolute', right: 6, textDecoration: 'none', top: 6 }}
       >
         <Group
