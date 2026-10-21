@@ -12,6 +12,26 @@ static bundle.
 - [`tooltrack-backend/docs/api.md`](https://github.com/lukaszspaczynski/tooltrack-backend/blob/main/docs/api.md)
   — the API this client is written against.
 
+## Screenshots
+
+The interface is in Polish and English; these are the English one. The
+catalog's own data — names, categories, parameters — is in Polish, the way the
+crew typed it.
+
+![The catalog: item cards with photos, filtered to tools](docs/screenshots/catalog.jpg)
+
+Importing a card from a maker's page: paste the address, and the card arrives
+with its parameters, manuals and photos.
+
+![Importing a lawn mower from bosch-diy.com](docs/screenshots/import.gif)
+
+|                                                                                      |                                                                                      |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| ![An item's photo gallery](docs/screenshots/item-photos.jpg)                         | ![Background removal: original and result side by side](docs/screenshots/cutout.jpg) |
+| Photos on a card: upload, paste a link, search the web or reuse a stored one         | Background removal, previewed before anything is saved                               |
+| ![An organiser: a case and the batteries kept in it](docs/screenshots/organiser.jpg) | ![Every generated label, ready to print as one sheet](docs/screenshots/labels.jpg)   |
+| An organiser — what is in box 15                                                     | The labels, printed as one A4 sheet                                                  |
+
 ## Local development
 
 The API has to be running first:
