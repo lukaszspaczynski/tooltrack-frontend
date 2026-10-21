@@ -607,6 +607,11 @@ export const EN: Record<string, string> = {
   Oryginał: 'Original',
   'Po wycięciu tła': 'After the background',
   'bez tła': 'no background',
+  'z wyszukiwarki': 'from a search',
+  'z adresu': 'from an address',
+  wgrane: 'uploaded',
+  Wgrane: 'Uploaded',
+  Nieprzypisane: 'Unassigned',
   'Żadna metoda nie jest dostępna, więc różdżka przy zdjęciach nie zadziała.':
     'No method is available, so the wand on the photos will not work.',
   'Wyłączona metoda nie pojawia się na ekranie wycinania tła':

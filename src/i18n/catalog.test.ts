@@ -9,6 +9,20 @@ import { countLabel, interpolate, preferredLang, pluralIndex, upperCase } from '
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..')
 
+// Table entries that are names rather than phrases, and read the same in both
+// languages. Every other entry in a table needs English — telling the two apart
+// by Polish letters let "z adresu" and "wgrane" through untranslated.
+const NAMES = new Set([
+  'Brave',
+  'EAN',
+  'Gemini',
+  'Google',
+  'mistama.com',
+  'Openverse',
+  'remove.bg',
+  'SKU',
+])
+
 function sources(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry)
@@ -45,7 +59,7 @@ function phrasesInSource(): Map<string, string[]> {
     )) {
       for (const entry of table[1].matchAll(/(?:^\s*|label: )(?:\w+: )?'((?:[^'\\]|\\.)+)'/gm)) {
         const phrase = entry[1].replace(/\\'/g, "'")
-        if (/[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(phrase) || phrase in EN) {
+        if (!NAMES.has(phrase)) {
           found.set(phrase, [...(found.get(phrase) ?? []), path])
         }
       }
